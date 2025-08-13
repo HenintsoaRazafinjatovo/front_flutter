@@ -1,0 +1,41 @@
+name: flareline_template
+description: "Un template Flutter inspiré de FlareLine, personnalisable pour tes projets."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  intl: ^0.18.0 
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  cupertino_icons: ^1.0.8
+  fluentui_system_icons: ^1.1.232
+  google_fonts: ^6.1.0
+  flutter_svg: ^2.0.10
+  fl_chart: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/profile.jpg
+    - assets/logo1.png
+    - assets/logo2.jpeg
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/font_poppins/Poppins-Regular.ttf
+        - asset: assets/font_poppins/Poppins-Bold.ttf
+          weight: 700
+        - asset: assets/font_poppins/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/font_poppins/Poppins-Light.ttf
+          weight: 300

@@ -1,7 +1,18 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/article.dart';
+import '../models/mvt_stock.dart';
+import '../models/attribution.dart';
+import '../models/direction.dart';
+
+
+
 import '../services/articleService.dart';
+import '../services/directionService.dart';
+import '../services/mvt_stockService.dart';
+import '../services/attributionService.dart';
 
 class MouvementStockScreen extends StatefulWidget {
   const MouvementStockScreen({Key? key}) : super(key: key);
@@ -17,19 +28,9 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   static const Color backgroundColor = Colors.white;
   static const Color redAccent = Color(0xFFE53E3E);
 
-  // Données
-  // List<Article> articles = [
-  //   Article(id: 'ART-001', name: 'PV de stockage', stock: 15, unitPrice: 1200),
-  //   Article(id: 'ART-002', name: 'Fiche de pret', stock: 25, unitPrice: 25),
-  //   Article(id: 'ART-003', name: 'Carnet de pret', stock: 8, unitPrice: 300),
-  //   Article(id: 'ART-004', name: 'Acte de cautionnement', stock: 12, unitPrice: 80),
-  //   Article(id: 'ART-005', name: 'Contrat depot a terme', stock: 5, unitPrice: 450),
-  //   Article(id: 'ART-006', name: 'Fanambarana fanonerana', stock: 20, unitPrice: 60),
-  //   Article(id: 'ART-007', name: 'Registre de transmission', stock: 10, unitPrice: 90),
-  //   Article(id: 'ART-008', name: 'Registre de passation', stock: 18, unitPrice: 120),
-  // ];
-  
   List<Article> articles = [];
+  List<MvtStock> movements = [];
+  List<Direction> directions = [];
   Article? selectedArticle;
   String quantity = '';
    Future<void> _loadArticles() async {
@@ -44,10 +45,33 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
       );
     }
   }
-  
+  Future<void> _loadMovements() async {
+    try {
+      final loadedMovements = await MvtStockService().getMouvementsDetails();
+      setState(() {
+        movements = loadedMovements;
+        filteredMovements = List.from(loadedMovements);
+      });
+    } catch (e, stackTrace) {
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Erreur de chargement des mouvements: $e\n$stackTrace")),
+      );
+    }
+  }
+  Future<void> _loadDirections() async {
+    try {
+      final loadedDirections = await DirectionService().getDirections();
+      setState(() {
+        directions = loadedDirections;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de chargement des directions: $e")),
+      );
+    }
+  }
 
-  List<Movement> movements = [];
-  List<Movement> filteredMovements = [];
+  List<MvtStock> filteredMovements = [];
 
   // Filtres
   String? selectedArticleFilter;
@@ -59,52 +83,12 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   @override
   void initState() {
     super.initState();
-    _initializeSampleData();
-    filteredMovements = List.from(movements);
+    _loadMovements();
     _loadArticles();
+    _loadDirections();
   }
 
-  void _initializeSampleData() {
-    movements = [
-      Movement(
-        id: 1,
-        date: DateTime(2024, 12, 20),
-        type: MovementType.sortie,
-        reason: 'Bon de sortie',
-        articleId: 'ART-001',
-        articleName: 'PV de stockage',
-        quantity: -2,
-        direction: null,
-        user: 'Jean Dupont',
-        comment: 'Livraison agence Lyon',
-      ),
-      Movement(
-        id: 2,
-        date: DateTime(2024, 12, 19),
-        type: MovementType.entree,
-        reason: 'Réception',
-        articleId: 'ART-003',
-        articleName: 'Carnet de pret',
-        quantity: 5,
-        direction: null,
-        user: 'Marie Martin',
-        comment: 'Réception fournisseur',
-      ),
-      Movement(
-        id: 3,
-        date: DateTime(2024, 12, 18),
-        type: MovementType.sortie,
-        reason: 'Attribution',
-        articleId: 'ART-002',
-        articleName: 'Fiche de pret',
-        quantity: -3,
-        direction: 'Direction Technique',
-        user: 'Pierre Durand',
-        comment: 'Attribution équipe développement',
-      ),
-    ];
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -278,30 +262,6 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
           },
         ),
       ),
-      SizedBox(
-        width: 220, 
-        child: DropdownButtonFormField<String>(
-          value: selectedReasonFilter,
-          decoration: const InputDecoration(
-            labelText: 'Toutes les raisons',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('Toutes les raisons')),
-            DropdownMenuItem(value: 'Bon de sortie', child: Text('Bon de sortie')),
-            DropdownMenuItem(value: 'Attribution', child: Text('Attribution')),
-            DropdownMenuItem(value: 'Réception', child: Text('Réception')),
-            DropdownMenuItem(value: 'Inventaire', child: Text('Inventaire')),
-          ],
-          onChanged: (value) {
-            setState(() {
-              selectedReasonFilter = value;
-              _applyFilters();
-            });
-          },
-        ),
-      ),
       // Boutons
       Row(
         mainAxisSize: MainAxisSize.min,
@@ -372,46 +332,44 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
         columns: const [
           DataColumn(label: Text('Date')),
           DataColumn(label: Text('Type')),
-          DataColumn(label: Text('Raison')),
           DataColumn(label: Text('Article')),
           DataColumn(label: Text('Quantité')),
           DataColumn(label: Text('Direction')),
-          DataColumn(label: Text('Utilisateur')),
+          // DataColumn(label: Text('Utilisateur')),
           DataColumn(label: Text('Actions')),
         ],
         rows: filteredMovements.map((movement) {
-          final typeColor = movement.type == MovementType.entree 
+          final typeColor = movement.type == movement.type 
               ? Colors.green[700] 
               : redAccent;
-          final quantityColor = movement.quantity > 0 
+          final quantityColor = movement.quantite > 0 
               ? Colors.green[700] 
               : redAccent;
 
           return DataRow(
             cells: [
-              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.date))),
+              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.date_mvt))),
               DataCell(
                 Text(
-                  movement.type == MovementType.entree ? 'Entrée' : 'Sortie',
+                  movement.type == movement.type ? 'Entrée' : 'Sortie',
                   style: TextStyle(
                     color: typeColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              DataCell(Text(movement.reason)),
-              DataCell(Text(movement.articleName)),
+              DataCell(Text(movement.article)),
               DataCell(
                 Text(
-                  '${movement.quantity > 0 ? '+' : ''}${movement.quantity}',
+                  '${movement.quantite > 0 ? '+' : ''}${movement.quantite}',
                   style: TextStyle(
                     color: quantityColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              DataCell(Text(movement.direction ?? '-')),
-              DataCell(Text(movement.user)),
+              DataCell(Text(movement.direction?.nom != null ? movement.direction!.nom : '-')),
+              // DataCell(Text(movement.user)),
               DataCell(
                 ElevatedButton(
                   onPressed: () => _showMovementDetails(movement),
@@ -440,16 +398,17 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
       context: context,
       builder: (context) => CreateMovementDialog(
         articles: articles,
+        directions: directions,
         onMovementCreated: (newMovement) {
           setState(() {
             movements.add(newMovement);
             // Mettre à jour le stock
             // ignore: unrelated_type_equality_checks
-            final article = articles.firstWhere((a) => a.idArticle == newMovement.articleId);
-            if (newMovement.type == MovementType.entree) {
-              article.seuilMin += newMovement.quantity.abs();
+            final article = articles.firstWhere((a) => a.idArticle == newMovement.article);
+            if (newMovement.type == 'entree') {
+              article.seuilMin += newMovement.quantite.abs();
             } else {
-              article.seuilMin -= newMovement.quantity.abs();
+              article.seuilMin -= newMovement.quantite.abs();
             }
             filteredMovements = List.from(movements);
           });
@@ -458,7 +417,7 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
     );
   }
 
-  void _showMovementDetails(Movement movement) {
+  void _showMovementDetails(MvtStock movement) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -471,16 +430,13 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.date)),
-                _buildDetailRow('Type:', movement.type == MovementType.entree ? 'Entrée' : 'Sortie'),
-                _buildDetailRow('Raison:', movement.reason),
-                _buildDetailRow('Article:', movement.articleName),
-                _buildDetailRow('Quantité:', '${movement.quantity > 0 ? '+' : ''}${movement.quantity}'),
-                if (movement.direction != null)
-                  _buildDetailRow('Direction:', movement.direction!),
-                _buildDetailRow('Utilisateur:', movement.user),
-                if (movement.comment != null)
-                  _buildDetailRow('Commentaire:', movement.comment!),
+                _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.date_mvt)),
+                _buildDetailRow('Type:', movement.type == movement.type ? 'entrée' : 'sortie'),
+                _buildDetailRow('Article:', movement.article),
+                _buildDetailRow('Quantité:', '${movement.quantite > 0 ? '+' : ''}${movement.quantite}'),
+                // if (movement.direction != null)
+                  _buildDetailRow('Direction:', movement.direction != null ? movement.direction!.nom : '-'),
+                // _buildDetailRow('Utilisateur:', movement.utilisateur ?? '-'),
               ],
             ),
           ),
@@ -525,15 +481,15 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   void _applyFilters() {
     setState(() {
       filteredMovements = movements.where((movement) {
-        final articleMatch = selectedArticleFilter == null || movement.articleId == selectedArticleFilter;
-        final typeMatch = selectedTypeFilter == null || 
-            (selectedTypeFilter == 'Entrée' && movement.type == MovementType.entree) ||
-            (selectedTypeFilter == 'Sortie' && movement.type == MovementType.sortie);
-        final reasonMatch = selectedReasonFilter == null || movement.reason == selectedReasonFilter;
+        final articleMatch = selectedArticleFilter == null || movement.article.toString() == selectedArticleFilter;
+        final typeMatch = selectedTypeFilter == null ||
+            (selectedTypeFilter == 'Entrée' && movement.type == 'entree') ||
+            (selectedTypeFilter == 'Sortie' && movement.type == 'sortie');
+        // final reasonMatch = selectedReasonFilter == null || movement.raison == selectedReasonFilter;
         
         // Date filters can be implemented here if needed
         
-        return articleMatch && typeMatch && reasonMatch;
+        return articleMatch && typeMatch;
       }).toList();
     });
   }
@@ -553,13 +509,17 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
 // Dialog pour créer un nouveau mouvement
 class CreateMovementDialog extends StatefulWidget {
   final List<Article> articles;
-  final Function(Movement) onMovementCreated;
+  final List<Direction> directions;
+  final Function(MvtStock) onMovementCreated;
 
   const CreateMovementDialog({
     super.key,
     required this.articles,
+    required this.directions,
     required this.onMovementCreated,
   });
+  
+  // get directions => null;
 
   @override
   State<CreateMovementDialog> createState() => _CreateMovementDialogState();
@@ -568,21 +528,12 @@ class CreateMovementDialog extends StatefulWidget {
 class _CreateMovementDialogState extends State<CreateMovementDialog> {
   static const Color primaryColor = Color(0xFFF9B70D);
 
-  MovementType? selectedMovementType;
+  String selectedMovementType = '';
   String? selectedSortieType;
-  String? selectedDirection;
+  Direction? selectedDirection;
   String? selectedArticleId;
   int quantity = 0;
   String comment = '';
-
-  final List<String> directions = [
-    'Direction Générale',
-    'Direction Technique',
-    'Direction Commerciale',
-    'Direction Financière',
-    'Direction RH',
-    'Direction Logistique',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -590,14 +541,14 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
       title: const Text('➕ Nouveau mouvement de stock'),
       content: SingleChildScrollView(
         child: SizedBox(
-          width: 500,
+          width: 800,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildMovementTypeSelection(),
               const SizedBox(height: 16),
-              if (selectedMovementType == MovementType.sortie) ...[
+              if (selectedMovementType == 'sortie') ...[
                 _buildSortieTypeSelection(),
                 const SizedBox(height: 16),
                 if (selectedSortieType == 'attribution') ...[
@@ -645,13 +596,13 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
         Row(
           children: [
             Expanded(
-              child: RadioListTile<MovementType>(
+              child: RadioListTile<String>(
                 title: const Text('📥 Entrée'),
-                value: MovementType.entree,
+                value: 'entrée',
                 groupValue: selectedMovementType,
                 onChanged: (value) {
                   setState(() {
-                    selectedMovementType = value;
+                    selectedMovementType = value ?? '';
                     selectedSortieType = null;
                     selectedDirection = null;
                   });
@@ -659,13 +610,13 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
               ),
             ),
             Expanded(
-              child: RadioListTile<MovementType>(
+              child: RadioListTile<String>(
                 title: const Text('📤 Sortie'),
-                value: MovementType.sortie,
+                value: 'sortie',
                 groupValue: selectedMovementType,
                 onChanged: (value) {
                   setState(() {
-                    selectedMovementType = value;
+                    selectedMovementType = value ?? '';
                   });
                 },
               ),
@@ -728,18 +679,18 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: selectedDirection,
+          value: selectedDirection?.nom,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
             hintText: '-- Choisir une direction --',
           ),
-          items: directions.map((direction) => DropdownMenuItem(
-                value: direction,
-                child: Text(direction),
+            items: widget.directions.map((direction) => DropdownMenuItem(
+                value: direction.nom,
+                child: Text(direction.nom),
               )).toList(),
           onChanged: (value) {
             setState(() {
-              selectedDirection = value;
+              selectedDirection = widget.directions.firstWhere((d) => d.nom == value);
             });
           },
         ),
@@ -827,11 +778,14 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
   }
 
   bool _canCreateMovement() {
-    if (selectedMovementType == null || selectedArticleId == null || quantity <= 0) {
+    if (selectedArticleId == null || quantity <= 0) {
       return false;
     }
 
-    if (selectedMovementType == MovementType.sortie) {
+    if (selectedMovementType == 'sortie') {
+      
+        print('mvt type: $selectedMovementType');
+      
       if (selectedSortieType == null) return false;
       if (selectedSortieType == 'attribution' && selectedDirection == null) return false;
 
@@ -842,82 +796,72 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
 
     return true;
   }
+  void _createMovement() async {
+  if (!_canCreateMovement()) return;
 
-  // 
-  void _createMovement() {
-      if (!_canCreateMovement()) return;
+  final article = widget.articles.firstWhere(
+    (a) => a.idArticle.toString() == selectedArticleId,
+    orElse: () => Article(
+      idArticle: 0,
+      intitule: '',
+      seuilMin: 0,
+      code: ''
+    ),
+  );
 
-      String reason = '';
-      if (selectedMovementType == MovementType.entree) {
-        reason = 'Réception';
-      } else if (selectedSortieType == 'bon_sortie') {
-        reason = 'Bon de sortie';
-      } else if (selectedSortieType == 'attribution') {
-        reason = 'Attribution';
-      }
+  final movementQuantity = selectedMovementType == 'entree'
+      ? quantity.toDouble()
+      : -quantity.toDouble();
 
-      // final article = widget.articles.firstWhere(
-      //   (a) => a.idArticle.toString() == selectedArticleId,
-      //   orElse: () => Article(
-      //     idArticle: 0, // Provide a default idArticle value
-      //     intitule: '',
-      //     seuilMin: 0,
-      //     code: ''
-      //   ),
-      // );
+  // Préparation des articles pour l'appel API
+  final articlesData = [
+    {
+      'id_article': article.idArticle,
+      'quantite': movementQuantity.abs()
+    }
+  ];
 
-      // if (article.idArticle == '') {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     const SnackBar(content: Text("Aucun article correspondant trouvé.")),
-      //   );
-      //   return;
-      // }
-
-      final movementQuantity = selectedMovementType == MovementType.entree ? quantity : -quantity;
-
-      // final movement = Movement(
-      //   id: DateTime.now().millisecondsSinceEpoch,
-      //   date: DateTime.now(),
-      //   type: selectedMovementType!,
-      //   reason: reason,
-      //   articleId: selectedArticleId!,
-      //   // articleName: article.intitule,
-      //   quantity: movementQuantity,
-      //   direction: selectedSortieType == 'attribution' ? selectedDirection : null,
-      //   user: 'Utilisateur Actuel',
-      //   comment: comment.isNotEmpty ? comment : null,
-      // );
-
-      // widget.onMovementCreated(movement);
-      Navigator.of(context).pop();
+  try {
+    if (selectedDirection != null && selectedSortieType == 'attribution') {
+      print(jsonEncode(articlesData));
+      final attributionService = Attributionservice();
+      final result = await attributionService.createAttributionWithMvtStock(
+        articles: articlesData,
+        description: "Attribution de stock", // tu peux changer selon besoin
+        idDirection: selectedDirection!.idDirection!,
+      );
+      print("Attribution créée : $result");
+    } else {
+   
+      final mvtStockService = MvtStockService();
+      final type = selectedMovementType == 'entrée' ? 1 : 2; // adapte selon API
+      final result = await mvtStockService.createMouvementWithArticles(
+        type,
+        articlesData,
+      );
+      print("Mouvement créé : $result");
     }
 
+    // Mets à jour la vue locale après l'appel API
+    final movement = MvtStock(
+      date_mvt: DateTime.now(),
+      type: selectedMovementType!,
+      article: selectedArticleId!,
+      quantite: movementQuantity,
+      direction: selectedSortieType == 'attribution' ? selectedDirection : null,
+    );
+
+    widget.onMovementCreated(movement);
+    Navigator.of(context).pop();
+  } catch (e) {
+    print("Erreur : $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Erreur : $e")),
+    );
+  }
 }
 
-enum MovementType { entree, sortie }
 
-class Movement {
-  final int id;
-  final DateTime date;
-  final MovementType type;
-  final String reason;
-  final String articleId;
-  final String articleName;
-  final int quantity;
-  final String? direction;
-  final String user;
-  final String? comment;
-
-  Movement({
-    required this.id,
-    required this.date,
-    required this.type,
-    required this.reason,
-    required this.articleId,
-    required this.articleName,
-    required this.quantity,
-    this.direction,
-    required this.user,
-    this.comment,
-  });
 }
+
+

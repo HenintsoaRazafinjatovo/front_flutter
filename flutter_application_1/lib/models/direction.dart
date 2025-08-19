@@ -1,12 +1,12 @@
 class Direction {
   final int? idDirection;
   final String nom;
-  final String description;
+  final String? description;
 
   Direction({
     this.idDirection,
     required this.nom,
-    required this.description,
+    this.description,
   });
 
   factory Direction.fromJson(Map<String, dynamic> json) {

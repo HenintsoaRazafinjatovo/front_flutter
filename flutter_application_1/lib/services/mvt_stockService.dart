@@ -12,7 +12,7 @@ class MvtStockService {
     List<Map<String, dynamic>> articles,
   ) async {
     final url = Uri.parse('$baseUrl/create');
-
+  
     try {
       final response = await http.post(
         url,
@@ -26,13 +26,15 @@ class MvtStockService {
           'date_mvt': DateTime.now().toIso8601String(),
         }),
       );
+      print("Réponse du serveur: ${response.statusCode  }");
+      print("Réponse du serveur: ${response.statusCode}");
+      print("Corps de la réponse: ${response.body}");
 
       if (response.statusCode == 201) {
+        
         final data = jsonDecode(response.body);
         return MvtStock.fromJson(data['data']);
       } else {
-        print("Erreur API: ${response.statusCode}");
-        print("Réponse: ${response.body}");
         if (response.body.isNotEmpty) {
           final errorData = jsonDecode(response.body);
           print("Détails de l'erreur: $errorData");

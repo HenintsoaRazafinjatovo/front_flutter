@@ -93,17 +93,6 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFF8F9FA),
-      // appBar: AppBar(
-      //   title: const Text(
-      //     'Mouvement de Stock',
-      //     style: TextStyle(
-      //       fontWeight: FontWeight.bold,
-      //       color: Color.fromARGB(255, 51, 50, 50),
-      //     ),
-      //   ),
-      //   backgroundColor: Colors.white,
-      //   elevation: 2,
-      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -141,7 +130,7 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
                 Text(
-                'Gestion des entrées et sorties de stock',
+                'Gestion des entrees et sorties de stock',
                 style: TextStyle(
                   color: Color.fromARGB(255, 3, 3, 3),
                   fontSize: 25,
@@ -228,7 +217,9 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
           items: [
             const DropdownMenuItem(value: null, child: Text('Tous les articles')),
             ...articles.map((article) => DropdownMenuItem(
-                  value: article.idArticle.toString(),
+                  // value: article.idArticle.toString(),
+                  value: article.intitule,
+
                   child: Text(article.intitule),
                 )),
           ],
@@ -251,8 +242,8 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
           ),
           items: const [
             DropdownMenuItem(value: null, child: Text('Tous les types')),
-            DropdownMenuItem(value: 'Entrée', child: Text('Entrée')),
-            DropdownMenuItem(value: 'Sortie', child: Text('Sortie')),
+            DropdownMenuItem(value: 'entree', child: Text('entree')),
+            DropdownMenuItem(value: 'sortie', child: Text('sortie')),
           ],
           onChanged: (value) {
             setState(() {
@@ -339,11 +330,11 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
           DataColumn(label: Text('Actions')),
         ],
         rows: filteredMovements.map((movement) {
-          final typeColor = movement.type == movement.type 
-              ? Colors.green[700] 
+            final typeColor = movement.type == 'entree'
+              ? Colors.green[700]
               : redAccent;
-          final quantityColor = movement.quantite > 0 
-              ? Colors.green[700] 
+            final quantityColor = movement.type == 'entree'
+              ? Colors.green[700]
               : redAccent;
 
           return DataRow(
@@ -351,7 +342,9 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
               DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.date_mvt))),
               DataCell(
                 Text(
-                  movement.type == movement.type ? 'Entrée' : 'Sortie',
+                //    movement.type == movement.type ? 'entree' : 'sortie',
+                  movement.type,
+
                   style: TextStyle(
                     color: typeColor,
                     fontWeight: FontWeight.w600,
@@ -361,7 +354,7 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
               DataCell(Text(movement.article)),
               DataCell(
                 Text(
-                  '${movement.quantite > 0 ? '+' : ''}${movement.quantite}',
+                    '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
                   style: TextStyle(
                     color: quantityColor,
                     fontWeight: FontWeight.w600,
@@ -404,7 +397,9 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
             movements.add(newMovement);
             // Mettre à jour le stock
             // ignore: unrelated_type_equality_checks
-            final article = articles.firstWhere((a) => a.idArticle == newMovement.article);
+            // final article = articles.firstWhere((a) => a.idArticle == newMovement.article);
+            final article = articles.firstWhere((a) => a.intitule == newMovement.article);
+
             if (newMovement.type == 'entree') {
               article.seuilMin += newMovement.quantite.abs();
             } else {
@@ -431,9 +426,14 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.date_mvt)),
-                _buildDetailRow('Type:', movement.type == movement.type ? 'entrée' : 'sortie'),
+                // _buildDetailRow('Type:', movement.type == movement.type ? 'entree' : 'sortie'),
+                _buildDetailRow('Type:', movement.type ),
+
                 _buildDetailRow('Article:', movement.article),
-                _buildDetailRow('Quantité:', '${movement.quantite > 0 ? '+' : ''}${movement.quantite}'),
+                _buildDetailRow(
+                  'Quantité:',
+                  '${movement.type == 'entree' ? '+' : '-'}${movement.quantite.abs()}',
+                ),
                 // if (movement.direction != null)
                   _buildDetailRow('Direction:', movement.direction != null ? movement.direction!.nom : '-'),
                 // _buildDetailRow('Utilisateur:', movement.utilisateur ?? '-'),
@@ -483,8 +483,8 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
       filteredMovements = movements.where((movement) {
         final articleMatch = selectedArticleFilter == null || movement.article.toString() == selectedArticleFilter;
         final typeMatch = selectedTypeFilter == null ||
-            (selectedTypeFilter == 'Entrée' && movement.type == 'entree') ||
-            (selectedTypeFilter == 'Sortie' && movement.type == 'sortie');
+            (selectedTypeFilter == 'entree' && movement.type == 'entree') ||
+            (selectedTypeFilter == 'sortie' && movement.type == 'sortie');
         // final reasonMatch = selectedReasonFilter == null || movement.raison == selectedReasonFilter;
         
         // Date filters can be implemented here if needed
@@ -559,8 +559,6 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
               _buildArticleSelection(),
               const SizedBox(height: 16),
               _buildQuantityInput(),
-              const SizedBox(height: 16),
-              _buildCommentInput(),
             ],
           ),
         ),
@@ -597,8 +595,8 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
           children: [
             Expanded(
               child: RadioListTile<String>(
-                title: const Text('📥 Entrée'),
-                value: 'entrée',
+                title: const Text('📥 entree'),
+                value: 'entree',
                 groupValue: selectedMovementType,
                 onChanged: (value) {
                   setState(() {
@@ -751,32 +749,6 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
       ],
     );
   }
-
-  Widget _buildCommentInput() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Commentaire (optionnel)',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          maxLines: 3,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            hintText: 'Ajouter un commentaire...',
-          ),
-          onChanged: (value) {
-            setState(() {
-              comment = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
   bool _canCreateMovement() {
     if (selectedArticleId == null || quantity <= 0) {
       return false;
@@ -834,7 +806,7 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
     } else {
    
       final mvtStockService = MvtStockService();
-      final type = selectedMovementType == 'entrée' ? 1 : 2; // adapte selon API
+      final type = selectedMovementType == 'entree' ? 1 : 2; // adapte selon API
       final result = await mvtStockService.createMouvementWithArticles(
         type,
         articlesData,
@@ -855,9 +827,9 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
     Navigator.of(context).pop();
   } catch (e) {
     print("Erreur : $e");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Erreur : $e")),
-    );
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(content: Text("Erreur : $e")),
+    // );
   }
 }
 

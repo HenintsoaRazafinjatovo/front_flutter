@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-
+import '../models/article.dart' show Article;
+import '../models/inventaire_article.dart' show InventaireArticle;
+import '../models/inventaire.dart' show Inventaire;
+import '../models/employe.dart' show Employe;
 void main() {
   runApp(MyApp());
 }
@@ -18,26 +21,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class InventoryItem {
-  final int id;
-  final DateTime date;
-  final String employees;
-  final String article;
-  final int theoreticalStock;
-  final int physicalStock;
-  final int variance;
-
-  InventoryItem({
-    required this.id,
-    required this.date,
-    required this.employees,
-    required this.article,
-    required this.theoreticalStock,
-    required this.physicalStock,
-    required this.variance,
-  });
-}
-
 class InventoryManagementScreen extends StatefulWidget {
   @override
   _InventoryManagementScreenState createState() =>
@@ -46,39 +29,42 @@ class InventoryManagementScreen extends StatefulWidget {
 
 class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   DateTime selectedDate = DateTime.now();
-  List<String> selectedEmployees = [];
-  List<String> selectedArticles = [];
-  List<InventoryItem> inventoryData = [];
+  List<Employe> selectedEmployees = [];
+  List<Article> selectedArticles = [];
+  List<Inventaire> inventoryData = [];
   bool showInventoryForm = false;
   
-  final List<String> employees = [
-    'Marie Dubois',
-    'Jean Martin',
-    'Sophie Laurent',
-    'Pierre Moreau',
-    'Claire Bernard',
+  // Données exemple - normalement récupérées depuis une base de données
+  final List<Employe> employees = [
+    Employe(idEmploye: 1, nom: 'Marie Dubois', idDirection: 1),
+    Employe(idEmploye: 2, nom: 'Jean Martin', idDirection: 1),
+    Employe(idEmploye: 3, nom: 'Sophie Laurent', idDirection: 2),
+    Employe(idEmploye: 4, nom: 'Pierre Moreau', idDirection: 2),
+    Employe(idEmploye: 5, nom: 'Claire Bernard', idDirection: 3),
   ];
 
-  final Map<String, int> articles = {
-    'PV de stockage': 150,
-    'Fiche de pret': 75,
-    'Carnet de membre': 45,
-    'Écran 24 pouces': 30,
-    'Acte de cautionnement': 60,
-    'Contrat depot a terme': 25,
-    'Fanambarana fanonerana': 12,
-    'Registre de transmission': 18,
-  };
+  final List<Article> articles = [
+    Article(idArticle: 1, intitule: 'PV de stockage', seuilMin: 150, code: 'PVS001', prix: 25.0),
+    Article(idArticle: 2, intitule: 'Fiche de pret', seuilMin: 75, code: 'FP002', prix: 15.0),
+    Article(idArticle: 3, intitule: 'Carnet de membre', seuilMin: 45, code: 'CM003', prix: 30.0),
+    Article(idArticle: 4, intitule: 'Écran 24 pouces', seuilMin: 30, code: 'ECR024', prix: 450.0),
+    Article(idArticle: 5, intitule: 'Acte de cautionnement', seuilMin: 60, code: 'AC005', prix: 20.0),
+    Article(idArticle: 6, intitule: 'Contrat depot a terme', seuilMin: 25, code: 'CDT006', prix: 18.0),
+    Article(idArticle: 7, intitule: 'Fanambarana fanonerana', seuilMin: 12, code: 'FF007', prix: 12.0),
+    Article(idArticle: 8, intitule: 'Registre de transmission', seuilMin: 18, code: 'RT008', prix: 35.0),
+  ];
 
-  Map<String, TextEditingController> physicalStockControllers = {};
-  Map<String, int> physicalStocks = {};
+  Map<int, TextEditingController> physicalStockControllers = {};
+  Map<int, double> physicalStocks = {};
 
   @override
   void initState() {
     super.initState();
     // Initialiser les contrôleurs pour chaque article
-    articles.keys.forEach((article) {
-      physicalStockControllers[article] = TextEditingController();
+    articles.forEach((article) {
+      if (article.idArticle != null) {
+        physicalStockControllers[article.idArticle!] = TextEditingController();
+      }
     });
   }
 
@@ -108,32 +94,42 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
       showInventoryForm = true;
       physicalStocks.clear();
       selectedArticles.forEach((article) {
-        physicalStockControllers[article]?.clear();
+        if (article.idArticle != null) {
+          physicalStockControllers[article.idArticle!]?.clear();
+        }
       });
     });
   }
 
   void saveInventory() {
-    List<InventoryItem> newItems = [];
+    List<InventaireArticle> inventaireArticles = [];
     
     selectedArticles.forEach((article) {
-      int physicalStock = int.tryParse(physicalStockControllers[article]?.text ?? '0') ?? 0;
-      int theoreticalStock = articles[article] ?? 0;
-      int variance = physicalStock - theoreticalStock;
+      if (article.idArticle != null) {
+        double physicalStock = double.tryParse(
+          physicalStockControllers[article.idArticle!]?.text ?? '0'
+        ) ?? 0;
+        double theoreticalStock = article.seuilMin;
+        double ecart = physicalStock - theoreticalStock;
 
-      newItems.add(InventoryItem(
-        id: DateTime.now().millisecondsSinceEpoch + newItems.length,
-        date: selectedDate,
-        employees: selectedEmployees.join(', '),
-        article: article,
-        theoreticalStock: theoreticalStock,
-        physicalStock: physicalStock,
-        variance: variance,
-      ));
+        inventaireArticles.add(InventaireArticle(
+          article: article,
+          stockTheorique: theoreticalStock,
+          stockPhysique: physicalStock,
+          ecart: ecart,
+        ));
+      }
     });
 
+    Inventaire newInventory = Inventaire(
+      id: DateTime.now().millisecondsSinceEpoch,
+      date: selectedDate,
+      articles: inventaireArticles,
+      employes: List.from(selectedEmployees),
+    );
+
     setState(() {
-      inventoryData.addAll(newItems);
+      inventoryData.add(newInventory);
       showInventoryForm = false;
       selectedEmployees.clear();
       selectedArticles.clear();
@@ -154,13 +150,23 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
 
   void removeInventoryItem(int id) {
     setState(() {
-      inventoryData.removeWhere((item) => item.id == id);
+      inventoryData.removeWhere((inventory) => inventory.id == id);
     });
   }
 
-  int get totalItems => inventoryData.length;
-  int get correctItems => inventoryData.where((item) => item.variance == 0).length;
-  int get discrepancyItems => inventoryData.where((item) => item.variance != 0).length;
+  int get totalItems {
+    return inventoryData.fold(0, (sum, inventory) => sum + inventory.articles.length);
+  }
+
+  int get correctItems {
+    return inventoryData.fold(0, (sum, inventory) => 
+      sum + inventory.articles.where((item) => item.ecart == 0).length);
+  }
+
+  int get discrepancyItems {
+    return inventoryData.fold(0, (sum, inventory) => 
+      sum + inventory.articles.where((item) => item.ecart != 0).length);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -192,7 +198,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ' Gestion d\'Inventaire',
+                        'Gestion d\'Inventaire',
                         style: TextStyle(
                           fontSize: 25,
                           fontWeight: FontWeight.bold,
@@ -301,18 +307,19 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                           child: ListView.builder(
                             itemCount: employees.length,
                             itemBuilder: (context, index) {
+                              Employe employee = employees[index];
                               return CheckboxListTile(
                                 title: Text(
-                                  employees[index],
+                                  employee.nom,
                                   style: TextStyle(fontSize: 14),
                                 ),
-                                value: selectedEmployees.contains(employees[index]),
+                                value: selectedEmployees.any((e) => e.idEmploye == employee.idEmploye),
                                 onChanged: (bool? value) {
                                   setState(() {
                                     if (value == true) {
-                                      selectedEmployees.add(employees[index]);
+                                      selectedEmployees.add(employee);
                                     } else {
-                                      selectedEmployees.remove(employees[index]);
+                                      selectedEmployees.removeWhere((e) => e.idEmploye == employee.idEmploye);
                                     }
                                   });
                                 },
@@ -343,33 +350,41 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: ListView.builder(
-                            itemCount: articles.keys.length,
+                            itemCount: articles.length,
                             itemBuilder: (context, index) {
-                              String article = articles.keys.elementAt(index);
-                              int stock = articles[article]!;
+                              Article article = articles[index];
                               return CheckboxListTile(
                                 title: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        article,
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            article.intitule,
+                                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                          ),
+                                          Text(
+                                            'Code: ${article.code}',
+                                            style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     Text(
-                                      'Stock théo: $stock',
+                                      'Seuil: ${article.seuilMin.toInt()}',
                                       style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                                     ),
                                   ],
                                 ),
-                                value: selectedArticles.contains(article),
+                                value: selectedArticles.any((a) => a.idArticle == article.idArticle),
                                 onChanged: (bool? value) {
                                   setState(() {
                                     if (value == true) {
                                       selectedArticles.add(article);
                                     } else {
-                                      selectedArticles.remove(article);
+                                      selectedArticles.removeWhere((a) => a.idArticle == article.idArticle);
                                     }
                                   });
                                 },
@@ -393,7 +408,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                             ),
                           ),
                           child: Text(
-                            ' Démarrer l\'inventaire',
+                            'Démarrer l\'inventaire',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -404,7 +419,8 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                     ),
                   ),
                 ],
-                 SizedBox(height: 10),
+                SizedBox(height: 10),
+                
                 // Formulaire de saisie des stocks
                 if (showInventoryForm) ...[
                   Container(
@@ -459,7 +475,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                 style: TextStyle(fontSize: 14, color: Colors.blue[700]),
                               ),
                               Text(
-                                'Employés: ${selectedEmployees.join(', ')}',
+                                'Employés: ${selectedEmployees.map((e) => e.nom).join(', ')}',
                                 style: TextStyle(fontSize: 14, color: Colors.blue[700]),
                               ),
                               Text(
@@ -473,7 +489,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
 
                         // Articles à inventorier
                         ...selectedArticles.map((article) {
-                          int theoreticalStock = articles[article]!;
+                          double theoreticalStock = article.seuilMin;
                           return Container(
                             margin: EdgeInsets.only(bottom: 16),
                             padding: EdgeInsets.all(16),
@@ -485,7 +501,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  article,
+                                  article.intitule,
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
@@ -493,7 +509,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Stock théorique: $theoreticalStock',
+                                  'Code: ${article.code} | Seuil minimum: ${theoreticalStock.toInt()}',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.grey[600],
@@ -516,8 +532,8 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                           ),
                                           SizedBox(height: 4),
                                           TextField(
-                                            controller: physicalStockControllers[article],
-                                            keyboardType: TextInputType.number,
+                                            controller: physicalStockControllers[article.idArticle!],
+                                            keyboardType: TextInputType.numberWithOptions(decimal: true),
                                             decoration: InputDecoration(
                                               hintText: 'Quantité',
                                               border: OutlineInputBorder(
@@ -534,7 +550,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                             ),
                                             onChanged: (value) {
                                               setState(() {
-                                                physicalStocks[article] = int.tryParse(value) ?? 0;
+                                                physicalStocks[article.idArticle!] = double.tryParse(value) ?? 0;
                                               });
                                             },
                                           ),
@@ -564,14 +580,14 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                             ),
                                             child: Builder(
                                               builder: (context) {
-                                                int physicalStock = physicalStocks[article] ?? 0;
-                                                int variance = physicalStock - theoreticalStock;
+                                                double physicalStock = physicalStocks[article.idArticle!] ?? 0;
+                                                double variance = physicalStock - theoreticalStock;
                                                 Color varianceColor = variance == 0
                                                     ? Colors.green[600]!
                                                     : variance > 0
                                                         ? Colors.blue[600]!
                                                         : Colors.red[600]!;
-                                                String varianceText = variance > 0 ? '+$variance' : '$variance';
+                                                String varianceText = variance > 0 ? '+${variance.toStringAsFixed(1)}' : '${variance.toStringAsFixed(1)}';
                                                 if (variance == 0 && physicalStock == 0) varianceText = '-';
                                                 
                                                 return Text(
@@ -643,7 +659,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                   SizedBox(height: 20),
                 ],
 
-                // Liste des articles inventoriés
+                // Liste des inventaires
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.all(24),
@@ -662,7 +678,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Articles Inventoriés',
+                        'Inventaires Réalisés',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -671,7 +687,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                       ),
                       SizedBox(height: 24),
 
-                      // Table
+                      // Table des inventaires
                       if (inventoryData.isNotEmpty) ...[
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -686,7 +702,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -696,7 +712,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -706,7 +722,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -716,7 +732,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -726,7 +742,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -736,7 +752,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -746,7 +762,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
@@ -756,85 +772,18 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                                   style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey[700],
+                                    color: const Color.fromARGB(255, 0, 0, 0),
                                   ),
                                 ),
                               ),
                             ],
-                            rows: inventoryData.map((item) {
-                              Color varianceColor = item.variance == 0
-                                  ? Colors.green[600]!
-                                  : item.variance > 0
-                                      ? Colors.blue[600]!
-                                      : Colors.red[600]!;
-                              String varianceText = item.variance > 0 ? '+${item.variance}' : '${item.variance}';
-
-                              return DataRow(
-                                cells: [
-                                  DataCell(Text(
-                                    '${item.date.day}/${item.date.month}/${item.date.year}',
-                                    style: TextStyle(fontSize: 14),
-                                  )),
-                                  DataCell(Text(
-                                    item.employees,
-                                    style: TextStyle(fontSize: 14),
-                                  )),
-                                  DataCell(Text(
-                                    item.article,
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                                  )),
-                                  DataCell(Text(
-                                    '${item.theoreticalStock}',
-                                    style: TextStyle(fontSize: 14),
-                                  )),
-                                  DataCell(Text(
-                                    '${item.physicalStock}',
-                                    style: TextStyle(fontSize: 14),
-                                  )),
-                                  DataCell(Text(
-                                    varianceText,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: varianceColor,
-                                    ),
-                                  )),
-                                  DataCell(
-                                    Container(
-                                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: item.variance == 0 ? Colors.green[100] : Colors.red[100],
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        item.variance == 0 ? ' Conforme' : 'Écart',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: item.variance == 0 ? Colors.green[800] : Colors.red[800],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  DataCell(
-                                    TextButton(
-                                      onPressed: () => removeInventoryItem(item.id),
-                                      child: Icon(
-                                        Icons.delete,
-                                        color: Colors.red[600],
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            }).toList(),
+                            rows: _buildInventoryRows(),
                           ),
                         ),
                       ] else ...[
                         Center(
                           child: Text(
-                            'Aucun article inventorié pour le moment',
+                            'Aucun inventaire réalisé pour le moment',
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey[500],
@@ -945,5 +894,94 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
         ),
       ),
     );
+  }
+
+  List<DataRow> _buildInventoryRows() {
+    List<DataRow> rows = [];
+    
+    for (Inventaire inventory in inventoryData) {
+      for (InventaireArticle inventaireArticle in inventory.articles) {
+        Color varianceColor = inventaireArticle.ecart == 0
+            ? Colors.green[600]!
+            : inventaireArticle.ecart > 0
+                ? Colors.blue[600]!
+                : Colors.red[600]!;
+        String varianceText = inventaireArticle.ecart > 0 
+            ? '+${inventaireArticle.ecart.toStringAsFixed(1)}' 
+            : '${inventaireArticle.ecart.toStringAsFixed(1)}';
+
+        rows.add(DataRow(
+          cells: [
+            DataCell(Text(
+              '${inventory.date.day}/${inventory.date.month}/${inventory.date.year}',
+              style: TextStyle(fontSize: 14),
+            )),
+            DataCell(Text(
+              inventory.employes.map((e) => e.nom).join(', '),
+              style: TextStyle(fontSize: 14),
+            )),
+            DataCell(Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  inventaireArticle.article.intitule,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  inventaireArticle.article.code,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                ),
+              ],
+            )),
+            DataCell(Text(
+              '${inventaireArticle.stockTheorique.toStringAsFixed(1)}',
+              style: TextStyle(fontSize: 14),
+            )),
+            DataCell(Text(
+              '${inventaireArticle.stockPhysique.toStringAsFixed(1)}',
+              style: TextStyle(fontSize: 14),
+            )),
+            DataCell(Text(
+              varianceText,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: varianceColor,
+              ),
+            )),
+            DataCell(
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: inventaireArticle.ecart == 0 ? Colors.green[100] : Colors.red[100],
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  inventaireArticle.ecart == 0 ? 'Conforme' : 'Écart',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: inventaireArticle.ecart == 0 ? Colors.green[800] : Colors.red[800],
+                  ),
+                ),
+              ),
+            ),
+            DataCell(
+              TextButton(
+                onPressed: () => removeInventoryItem(inventory.id),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.red[600],
+                  size: 20,
+                ),
+              ),
+            ),
+          ],
+        ));
+      }
+    }
+    
+    return rows;
   }
 }

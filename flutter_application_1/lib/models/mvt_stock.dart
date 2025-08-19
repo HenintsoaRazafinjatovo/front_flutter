@@ -18,13 +18,12 @@ class MvtStock {
   });
 
   factory MvtStock.fromJson(Map<String, dynamic> json) {
-    print(json);
     return MvtStock(
       idmvt: json['idmvt'] as int?,
       article: json['article'] as String,
       quantite: double.tryParse(json['quantite'].toString()) ?? 0.0,
       direction: json['direction'] != null
-          ? Direction.fromJson(json['direction'] as Map<String, dynamic>)
+          ? Direction(nom: json['direction'] as String)
           : null,
       type: json['type'] as String,
       date_mvt: DateTime.parse(json['date_mvt'] as String),

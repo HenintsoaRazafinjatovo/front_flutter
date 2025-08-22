@@ -1,19 +1,23 @@
+import 'direction.dart';
+
 class Employe {
   final int? idEmploye;
   final String nom;
-  final int? idDirection;
+  final Direction? direction;
 
   Employe({
-     this.idEmploye,
+    this.idEmploye,
     required this.nom,
-    this.idDirection,
+    this.direction,
   });
 
   factory Employe.fromJson(Map<String, dynamic> json) {
     return Employe(
       idEmploye: json['id_employe'],
       nom: json['nom'],
-      idDirection: json['id_direction'],
+      direction: json['direction'] != null
+          ? Direction.fromJson(json['direction'])
+          : null,
     );
   }
 
@@ -21,7 +25,7 @@ class Employe {
     return {
       'id_employe': idEmploye,
       'nom': nom,
-      'id_direction': idDirection,
+      'direction': direction?.toJson(),
     };
   }
 }

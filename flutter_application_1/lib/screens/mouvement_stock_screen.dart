@@ -1,10 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/article.dart';
 import '../models/mvt_stock.dart';
-import '../models/attribution.dart';
 import '../models/direction.dart';
 
 
@@ -15,7 +12,7 @@ import '../services/mvt_stockService.dart';
 import '../services/attributionService.dart';
 
 class MouvementStockScreen extends StatefulWidget {
-  const MouvementStockScreen({Key? key}) : super(key: key);
+  const MouvementStockScreen({super.key});
 
   @override
   State<MouvementStockScreen> createState() => _MouvementStockScreenState();
@@ -395,17 +392,17 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
         onMovementCreated: (newMovement) {
           setState(() {
             movements.add(newMovement);
-            // Mettre à jour le stock
-            // ignore: unrelated_type_equality_checks
-            // final article = articles.firstWhere((a) => a.idArticle == newMovement.article);
-            final article = articles.firstWhere((a) => a.intitule == newMovement.article);
+          final article = articles.firstWhere(
+          (a) => a.idArticle == newMovement.article,
+          orElse: () => Article(idArticle: 0, intitule: '', seuilMin: 0, code: ''),
+        );
 
-            if (newMovement.type == 'entree') {
-              article.seuilMin += newMovement.quantite.abs();
-            } else {
-              article.seuilMin -= newMovement.quantite.abs();
-            }
-            filteredMovements = List.from(movements);
+        if (newMovement.type == 'entree') {
+          article.seuilMin += newMovement.quantite.abs();
+        } else {
+          article.seuilMin -= newMovement.quantite.abs();
+        }
+                  filteredMovements = List.from(movements);
           });
         },
       ),
@@ -761,78 +758,109 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
       if (selectedSortieType == null) return false;
       if (selectedSortieType == 'attribution' && selectedDirection == null) return false;
 
-      // Vérifier le stock pour les sorties
-      // final article = widget.articles.firstWhere((a) => a.idArticle == selectedArticleId);
-      // if (quantity > article.seuilMin) return false;
     }
 
     return true;
   }
+
   void _createMovement() async {
-  if (!_canCreateMovement()) return;
+    if (!_canCreateMovement()) return;
 
-  final article = widget.articles.firstWhere(
-    (a) => a.idArticle.toString() == selectedArticleId,
-    orElse: () => Article(
-      idArticle: 0,
-      intitule: '',
-      seuilMin: 0,
-      code: ''
-    ),
-  );
-
-  final movementQuantity = selectedMovementType == 'entree'
-      ? quantity.toDouble()
-      : -quantity.toDouble();
-
-  // Préparation des articles pour l'appel API
-  final articlesData = [
-    {
-      'id_article': article.idArticle,
-      'quantite': movementQuantity.abs()
-    }
-  ];
-
-  try {
-    if (selectedDirection != null && selectedSortieType == 'attribution') {
-      print(jsonEncode(articlesData));
-      final attributionService = Attributionservice();
-      final result = await attributionService.createAttributionWithMvtStock(
-        articles: articlesData,
-        description: "Attribution de stock", // tu peux changer selon besoin
-        idDirection: selectedDirection!.idDirection!,
+    // Vérif qu’un article est bien sélectionné
+    if (selectedArticleId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Veuillez sélectionner un article")),
       );
-      print("Attribution créée : $result");
-    } else {
-   
-      final mvtStockService = MvtStockService();
-      final type = selectedMovementType == 'entree' ? 1 : 2; // adapte selon API
-      final result = await mvtStockService.createMouvementWithArticles(
-        type,
-        articlesData,
-      );
-      print("Mouvement créé : $result");
+      return;
     }
 
-    // Mets à jour la vue locale après l'appel API
-    final movement = MvtStock(
-      date_mvt: DateTime.now(),
-      type: selectedMovementType!,
-      article: selectedArticleId!,
-      quantite: movementQuantity,
-      direction: selectedSortieType == 'attribution' ? selectedDirection : null,
+    // Vérif que la liste n’est pas vide
+    if (widget.articles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Aucun article disponible")),
+      );
+      return;
+    }
+
+    // Recherche de l’article
+    final article = widget.articles.firstWhere(
+      (a) => a.idArticle.toString() == selectedArticleId,
+      orElse: () => Article(
+        idArticle: 0,
+        intitule: '',
+        seuilMin: 0,
+        code: '',
+      ),
     );
 
-    widget.onMovementCreated(movement);
-    Navigator.of(context).pop();
-  } catch (e) {
-    print("Erreur : $e");
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(content: Text("Erreur : $e")),
-    // );
-  }
-}
+    if (article.idArticle == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Article introuvable")),
+      );
+      return;
+    }
 
+    // Calcul quantité (négative si sortie)
+    final movementQuantity = selectedMovementType == 'entree'
+        ? quantity.toDouble()
+        : -quantity.toDouble();
+
+    final articlesData = [
+      {
+        'id_article': article.idArticle,
+        'quantite': movementQuantity.abs(),
+      }
+    ];
+
+    try {
+      bool success = false;
+
+      if (selectedDirection != null && selectedSortieType == 'attribution') {
+        final attributionService = Attributionservice();
+        success = await attributionService.createAttributionWithMvtStock(
+          articles: articlesData,
+          description: "Attribution de stock",
+          idDirection: selectedDirection!.idDirection!,
+        );
+        print("Attribution créée : $success");
+      } else {
+        final mvtStockService = MvtStockService();
+        final type = selectedMovementType == 'entree' ? 1 : 2;
+        success = await mvtStockService.createMouvementWithArticles(
+          type,
+          articlesData,
+        );
+        print("Mouvement créé : $success");
+      }
+
+      if (success) {
+        final movement = MvtStock(
+        date_mvt: DateTime.now(),
+        type: selectedMovementType,
+        article: article.idArticle?.toString() ?? '',
+        quantite: movementQuantity,
+        direction: selectedSortieType == 'attribution' ? selectedDirection : null,
+      );
+
+
+        widget.onMovementCreated(movement);
+        Navigator.of(context).pop();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Mouvement créé avec succès")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Échec de la création du mouvement")),
+        );
+      }
+    } catch (e) {
+      print("Erreur : $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur : $e")),
+      );
+    }
+  }
 
 }
 

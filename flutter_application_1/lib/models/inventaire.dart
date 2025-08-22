@@ -31,8 +31,11 @@ class Inventaire {
     return {
       'id_inventaire': id,
       'date_inventaire': date.toIso8601String(),
-      'articles': articles.map((e) => e.toJson()).toList(),
-      'employes': employes.map((e) => e.toJson()).toList(),
+      'articles': articles ?? [], 
+      'employes': employes ?? [], 
     };
+  }
+  int getNbArticles() {
+    return articles.length;
   }
 }

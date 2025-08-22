@@ -32,12 +32,6 @@ class _MainLayoutState extends State<MainLayout> {
     {'icon': Icons.article, 'label': 'Factures'},
     {'icon': Icons.task_outlined, 'label': 'Admin commande'},
     {'icon': Icons.task_outlined, 'label': 'Bon de sortie'},
-    {'icon': Icons.settings, 'label': 'Paramètres'},
-    {'icon': Icons.help_outline, 'label': 'Aide'},
-    {'icon': Icons.info_outline, 'label': 'À propos'},
-    {'icon': Icons.account_circle, 'label': 'Profil'},  
-
-    {'icon': Icons.logout, 'label': 'Déconnexion'},
 
   ];
 

@@ -3,11 +3,13 @@ class Article {
   final String intitule;
   double seuilMin;
   final String code;
-  double? prix; // prix nullable
+  double? prix; 
+  double? stock_actuel;
 
   Article({
     this.idArticle,
-    this.prix, // pas required
+    this.prix,
+    this.stock_actuel, // pas required
     required this.intitule,
     required this.seuilMin,
     required this.code,
@@ -20,6 +22,7 @@ class Article {
       seuilMin: double.parse(json['seuil_min'].toString()),
       code: json['code'],
       prix: json['prix'] != null ? double.tryParse(json['prix'].toString()) : null,
+      stock_actuel: json['stock_actuel'] != null ? double.tryParse(json['stock_actuel'].toString()) : null,
     );
   }
 

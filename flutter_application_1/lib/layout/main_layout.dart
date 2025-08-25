@@ -10,6 +10,9 @@ import 'package:flareline_template/screens/facture_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../screens/bon_de_commande_screen.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:vibration/vibration.dart';
+import 'package:animate_do/animate_do.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -21,7 +24,7 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int selectedIndex = 0;
   bool isCollapsed = false;
-
+  bool _playAnimation = false;
   final List<Map<String, dynamic>> navItems = [
     {'icon': Icons.shopping_cart_outlined, 'label': 'Commandes'},
     {'icon': Icons.bar_chart, 'label': 'Statistiques'},
@@ -213,14 +216,38 @@ class _MainLayoutState extends State<MainLayout> {
                           ),
                         ),
                         const SizedBox(width: 16),
+                        ShakeX(
+                          animate: _playAnimation,
+                          duration: const Duration(milliseconds: 600),
+                          child: IconButton(
+                            icon: const Icon(Icons.notifications_none),
+                            onPressed: () async {
+                              // Jouer le son
+                              final player = AudioPlayer();
+                              await player.play(AssetSource('sounds/notification.mp3'));
 
-                        // Cloche notification
-                        IconButton(
-                          icon: const Icon(Icons.notifications_none),
-                          onPressed: () {},
-                          tooltip: 'Notifications',
+                              // Vibration si disponible
+                              if (await Vibration.hasVibrator() ?? false) {
+                                Vibration.vibrate(duration: 150);
+                              }
+
+                              // Déclencher l’animation
+                              setState(() {
+                                _playAnimation = true;
+                              });
+
+                              // Arrêter l’animation après un court délai
+                              Future.delayed(const Duration(milliseconds: 700), () {
+                                if (mounted) {
+                                  setState(() {
+                                    _playAnimation = false;
+                                  });
+                                }
+                              });
+                            },
+                            tooltip: 'Notifications',
+                          ),
                         ),
-                        const SizedBox(width: 16),
 
                         // Avatar profil avec menu déroulant
                         PopupMenuButton<String>(
@@ -256,7 +283,7 @@ class _MainLayoutState extends State<MainLayout> {
                                 },
                               );
                             } else if (value == 'profile') {
-                              // TODO: action profile
+                              
                             }
                           },
                           itemBuilder: (context) => [

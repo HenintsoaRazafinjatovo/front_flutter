@@ -16,6 +16,9 @@ dependencies:
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.10
   fl_chart: ^1.0.0
+  audioplayers: ^6.0.0
+  vibration: ^1.9.0
+  animate_do: ^3.3.4
 
 dev_dependencies:
   flutter_test:
@@ -28,6 +31,7 @@ flutter:
     - assets/profile.jpg
     - assets/logo1.png
     - assets/logo2.jpeg
+    - assets/sounds/notification.mp3
 
   fonts:
     - family: Poppins

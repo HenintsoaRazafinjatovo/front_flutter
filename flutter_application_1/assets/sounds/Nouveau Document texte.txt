@@ -1,0 +1,44 @@
+
+
+public function getBonDeCommandeWithDetailsEnAttente()
+{
+    return Bon_de_commande::with([
+            'statusCommande',
+            'agence',
+            'commandeArticles.article.dernierPrix'
+        ])
+        ->whereHas('statusCommande', function ($query) {
+            $query->where('id_status_commande', 1);
+        })
+        ->get()
+        ->map(function ($bon) {
+            $nbArticles = $bon->commandeArticles->count();
+
+            $total = $bon->commandeArticles->sum(function ($commandeArticle) {
+                $prix = $commandeArticle->article->dernierPrix->montant ?? 0;
+                return $commandeArticle->quantite * $prix;
+            });
+
+            $articles = $bon->commandeArticles->map(function ($commandeArticle) {
+                return [
+                    'id_article' => $commandeArticle->id_article,
+                    'intitule'   => $commandeArticle->article->intitule ?? null,
+                    'quantite'   => $commandeArticle->quantite,
+                    'prix_unitaire' => $commandeArticle->article->dernierPrix->montant ?? 0,
+                    'total_article' => $commandeArticle->quantite * ($commandeArticle->article->dernierPrix->montant ?? 0),
+                ];
+            });
+
+            return [
+                'id_bon_de_commande' => $bon->id_bon_de_commande,
+                'date_bon_de_commande' => $bon->date_bon_de_commande->format('Y-m-d'),
+                'description'        => $bon->description,
+                'agence'             => $bon->agence,
+                'nb_article'         => $nbArticles,
+                'total'              => $total,
+                'status_commande'    => $bon->statusCommande->description ?? 'Inconnu',
+                'articles'           => $articles,
+            ];
+        })
+        ->toArray();
+}

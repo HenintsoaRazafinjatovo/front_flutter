@@ -8,8 +8,17 @@ class BonDeCommandeService {
 
   // Récupérer la liste des bons de commande
   Future<List<BonDeCommande>> getBonDeCommandeWithStatus() async {
-    final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithStatus'));
-
+    final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetails'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((item) => BonDeCommande.fromJson(item)).toList();
+    } else {
+      throw Exception(
+          'Erreur lors de la récupération des bons de commande : ${response.statusCode}');
+    }
+  }
+  Future<List<BonDeCommande>> getBonDeCommandeWithStatusEnAttente() async {
+    final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetailsEnAttente'));
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((item) => BonDeCommande.fromJson(item)).toList();
@@ -32,11 +41,19 @@ class BonDeCommandeService {
 
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
       body: json.encode(body),
     );
 
-    return response.statusCode == 201;
+    if (response.statusCode == 201) {
+      return true;
+    } else {
+      print('Erreur lors de l\'ajout du bon de commande : ${response.statusCode} - ${response.body}');
+      return false;
+    }
   }
 
   // Supprimer un bon de commande
@@ -46,5 +63,15 @@ class BonDeCommandeService {
     );
 
     return response.statusCode == 200;
+  }
+  Future<List<BonDeCommande>> getBonDeCommandes() async {
+    final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetails'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      return data.map((e) => BonDeCommande.fromJson(e)).toList();
+    } else {
+      throw Exception('Erreur lors de la récupération des bons de commande');
+    }
   }
 }

@@ -1,32 +1,57 @@
+import 'commande_article.dart';
+import 'agence.dart';
+
 class BonDeCommande {
   final int? idBonDeCommande;
   final DateTime dateBonDeCommande;
+  final Agence? agence;
+  final int? nbArticle;
+  final double? total;
+  final List<CommandeArticle>? articles;
   final String description;
-  final String status_commande;
+   String status_commande;
 
   BonDeCommande({
     this.idBonDeCommande,
     required this.dateBonDeCommande,
+    this.agence,
+    this.nbArticle,
+    this.total,
+    this.articles,
     required this.description,
     required this.status_commande,
   });
+
   factory BonDeCommande.fromJson(Map<String, dynamic> json) {
+    var articlesJson = json['articles'] as List<dynamic>? ?? [];
+    List<CommandeArticle> articles = articlesJson
+        .map((e) => CommandeArticle.fromJson(e))
+        .toList();
+
     return BonDeCommande(
       idBonDeCommande: json['id_bon_de_commande'],
       dateBonDeCommande: DateTime.parse(json['date_bon_de_commande']),
-      description: json['description'],
-      status_commande: json['status_commande'],
+      agence: json['agence'] != null ? Agence.fromJson(json['agence']) : null,
+      nbArticle: json['nb_article'] ?? 0,
+      total: (json['total'] != null)
+          ? double.tryParse(json['total'].toString()) ?? 0
+          : 0,
+      articles: articles,
+      description: json['description'] ?? '',
+      status_commande: json['status_commande'] ?? '',
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
       'id_bon_de_commande': idBonDeCommande,
       'date_bon_de_commande': dateBonDeCommande.toIso8601String(),
+      'agence': agence?.toJson(),
+      'nb_article': nbArticle,
+      'total': total,
+      'articles': articles?.map((e) => e.toJson()).toList() ?? [],
       'description': description,
-      'status_commande': status_commande,
+      'status_commande': status_commande, 
     };
   }
 }
-

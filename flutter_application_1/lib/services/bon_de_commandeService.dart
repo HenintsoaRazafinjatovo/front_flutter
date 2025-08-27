@@ -74,4 +74,40 @@ class BonDeCommandeService {
       throw Exception('Erreur lors de la récupération des bons de commande');
     }
   }
+  Future<bool> validerBonDeCommande(int id) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/valider/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print(jsonDecode(response.body)['message']);
+      return true;
+    } else {
+      print('Erreur lors de la validation du bon de commande : ${response.statusCode} - ${response.body}');
+      return false;
+    }
+  }
+
+  // Rejeter un bon de commande
+  Future<bool> rejeterBonDeCommande(int id) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/rejeter/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print(jsonDecode(response.body)['message']);
+      return true;
+    } else {
+      print('Erreur lors du rejet du bon de commande : ${response.statusCode} - ${response.body}');
+      return false;
+    }
+  }
 }

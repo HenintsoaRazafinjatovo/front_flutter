@@ -9,7 +9,8 @@ class BonDeCommande {
   final double? total;
   final List<CommandeArticle>? articles;
   final String description;
-   String status_commande;
+  String status_commande;
+  bool? bon_de_sortie;
 
   BonDeCommande({
     this.idBonDeCommande,
@@ -18,6 +19,7 @@ class BonDeCommande {
     this.nbArticle,
     this.total,
     this.articles,
+    this.bon_de_sortie,
     required this.description,
     required this.status_commande,
   });
@@ -39,6 +41,7 @@ class BonDeCommande {
       articles: articles,
       description: json['description'] ?? '',
       status_commande: json['status_commande'] ?? '',
+      bon_de_sortie: json['bon_de_sortie'] ?? false,
     );
   }
 
@@ -51,7 +54,8 @@ class BonDeCommande {
       'total': total,
       'articles': articles?.map((e) => e.toJson()).toList() ?? [],
       'description': description,
-      'status_commande': status_commande, 
+      'status_commande': status_commande,
+      'bon_de_sortie': bon_de_sortie,
     };
   }
 }

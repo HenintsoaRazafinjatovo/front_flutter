@@ -31,13 +31,23 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
   int get rejectedCount => orders.where((o) => o.status_commande == 'Rejetee').length;
   int get totalCount => orders.length;
 
-  void validateOrder(BonDeCommande order) {
-    setState(() {
-      order.status_commande = 'Validee';
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Commande ${order.idBonDeCommande} validee avec succès !')),
-    );
+  Future<void> validateOrder(BonDeCommande order) async {
+    try {
+      await BonDeCommandeService().validerBonDeCommande(order.idBonDeCommande!);
+      setState(() {
+        order.status_commande = 'Validee';
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Commande ${order.idBonDeCommande} validée avec succès !')),
+      );
+      // Optionally refresh the lists
+      await _loadCommandes();
+      await _loadCommandesEnAttente();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la validation : $e')),
+      );
+    }
   }
    Future<void> _loadCommandes() async {
     try {
@@ -69,7 +79,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
     _loadCommandes();
     _loadCommandesEnAttente();
   }
-  void rejectOrder(BonDeCommande order) {
+  Future<void> rejectOrder(BonDeCommande order) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -81,14 +91,22 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
             child: const Text('Annuler'),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                order.status_commande = 'Rejetee';
-              });
+            onPressed: () async {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Commande ${order.idBonDeCommande} Rejetee')),
-              );
+              try {
+                final messenger = ScaffoldMessenger.of(context);
+                await BonDeCommandeService().rejeterBonDeCommande(order.idBonDeCommande!);
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  SnackBar(content: Text('Commande ${order.idBonDeCommande} rejetée avec succès !')),
+                );
+                await _loadCommandes();
+                await _loadCommandesEnAttente();
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Erreur lors du rejet : $e')),
+                );
+              }
             },
             child: const Text('Rejeter', style: TextStyle(color: Colors.red)),
           ),
@@ -96,277 +114,6 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
       ),
     );
   }
-
-  // void showOrderDetails(BonDeCommande order) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) => Dialog(
-  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-  //       child: Container(
-  //         width: 600,
-  //         constraints: const BoxConstraints(maxHeight: 600),
-  //         padding: const EdgeInsets.all(24),
-  //         child: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Row(
-  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //               children: [
-  //                 Text(
-  //                   'Détails de la commande ${order.idBonDeCommande}',
-  //                   style: GoogleFonts.poppins(
-  //                     fontSize: 20,
-  //                     fontWeight: FontWeight.bold,
-  //                     color: Colors.black87,
-  //                   ),
-  //                 ),
-  //                 IconButton(
-  //                   onPressed: () => Navigator.pop(context),
-  //                   icon: const Icon(Icons.close),
-  //                 ),
-  //               ],
-  //             ),
-  //             const SizedBox(height: 20),
-              
-  //             // Informations générales
-  //             Container(
-  //               padding: const EdgeInsets.all(16),
-  //               decoration: BoxDecoration(
-  //                 color: const Color(0xFFF5F7FA),
-  //                 borderRadius: BorderRadius.circular(8),
-  //               ),
-  //               child: Column(
-  //                 children: [
-  //                   Row(
-  //                     children: [
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             Text('Numéro de commande', 
-  //                               style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
-  //                             Text(order.idBonDeCommande.toString(), 
-  //                               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             Text('Date', 
-  //                               style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
-  //                             Text(order.dateBonDeCommande.toString(), 
-  //                               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   const SizedBox(height: 12),
-  //                   Row(
-  //                     children: [
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             Text('Agence', 
-  //                               style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
-  //                             Text(order.agence?.codeAgence ?? 'N/A', 
-  //                               style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600)),
-  //                           ],
-  //                         ),
-  //                       ),
-  //                       Expanded(
-  //                         child: Column(
-  //                           crossAxisAlignment: CrossAxisAlignment.start,
-  //                           children: [
-  //                             Text('Status', 
-  //                               style: GoogleFonts.poppins(fontSize: 12, color: Colors.black54)),
-  //                             _buildStatusChip(order.status_commande),
-  //                           ],
-  //                         ),  
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-              
-  //             const SizedBox(height: 20),
-              
-  //             // Articles
-  //             Text(
-  //               'Articles commandés',
-  //               style: GoogleFonts.poppins(
-  //                 fontSize: 16,
-  //                 fontWeight: FontWeight.bold,
-  //                 color: Colors.black87,
-  //               ),
-  //             ),
-  //             const SizedBox(height: 12),
-              
-  //             Flexible(
-  //               child: Container(
-  //                 decoration: BoxDecoration(
-  //                   border: Border.all(color: Colors.grey.shade300),
-  //                   borderRadius: BorderRadius.circular(8),
-  //                 ),
-  //                 child: Column(
-  //                   children: [
-  //                     Container(
-  //                       padding: const EdgeInsets.all(12),
-  //                       decoration: BoxDecoration(
-  //                         color: Colors.grey.shade50,
-  //                         borderRadius: const BorderRadius.only(
-  //                           topLeft: Radius.circular(8),
-  //                           topRight: Radius.circular(8),
-  //                         ),
-  //                       ),
-  //                       child: Row(
-  //                         children: [
-  //                           Expanded(flex: 3, child: Text('Article', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12))),
-  //                           Expanded(flex: 1, child: Text('Qté', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12))),
-  //                           Expanded(flex: 2, child: Text('Prix unit.', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12))),
-  //                           Expanded(flex: 2, child: Text('Total', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 12))),
-  //                         ],
-  //                       ),
-  //                     ),
-  //                     // Fix null check for articles with better handling
-  //                     if (order.articles != null && order.articles!.isNotEmpty)
-  //                       ...order.articles!.map((item) => Container(
-  //                         padding: const EdgeInsets.all(12),
-  //                         decoration: BoxDecoration(
-  //                           border: Border(top: BorderSide(color: Colors.grey.shade200)),
-  //                         ),
-  //                         child: Row(
-  //                           children: [
-  //                             // Utiliser intitule de ArticleCommande d'abord, puis celui de Article
-  //                             Expanded(flex: 3, child: Text(
-  //                               item.article?.intitule ?? item.article?.intitule ?? 'Article non spécifié', 
-  //                               style: GoogleFonts.poppins(fontSize: 12)
-  //                             )),
-  //                             Expanded(flex: 1, child: Text('${item.quantite}', style: GoogleFonts.poppins(fontSize: 12))),
-  //                             // Utiliser prixUnitaire de ArticleCommande d'abord, puis prix de Article
-  //                             Expanded(flex: 2, child: Text(
-  //                               '${(item.prixUnitaire ?? item.article?.prix ?? 0.0).toStringAsFixed(2)} ', 
-  //                               style: GoogleFonts.poppins(fontSize: 12)
-  //                             )),
-  //                             Expanded(flex: 2, child: Text('${item.totalArticle.toStringAsFixed(2)} ', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600))),
-  //                           ],
-  //                         ),
-  //                       )).toList()
-  //                     else
-  //                       Container(
-  //                         padding: const EdgeInsets.all(12),
-  //                         decoration: BoxDecoration(
-  //                           border: Border(top: BorderSide(color: Colors.grey.shade200)),
-  //                         ),
-  //                         child: Center(
-  //                           child: Text(
-  //                             'Aucun article trouvé pour cette commande',
-  //                             style: GoogleFonts.poppins(fontSize: 12, fontStyle: FontStyle.italic, color: Colors.grey),
-  //                           ),
-  //                         ),
-  //                       ),
-  //                   ],
-  //                 ),
-  //               ),
-  //             ),
-              
-  //             const SizedBox(height: 16),
-              
-  //             // Total
-  //             Container(
-  //               padding: const EdgeInsets.all(16),
-  //               decoration: BoxDecoration(
-  //                 border: Border.all(color: Colors.grey.shade300),
-  //                 borderRadius: BorderRadius.circular(8),
-  //               ),
-  //               child: Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //                 children: [
-  //                   Text(
-  //                     'Total de la commande:',
-  //                     style: GoogleFonts.poppins(
-  //                       fontSize: 16,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: Colors.black87,
-  //                     ),
-  //                   ),
-  //                   Text(
-  //                     '${order.total?.toStringAsFixed(2) ?? '0.00'} ',
-  //                     style: GoogleFonts.poppins(
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: Colors.black87,
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-              
-  //             const SizedBox(height: 20),
-              
-  //             // Actions
-  //             Row(
-  //               mainAxisAlignment: MainAxisAlignment.end,
-  //               children: [
-  //                 if (order.status_commande == 'En attente') ...[
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       validateOrder(order);
-  //                       Navigator.pop(context);
-  //                     },
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.green.shade600,
-  //                       foregroundColor: Colors.white,
-  //                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  //                     ),
-  //                     child: const Text('Valider'),
-  //                   ),
-  //                   const SizedBox(width: 8),
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       Navigator.pop(context);
-  //                       rejectOrder(order);
-  //                     },
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.red.shade600,
-  //                       foregroundColor: Colors.white,
-  //                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  //                     ),
-  //                     child: const Text('Rejeter'),
-  //                   ),
-  //                   const SizedBox(width: 8),
-  //                 ],
-  //                 if (order.status_commande == 'Validee') ...[
-  //                   ElevatedButton(
-  //                     onPressed: () {
-  //                       // Créer bon de sortie
-  //                       Navigator.pop(context);
-  //                       ScaffoldMessenger.of(context).showSnackBar(
-  //                         const SnackBar(content: Text('Bon de sortie créé')),
-  //                       );
-  //                     },
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: const Color(0xFF0C8D68),
-  //                       foregroundColor: Colors.white,
-  //                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  //                     ),
-  //                     child: const Text('📋 Bon de sortie'),
-  //                   ),
-  //                   const SizedBox(width: 8),
-  //                 ],
-  //               ],
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
   void showOrderDetails(BonDeCommande order) {
   showDialog(
     context: context,
@@ -376,9 +123,10 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
         width: 600,
         constraints: const BoxConstraints(maxHeight: 600),
         padding: const EdgeInsets.all(24),
-        child: Scrollbar( // ✅ Scrollbar visible
+        child: Scrollbar( 
           thumbVisibility: true,
-          child: SingleChildScrollView( // ✅ Scroll vertical
+          child: SingleChildScrollView(
+            primary: true,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -670,7 +418,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    if (order.status_commande == 'Validee') ...[
+                    if (order.status_commande == 'Validee' && order.bon_de_sortie == false) ...[
                       ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);

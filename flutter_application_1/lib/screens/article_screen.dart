@@ -1,6 +1,9 @@
+import 'package:flareline_template/models/categorie.dart';
 import 'package:flutter/material.dart';
 import '../models/article.dart';
 import '../services/articleService.dart';
+import '../models/categorie.dart';
+import '../services/categorieService.dart';
 
 void main() {
   runApp(ArticleScreen());
@@ -43,6 +46,8 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
 
   List<Article> articles = [];
   List<Article> filteredArticles = [];
+  List<Categorie> categories = [];
+  int? _selectedCategorieId;  
 
   // Couleurs définies
   static const Color buttonColor = Color(0xFFF9B70D);
@@ -53,6 +58,7 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
   void initState() {
     super.initState();
     _loadArticles();
+    _loadCategories();
     _filterIntituleController.addListener(_applyFilters);
     _filterCodeController.addListener(_applyFilters);
   }
@@ -67,6 +73,19 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur de chargement des articles: $e")),
+      );
+    }
+  }
+  Future<void> _loadCategories() async {
+    try {
+      final loadedCategories = await CategorieService().getCategories();
+      setState(() {
+        categories = loadedCategories;
+      });
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de chargement des catégories: $e")),
       );
     }
   }
@@ -102,12 +121,14 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
     final seuilMin = double.parse(_seuilMinController.text);
     final code = _codeController.text;
     final prix = double.parse(_prixController.text);
+    final categorie = categories.firstWhere((cat) => cat.idCategorie == _selectedCategorieId);
 
     final newArticle = Article(
       intitule: intitule,
       seuilMin: seuilMin,
       code: code,
       prix: prix,
+      categorie: categorie,
     );
 
     // Appel du service asynchrone pour créer l'article + historique prix
@@ -149,6 +170,7 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
     final intituleController = TextEditingController(text: article?.intitule ?? '');
      final prixController = TextEditingController(text: article?.prix.toString() ?? '');
     final seuilMinController = TextEditingController(text: article?.seuilMin.toString() ?? '');
+    // final categorieController = TextEditingController(text: article?.categorie ?? '');
 
     showDialog(
       context: context,
@@ -382,134 +404,191 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Créer un nouvel article',
-                        style: TextStyle(
-                          fontSize: 18, 
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
+                        Text(
+                          'Créer un nouvel article',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins',
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 16),
-                      Row(
+                        SizedBox(height: 16),
+
+                        // Ligne Intitulé + Code
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _intituleController,
+                                style: TextStyle(fontFamily: 'Poppins'),
+                                decoration: InputDecoration(
+                                  labelText: 'Intitulé',
+                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez saisir un intitulé';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _codeController,
+                                style: TextStyle(fontFamily: 'Poppins'),
+                                decoration: InputDecoration(
+                                  labelText: 'Code',
+                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                  border: OutlineInputBorder(),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez saisir un code';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Ligne Seuil min + Prix
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _seuilMinController,
+                                style: TextStyle(fontFamily: 'Poppins'),
+                                decoration: InputDecoration(
+                                  labelText: 'Seuil minimum',
+                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.number,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez saisir un seuil minimum';
+                                  }
+                                  if (int.tryParse(value) == null) {
+                                    return 'Veuillez saisir un nombre valide';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _prixController,
+                                style: TextStyle(fontFamily: 'Poppins'),
+                                decoration: InputDecoration(
+                                  labelText: 'Prix',
+                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez saisir un prix';
+                                  }
+                                  if (double.tryParse(value) == null) {
+                                    return 'Veuillez saisir un prix valide';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 16),
+
+                        // Ligne Categorie + Boutons
+                        Row(
                         children: [
                           Expanded(
-                            child: TextFormField(
-                              controller: _intituleController,
-                              style: TextStyle(fontFamily: 'Poppins'),
+                            flex: 1, // 👈 moitié de l'écran comme les autres champs
+                            child: DropdownButtonFormField<int>(
+                              value: _selectedCategorieId,
+                              items: categories.map((cat) {
+                                return DropdownMenuItem<int>(
+                                  value: cat.idCategorie,
+                                  child: Text(
+                                    cat.nomCategorie,
+                                    style: TextStyle(fontFamily: 'Poppins'),
+                                  ),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedCategorieId = value;
+                                });
+                              },
                               decoration: InputDecoration(
-                                labelText: 'Intitulé',
+                                labelText: 'Catégorie',
                                 labelStyle: TextStyle(fontFamily: 'Poppins'),
                                 border: OutlineInputBorder(),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un intitulé';
+                                if (value == null) {
+                                  return 'Veuillez choisir une catégorie';
                                 }
                                 return null;
                               },
                             ),
                           ),
+
                           SizedBox(width: 16),
+
+                          // Boutons prennent l'autre moitié
                           Expanded(
-                            child: TextFormField(
-                              controller: _codeController,
-                              style: TextStyle(fontFamily: 'Poppins'),
-                              decoration: InputDecoration(
-                                labelText: 'Code',
-                                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un code';
-                                }
-                                return null;
-                              },
+                            flex: 1, // 👈 moitié de l'écran aussi
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    onPressed: _saveArticle,
+                                    icon: Icon(Icons.add),
+                                    label: Text(
+                                      'Créer',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: buttonColor,
+                                      foregroundColor: Colors.white,
+                                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _clearForm,
+                                    icon: Icon(Icons.clear),
+                                    label: Text(
+                                      'Effacer',
+                                      style: TextStyle(fontFamily: 'Poppins'),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: accentColor,
+                                      side: BorderSide(color: accentColor),
+                                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
-                      SizedBox(height: 16),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _seuilMinController,
-                              style: TextStyle(fontFamily: 'Poppins'),
-                              decoration: InputDecoration(
-                                labelText: 'Seuil minimum',
-                                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un seuil minimum';
-                                }
-                                if (int.tryParse(value) == null) {
-                                  return 'Veuillez saisir un nombre valide';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _prixController,
-                              style: TextStyle(fontFamily: 'Poppins'),
-                              decoration: InputDecoration(
-                                labelText: 'Prix',
-                                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                border: OutlineInputBorder(),
-                              ),
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un prix';
-                                }
-                                if (double.tryParse(value) == null) {
-                                  return 'Veuillez saisir un prix valide';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _saveArticle,
-                            icon: Icon(Icons.add),
-                            label: Text(
-                              'Créer',
-                              style: TextStyle(fontFamily: 'Poppins'),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: buttonColor,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          OutlinedButton.icon(
-                            onPressed: _clearForm,
-                            icon: Icon(Icons.clear),
-                            label: Text(
-                              'Effacer',
-                              style: TextStyle(fontFamily: 'Poppins'),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: accentColor,
-                              side: BorderSide(color: accentColor),
-                            ),
-                          ),
-                        ],
-                      ),
+                      )
                     ],
+
                   ),
                 ),
               ),

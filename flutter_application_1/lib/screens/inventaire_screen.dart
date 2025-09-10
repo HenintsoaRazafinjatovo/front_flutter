@@ -140,7 +140,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
               physicalStocks[article.idArticle!]?.toString() ?? '0',
             ) ??
             0;
-        double? theoreticalStock = article.stock_actuel;
+        double? theoreticalStock = article.stockActuel;
         double ecart = physicalStock - theoreticalStock!;
 
         inventaireArticles.add(
@@ -581,7 +581,7 @@ Widget _buildInventoryInfo() {
 // Article inputs for physical stock
 List<Widget> _buildArticleInputs() {
   return selectedArticles.map((article) {
-    double theoreticalStock = article.stock_actuel ?? 0;
+    double theoreticalStock = article.stockActuel ?? 0;
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(16),

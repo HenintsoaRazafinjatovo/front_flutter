@@ -1,5 +1,5 @@
 import 'package:flareline_template/screens/admin_commande_screen.dart';
-import 'package:flareline_template/screens/bon_de_sortie_screen.dart';
+import 'package:flareline_template/screens/bon_de_livraison_screen.dart';
 import 'package:flareline_template/screens/calendrier_screen.dart';
 import 'package:flareline_template/screens/inventaire_screen.dart';
 import 'package:flareline_template/screens/mouvement_stock_screen.dart';
@@ -57,7 +57,7 @@ class _MainLayoutState extends State<MainLayout> {
       case 7:
         return const AdminCommandeScreen();
       case 8:
-        return const BonDeSortieScreen();
+        return const BonDeLivraisonScreen();
       default:
         return const MouvementStockScreen();
     }

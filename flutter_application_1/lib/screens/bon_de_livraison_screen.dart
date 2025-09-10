@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 void main() {
-  runApp(BonDeSortieScreen());
+  runApp(BonDeLivraisonScreen());
 }
 
-class BonDeSortieScreen extends StatelessWidget {
-  const BonDeSortieScreen({super.key});
+class BonDeLivraisonScreen extends StatelessWidget {
+  const BonDeLivraisonScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gestion Bon de Sortie',
+      title: 'Gestion Bon de Livraison',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.orange,

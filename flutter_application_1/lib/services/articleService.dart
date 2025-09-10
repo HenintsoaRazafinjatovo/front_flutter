@@ -20,13 +20,18 @@ class ArticleService {
   }
 
  
-  Future<bool> addArticle(Article article) async {
+ Future<bool> addArticle(Article article) async {
+  print("Article to add: ${article.toApiJson()}");
   final response = await http.post(
     Uri.parse(baseUrl),
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode(article.toJson()),
+     headers: {
+      'Content-Type': 'application/json',  
+      'Accept': 'application/json',
+      },
+    body: json.encode(article.toApiJson()),
   );
-
+  print('Response status: ${response.statusCode}');
+  print('Response body: ${response.body}');
   return response.statusCode == 201 || response.statusCode == 200;
 }
 
@@ -35,7 +40,10 @@ class ArticleService {
     final url = '$baseUrl/${article.idArticle}';
     final response = await http.put(
       Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+      'Content-Type': 'application/json',  
+      'Accept': 'application/json',
+      },
       body: json.encode(article.toJson()),
     );
 

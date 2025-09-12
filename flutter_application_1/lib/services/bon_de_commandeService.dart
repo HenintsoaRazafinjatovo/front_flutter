@@ -13,12 +13,22 @@ class BonDeCommandeService {
       List<dynamic> data = json.decode(response.body);
       return data.map((item) => BonDeCommande.fromJson(item)).toList();
     } else {
-      throw Exception(
-          'Erreur lors de la récupération des bons de commande : ${response.statusCode}');
+      print("Erreur nbe" + response.body);
+      throw Exception('Erreur lors de la récupération des bons de commande : ${response.statusCode}');
     }
   }
   Future<List<BonDeCommande>> getBonDeCommandeWithStatusEnAttente() async {
     final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetailsEnAttente'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((item) => BonDeCommande.fromJson(item)).toList();
+    } else {
+      throw Exception(
+          'Erreur lors de la récupération des bons de commande : ${response.statusCode}');
+    }
+  }
+  Future <List<BonDeCommande>> getBonDeCommandeWithoutBonDeLivraison() async {
+    final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithoutBonDeLivraison'));
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
       return data.map((item) => BonDeCommande.fromJson(item)).toList();
@@ -69,6 +79,7 @@ class BonDeCommandeService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
+        
       return data.map((e) => BonDeCommande.fromJson(e)).toList();
     } else {
       throw Exception('Erreur lors de la récupération des bons de commande');

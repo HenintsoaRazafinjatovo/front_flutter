@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../models/evenement.dart';
 
 class CalendrierLogistiqueScreen extends StatefulWidget {
   const CalendrierLogistiqueScreen({super.key});
@@ -19,53 +20,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
   DateTime currentDate = DateTime.now();
   DateTime? selectedDate;
   
-  List<EvenementLogistique> events = [
-    EvenementLogistique(
-      id: 1,
-      title: 'Livraison Ordinateurs',
-      type: TypeEvenement.livraison,
-      date: DateTime(2024, 12, 18),
-      time: '09:00',
-      description: 'Livraison de 50 ordinateurs portables Dell',
-      agency: 'Agence Aina',
-    ),
-    EvenementLogistique(
-      id: 2,
-      title: 'Inventaire Entrepôt A',
-      type: TypeEvenement.inventaire,
-      date: DateTime(2024, 12, 20),
-      time: '14:00',
-      description: 'Inventaire trimestriel des équipements informatiques',
-      agency: 'Agence Farimbotsoa',
-    ),
-    EvenementLogistique(
-      id: 3,
-      title: 'Formation Sécurité',
-      type: TypeEvenement.formation,
-      date: DateTime(2024, 12, 22),
-      time: '10:00',
-      description: 'Formation sécurité pour les nouveaux employés',
-      agency: 'Toutes les agences',
-    ),
-    EvenementLogistique(
-      id: 4,
-      title: 'Maintenance Serveurs',
-      type: TypeEvenement.maintenance,
-      date: DateTime(2024, 12, 19),
-      time: '20:00',
-      description: 'Maintenance préventive des serveurs',
-      agency: 'Agence Vonjy',
-    ),
-    EvenementLogistique(
-      id: 5,
-      title: 'Réunion Équipe',
-      type: TypeEvenement.reunion,
-      date: DateTime(2024, 12, 21),
-      time: '15:30',
-      description: 'Point hebdomadaire avec l\'équipe logistique',
-      agency: 'Agence Fanavotana',
-    ),
-  ];
+  List<Evenement> events = [];
 
   void previousMonth() {
     setState(() {
@@ -92,11 +47,11 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     _showDayDetails(date);
   }
 
-  List<EvenementLogistique> getEventsForDate(DateTime date) {
+  List<Evenement> getEventsForDate(DateTime date) {
     return events.where((event) {
-      return event.date.year == date.year &&
-          event.date.month == date.month &&
-          event.date.day == date.day;
+      return event.dateEvenement.year == date.year &&
+          event.dateEvenement.month == date.month &&
+          event.dateEvenement.day == date.day;
     }).toList();
   }
 

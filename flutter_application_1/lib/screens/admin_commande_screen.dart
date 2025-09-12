@@ -27,8 +27,8 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
     }).toList();
   }
   int get pendingCount => orders.where((o) => o.status_commande == 'En attente').length;
-  int get validatedCount => orders.where((o) => o.status_commande == 'Validee').length;
-  int get rejectedCount => orders.where((o) => o.status_commande == 'Rejetee').length;
+  int get validatedCount => orders.where((o) => o.status_commande == 'Validée').length;
+  int get rejectedCount => orders.where((o) => o.status_commande == 'Rejetée').length;
   int get totalCount => orders.length;
 
   Future<void> validateOrder(BonDeCommande order) async {
@@ -54,6 +54,10 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
       final loadedCommandes = await BonDeCommandeService().getBonDeCommandeWithStatus();
       setState(() {
         orders = loadedCommandes.cast<BonDeCommande>();
+        for (var order in orders) {
+  print('Commande ${order.idBonDeCommande} - Agence: ${order.agence?.codeAgence ?? 'N/A'}');
+}
+     
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -508,9 +512,9 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
               children: [
                 Expanded(child: _buildStatCard(Icons.access_time, 'En attente', pendingCount, Colors.orange)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildStatCard(Icons.check, 'Validees', validatedCount, Colors.green)),
+                Expanded(child: _buildStatCard(Icons.check, 'Validées', validatedCount, Colors.green)),
                 const SizedBox(width: 16),
-                Expanded(child: _buildStatCard(Icons.cancel, 'Rejetees', rejectedCount, Colors.red)),
+                Expanded(child: _buildStatCard(Icons.cancel, 'Rejetées', rejectedCount, Colors.red)),
                 const SizedBox(width: 16),
                 Expanded(child: _buildStatCard(Icons.inventory_2, 'Total', totalCount, const Color(0xFF0C8D68))),
               ],
@@ -595,8 +599,8 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                             ),
                             items: [
                             'En attente',
-                            'Validee',
-                            'Rejetee',
+                            'Validée',
+                            'Rejetée',
                             ].map((status) {
                             return DropdownMenuItem(
                               value: status,
@@ -801,7 +805,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                         const SizedBox(width: 4),
                         _buildActionButton(Icons.cancel, Colors.red, () => rejectOrder(order)),
                       ],
-                      if (order.status_commande == 'Validee') ...[
+                      if (order.status_commande == 'Validée') ...[
                         const SizedBox(width: 4),
                         _buildActionButton(Icons.receipt, const Color(0xFF0C8D68), () {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -829,11 +833,11 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
         backgroundColor = Colors.orange.shade100;
         textColor = Colors.orange.shade700;
         break;
-      case 'Validee':
+      case 'Validée':
         backgroundColor = Colors.green.shade100;
         textColor = Colors.green.shade700;
         break;
-      case 'Rejetee':
+      case 'Rejetée':
         backgroundColor = Colors.red.shade100;
         textColor = Colors.red.shade700;
         break;

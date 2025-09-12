@@ -1,35 +1,34 @@
-
 import 'article.dart';
 
-class CommandeArticle {
+class MvtStockArticle {
   final int? idArticle;
-  final double quantite; // Changé de int à double pour gérer les décimales
+  final double quantite; // quantité du mouvement
   final Article? article;
-  final double totalArticle;
+  final double? totalArticle;
+  // final String typeMouvement; // "ENTREE" ou "SORTIE"
 
-  CommandeArticle({
+  MvtStockArticle({
     this.idArticle,
     required this.quantite,
     this.article,
-    required this.totalArticle,
+    this.totalArticle,
+    // required this.typeMouvement,
   });
 
-  factory CommandeArticle.fromJson(Map<String, dynamic> json) {
+  factory MvtStockArticle.fromJson(Map<String, dynamic> json) {
     double prix = json['prix_unitaire'] != null
         ? double.tryParse(json['prix_unitaire'].toString()) ?? 0.0
         : 0.0;
     
-    // Correction: Parse quantite comme double au lieu de int
     double quantite = json['quantite'] != null
         ? double.tryParse(json['quantite'].toString()) ?? 0.0
         : 0.0;
 
-    // Utiliser total_article du JSON s'il existe, sinon calculer
     double totalArticle = json['total_article'] != null
         ? double.tryParse(json['total_article'].toString()) ?? 0.0
         : quantite * prix;
 
-    return CommandeArticle(
+    return MvtStockArticle(
       idArticle: json['id_article'],
       quantite: quantite,
       article: json['intitule'] != null
@@ -42,10 +41,9 @@ class CommandeArticle {
             )
           : null,
       totalArticle: totalArticle,
+      // typeMouvement: json['type_mouvement'] ?? 'ENTREE',
     );
   }
-
-  get prixUnitaire => null;
 
   Map<String, dynamic> toJson() {
     return {
@@ -54,6 +52,7 @@ class CommandeArticle {
       'prix_unitaire': article?.prix,
       'total_article': totalArticle,
       'intitule': article?.intitule,
+      // 'type_mouvement': typeMouvement,
     };
   }
 }

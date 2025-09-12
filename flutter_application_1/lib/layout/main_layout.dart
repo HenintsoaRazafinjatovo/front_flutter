@@ -34,7 +34,7 @@ class _MainLayoutState extends State<MainLayout> {
     {'icon': Icons.production_quantity_limits, 'label': 'Articles'},
     {'icon': Icons.article, 'label': 'Factures'},
     {'icon': Icons.task_outlined, 'label': 'Admin commande'},
-    {'icon': Icons.task_outlined, 'label': 'Bon de sortie'},
+    {'icon': Icons.task_outlined, 'label': 'Bon de livraison'},
 
   ];
 

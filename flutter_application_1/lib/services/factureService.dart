@@ -1,9 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/facture.dart';
+import 'dart:typed_data';
+
 
 class FactureService {
    final String baseUrl = "http://127.0.0.1:8000/api/factures"; 
+  final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/facture';
+
   Future<List<Facture>> getFactures() async {
     final url = Uri.parse(baseUrl);
     try {
@@ -59,5 +63,27 @@ class FactureService {
     };
   }
 }
+Future<Uint8List> generatePdf(String type, int id) async {
+    final url = Uri.parse('$pdfBaseUrl/$id');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/pdf',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Retourne le PDF sous forme de bytes
+        return response.bodyBytes;
+      } else {
+        throw Exception(
+            'Erreur lors de la génération du PDF : ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de l’appel API : $e');
+    }
+  }
 
 }

@@ -5,6 +5,11 @@ import 'package:flareline_template/services/bon_de_livraisonService.dart';
 import 'package:flareline_template/services/bon_de_commandeService.dart';
 import 'package:flareline_template/services/agenceService.dart';
 import 'package:flareline_template/models/mvtStockArticle.dart';
+import 'package:open_file/open_file.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
+import 'dart:html' as html;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -97,6 +102,33 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
       );
     }
   }
+  void openPdf(Uint8List pdfBytes, String filename) async {
+    final tempDir = await getTemporaryDirectory();
+    final file = File('${tempDir.path}/$filename.pdf');
+    await file.writeAsBytes(pdfBytes, flush: true);
+
+    // Ouvre le PDF
+    await OpenFile.open(file.path);
+  }
+  void openPdfWeb(Uint8List pdfBytes, String filename) {
+  // final blob = html.Blob([pdfBytes], 'application/pdf');
+  // final url = html.Url.createObjectUrlFromBlob(blob);
+
+  // // Ouvre le PDF dans un nouvel onglet
+  // html.window.open(url, filename);
+
+  // // Libère l'URL une fois ouvert
+  // html.Url.revokeObjectUrl(url);
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+  final url = html.Url.createObjectUrlFromBlob(blob);
+
+  final anchor = html.AnchorElement(href: url)
+    ..setAttribute("download", filename) // Nom du fichier
+    ..click(); // Simule le clic pour lancer le téléchargement
+
+  html.Url.revokeObjectUrl(url);
+
+}
   void _showCreateModal() {
     showDialog(
       context: context,
@@ -122,6 +154,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
           note: note,
           buttonColor: buttonColor,
           headerColor: headerColor,
+          openPdfWeb: openPdfWeb, // Pass the openPdfWeb function
         );
       },
     );
@@ -553,32 +586,38 @@ class _CreateDeliveryNoteDialogState extends State<CreateDeliveryNoteDialog> {
     );
   }
 }
-
 // --- Dialog pour voir les détails d'un bon de livraison ---
 class ViewDeliveryNoteDialog extends StatelessWidget {
   final BonDeLivraison note;
   final Color buttonColor;
   final Color headerColor;
+  final void Function(Uint8List, String) openPdfWeb; // Add openPdf callback
 
   const ViewDeliveryNoteDialog({
     super.key,
     required this.note,
     required this.buttonColor,
     required this.headerColor,
+    required this.openPdfWeb, // Require openPdf in constructor
   });
 
   @override
   Widget build(BuildContext context) {
+    final bonDeLivraisonService = BonDeLivraisonService();
     return AlertDialog(
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text('Bon de livraison ${note.idBonDeLivraison}'),
           ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Impression de ${note.idBonDeLivraison}')),
-              );
+            onPressed:  () async {
+              try {
+              final pdfBytes = await bonDeLivraisonService.generatePdf('livraison', note.idBonDeLivraison ?? 0);
+              openPdfWeb(pdfBytes, 'BON_DE_LIVRAISON_1');
+
+              } catch (e) {
+                print('Erreur : $e');
+              }
             },
             icon: const Icon(Icons.print, size: 16, color: Colors.white),
             label: const Text('Imprimer', style: TextStyle(color: Colors.white)),
@@ -616,4 +655,5 @@ class ViewDeliveryNoteDialog extends StatelessWidget {
     );
   }
 }
+
 

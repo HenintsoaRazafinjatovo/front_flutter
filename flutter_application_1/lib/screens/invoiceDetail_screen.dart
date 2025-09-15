@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import '../models/facture.dart';// <-- Add this import for Article
 import '../models/mvtStockArticle.dart'; 
 import 'package:intl/intl.dart';
+import '../services/factureService.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:html' as html;
+
 class InvoiceDetailScreen extends StatelessWidget {
   final Facture invoice;
   final Color buttonColor;
@@ -15,7 +20,17 @@ class InvoiceDetailScreen extends StatelessWidget {
     required this.headerRowColor,
     required this.accentColor,
   });
+  void openPdfWeb(Uint8List pdfBytes, String filename) {
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+  final url = html.Url.createObjectUrlFromBlob(blob);
 
+  final anchor = html.AnchorElement(href: url)
+    ..setAttribute("download", filename) // Nom du fichier
+    ..click(); // Simule le clic pour lancer le téléchargement
+
+  html.Url.revokeObjectUrl(url);
+
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,11 +41,19 @@ class InvoiceDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.print),
-            onPressed: () {
-              // Logique d'impression
+            onPressed:  () async {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Impression de la facture...')),
+                
               );
+              try {
+              final factureService = FactureService();
+              final pdfBytes = await factureService.generatePdf('facture', invoice.idFacture ?? 0);
+              openPdfWeb(pdfBytes, 'FACTURE-${invoice.idFacture}');
+
+              } catch (e) {
+                print('Erreur : $e');
+              }
             },
           ),
         ],
@@ -516,10 +539,19 @@ class InvoiceDetailScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
+                    onPressed:  () async {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Impression de la facture...')),
+                        
                       );
+                      try {
+                      final factureService = FactureService();
+                      final pdfBytes = await factureService.generatePdf('facture', invoice.idFacture ?? 0);
+                      openPdfWeb(pdfBytes, 'FACTURE-${invoice.idFacture}');
+
+                      } catch (e) {
+                        print('Erreur : $e');
+                      }
                     },
                     icon: Icon(Icons.print, color: Colors.white),
                     label: Text(

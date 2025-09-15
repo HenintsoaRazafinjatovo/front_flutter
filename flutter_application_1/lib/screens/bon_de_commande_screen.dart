@@ -5,6 +5,9 @@ import '../models/article.dart';
 import '../services/articleService.dart';
 import '../services/bon_de_commandeService.dart';
 import '../models/bon_de_commande.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'dart:html' as html;
 
 class BonDeCommandeScreen extends StatefulWidget {
   const BonDeCommandeScreen({super.key});
@@ -56,6 +59,17 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
       );
     }
   }
+   void openPdfWeb(Uint8List pdfBytes, String filename) {
+    final blob = html.Blob([pdfBytes], 'application/pdf');
+  final url = html.Url.createObjectUrlFromBlob(blob);
+
+  final anchor = html.AnchorElement(href: url)
+    ..setAttribute("download", filename) // Nom du fichier
+    ..click(); // Simule le clic pour lancer le téléchargement
+
+  html.Url.revokeObjectUrl(url);
+
+}
 
   void ajouterOuMettreAJourArticle() {
     if (_formKey.currentState!.validate()) {
@@ -526,6 +540,7 @@ LayoutBuilder(
                           DataColumn(label: Text('Description')),
                           DataColumn(label: Text('Status')),
                           DataColumn(label: Text('Date')),
+                          DataColumn(label: Text('Actions')),
                         ],
                         rows: commandes.map((cmd) {
                           return DataRow(cells: [
@@ -542,6 +557,25 @@ LayoutBuilder(
                             ),
                             DataCell(Text(cmd.status_commande)),
                             DataCell(Text(cmd.dateBonDeCommande.toString())),
+                            DataCell(
+                              IconButton(
+                                icon: const Icon(Icons.print_rounded, color: Color.fromARGB(154, 71, 71, 70)),
+                                onPressed:  () async {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Impression de la facture...')),
+                                  
+                                );
+                                try {
+                                final bonDeCommandeService = BonDeCommandeService();
+                                final pdfBytes = await bonDeCommandeService.generatePdf('facture', cmd.idBonDeCommande ?? 0);
+                                openPdfWeb(pdfBytes, 'BC-${cmd.idBonDeCommande}');
+
+                                } catch (e) {
+                                  print('Erreur : $e');
+                                }
+                              },
+                              ),
+                            ),
                           ]);
                         }).toList(),
                       ),

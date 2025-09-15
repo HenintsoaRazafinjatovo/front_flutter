@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/bon_de_commande.dart';
+import 'dart:typed_data';
+
 
 class BonDeCommandeService {
   final String baseUrl='http://127.0.0.1:8000/api/bon_de_commandes';
+  final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/commande';
 
 
   // Récupérer la liste des bons de commande
@@ -119,6 +122,28 @@ class BonDeCommandeService {
     } else {
       print('Erreur lors du rejet du bon de commande : ${response.statusCode} - ${response.body}');
       return false;
+    }
+  }
+  Future<Uint8List> generatePdf(String type, int id) async {
+    final url = Uri.parse('$pdfBaseUrl/$id');
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Accept': 'application/pdf',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Retourne le PDF sous forme de bytes
+        return response.bodyBytes;
+      } else {
+        throw Exception(
+            'Erreur lors de la génération du PDF : ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur lors de l’appel API : $e');
     }
   }
 }

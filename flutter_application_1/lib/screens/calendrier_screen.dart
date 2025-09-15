@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/evenement.dart';
+import '../models/type_evenement.dart';
 
 class CalendrierLogistiqueScreen extends StatefulWidget {
   const CalendrierLogistiqueScreen({super.key});
@@ -173,7 +174,8 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     final descriptionController = TextEditingController();
     final timeController = TextEditingController();
     DateTime selectedEventDate = defaultDate ?? selectedDate ?? DateTime.now();
-    TypeEvenement selectedType = TypeEvenement.livraison;
+    // TypeEvenement selectedType = TypeEvenement.livraison;
+    TypeEvenement selectedType = TypeEvenement.values.firstWhere((type) => type.description == "Livraison");
     String selectedAgency = 'Agence Aina';
 
     showDialog(
@@ -238,9 +240,9 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                         value: type,
                         child: Row(
                           children: [
-                            Text(type.emoji),
+                            Text(type.emoji ?? ''),
                             const SizedBox(width: 8),
-                            Text(type.displayName, style: GoogleFonts.poppins()),
+                            Text(type.description, style: GoogleFonts.poppins()),
                           ],
                         ),
                       );
@@ -376,14 +378,14 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
           ElevatedButton(
             onPressed: () {
               if (titleController.text.isNotEmpty) {
-                final newEvent = EvenementLogistique(
-                  id: events.length + 1,
-                  title: titleController.text,
-                  type: selectedType,
-                  date: selectedEventDate,
-                  time: timeController.text.isNotEmpty ? timeController.text : null,
+                final newEvent = Evenement(
+                  idEvenement: events.length + 1,
+                  titre: titleController.text,
+                  typeEvenement: selectedType,
+                  dateEvenement: selectedEventDate,
+                  // time: timeController.text.isNotEmpty ? timeController.text : null,
                   description: descriptionController.text.isNotEmpty ? descriptionController.text : null,
-                  agency: selectedAgency,
+                  // agency: selectedAgency,
                 );
                 
                 setState(() {
@@ -410,7 +412,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     );
   }
 
-  Widget _buildEventCard(EvenementLogistique event) {
+  Widget _buildEventCard(Evenement event) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -418,11 +420,11 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
         // ignore: deprecated_member_use
-        border: Border.all(color: event.type.color.withOpacity(0.3)),
+        border: Border.all(color: (event.typeEvenement.color ?? Colors.transparent).withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
             // ignore: deprecated_member_use
-            color: event.type.color.withOpacity(0.1),
+            color: event.typeEvenement.color?.withOpacity(0.1) ?? Colors.transparent,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -437,11 +439,11 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   // ignore: deprecated_member_use
-                  color: event.type.color.withOpacity(0.1),
+                  color: event.typeEvenement.color?.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  event.type.emoji,
+                  event.typeEvenement.emoji ?? '',
                   style: const TextStyle(fontSize: 20),
                 ),
               ),
@@ -451,46 +453,45 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      event.title,
+                      event.titre ?? 'Sans titre',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: darkGray,
                       ),
                     ),
-                    if (event.time != null)
-                      Text(
-                        '⏰ ${event.time}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: lightGray,
-                        ),
+                    Text(
+                      '⏰ ${event.dateEvenement.hour.toString().padLeft(2, '0')}:${event.dateEvenement.minute.toString().padLeft(2, '0')}',
+                      style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: lightGray,
                       ),
+                    ),
                   ],
                 ),
               ),
               IconButton(
-                onPressed: () => _deleteEvent(event.id),
+                onPressed: () => _deleteEvent(event.idEvenement!),
                 icon: const Icon(Icons.delete_outline, color: primaryRed, size: 20),
               ),
             ],
           ),
-          if (event.agency != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.business, size: 14, color: lightGray),
-                const SizedBox(width: 4),
-                Text(
-                  event.agency!,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: lightGray,
-                  ),
-                ),
-              ],
-            ),
-          ],
+          // if (event.agency != null) ...[
+          //   const SizedBox(height: 8),
+          //   Row(
+          //     children: [
+          //       Icon(Icons.business, size: 14, color: lightGray),
+          //       const SizedBox(width: 4),
+          //       Text(
+          //         event.agency!,
+          //         style: GoogleFonts.poppins(
+          //           fontSize: 12,
+          //           color: lightGray,
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ],
           if (event.description != null) ...[
             const SizedBox(height: 8),
             Text(
@@ -531,7 +532,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
           ElevatedButton(
             onPressed: () {
               setState(() {
-                events.removeWhere((event) => event.id == eventId);
+                events.removeWhere((event) => event.idEvenement == eventId);
               });
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -743,13 +744,13 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                             height: 16,
                             decoration: BoxDecoration(
                               // ignore: deprecated_member_use
-                              color: type.color.withOpacity(0.3),
+                              color: type.color?.withOpacity(0.3) ?? Colors.transparent,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            type.displayName,
+                            type.description,
                             style: GoogleFonts.poppins(
                               fontSize: 14,
                               color: darkGray,
@@ -809,27 +810,27 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
 
     // Calculs statistiques
     final weekDeliveries = events.where((event) {
-      return event.type == TypeEvenement.livraison &&
-          event.date.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
-          event.date.isBefore(endOfWeek.add(const Duration(days: 1)));
+      return event.typeEvenement.description == "Livraison" &&
+          event.dateEvenement.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
+          event.dateEvenement.isBefore(endOfWeek.add(const Duration(days: 1)));
     }).length;
 
     final upcomingInventories = events.where((event) {
-      return event.type == TypeEvenement.inventaire &&
-          event.date.isAfter(now.subtract(const Duration(days: 1)));
+      return event.typeEvenement.description == "Inventaire" &&
+          event.dateEvenement.isAfter(now.subtract(const Duration(days: 1)));
     }).length;
 
     final monthTrainings = events.where((event) {
-      return event.type == TypeEvenement.formation &&
-          event.date.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
-          event.date.isBefore(endOfMonth.add(const Duration(days: 1)));
+      return event.typeEvenement.description == "Formation" &&
+          event.dateEvenement.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
+          event.dateEvenement.isBefore(endOfMonth.add(const Duration(days: 1)));
     }).length;
 
     final urgentMaintenance = events.where((event) {
       final urgentDate = now.add(const Duration(days: 3));
-      return event.type == TypeEvenement.maintenance &&
-          event.date.isAfter(now.subtract(const Duration(days: 1))) &&
-          event.date.isBefore(urgentDate.add(const Duration(days: 1)));
+      return event.typeEvenement.description == "Maintenance" &&
+          event.dateEvenement.isAfter(now.subtract(const Duration(days: 1))) &&
+          event.dateEvenement.isBefore(urgentDate.add(const Duration(days: 1)));
     }).length;
 
     final stats = [
@@ -1011,11 +1012,20 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                       decoration: BoxDecoration(
                         // ignore: deprecated_member_use
-                        color: event.color.withOpacity(0.7),
+                        // color: event.typeEvenement.color.withOpacity(0.7),
+                        color: event.typeEvenement.description == "Livraison"
+                            ? primaryRed.withOpacity(0.7)
+                            : event.typeEvenement.description == "Inventaire"
+                                ? primaryYellow.withOpacity(0.7)
+                                : event.typeEvenement.description == "Formation"
+                                    ? darkGray.withOpacity(0.7)
+                                    : event.typeEvenement.description == "Maintenance"
+                                        ? primaryRed.withOpacity(0.7)
+                                        : lightGray.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        event.title,
+                        event.titre ?? 'Sans titre',
                         style: GoogleFonts.poppins(
                           fontSize: 10,
                           color: Colors.white,
@@ -1041,43 +1051,8 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     children: days,
   );
 }
-
+// Remove duplicate TypeEvenement definition and use the imported one from models/type_evenement.dart
 }
 
-// Models
-class EvenementLogistique {
-  final int id;
-  final String title;
-  final TypeEvenement type;
-  final DateTime date;
-  final String? time;
-  final String? description;
-  final String? agency;
 
-  EvenementLogistique({
-    required this.id,
-    required this.title,
-    required this.type,
-    required this.date,
-    this.time,
-    this.description,
-    this.agency,
-  });
-
-  Color get color => type.color;
-}
-
-enum TypeEvenement {
-  livraison('Livraisons', '🚚', Color.fromARGB(247, 217, 15, 52)),
-  inventaire('Inventaires', '📦', Color.fromARGB(154, 252, 185, 0)),
-  formation('Formations', '🎓', Color(0xFF374151)),
-  maintenance('Maintenance', '🔧', Color.fromARGB(247, 217, 15, 52)),
-  reunion('Réunions', '👥', Color(0xFF9CA3AF));
-
-  const TypeEvenement(this.displayName, this.emoji, this.color);
-
-  final String displayName;
-  final String emoji;
-  final Color color;
-}
 

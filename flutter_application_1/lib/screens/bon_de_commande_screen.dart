@@ -5,7 +5,6 @@ import '../models/article.dart';
 import '../services/articleService.dart';
 import '../services/bon_de_commandeService.dart';
 import '../models/bon_de_commande.dart';
-import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:html' as html;
 
@@ -63,9 +62,11 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
     final blob = html.Blob([pdfBytes], 'application/pdf');
   final url = html.Url.createObjectUrlFromBlob(blob);
 
-  final anchor = html.AnchorElement(href: url)
-    ..setAttribute("download", filename) // Nom du fichier
-    ..click(); // Simule le clic pour lancer le téléchargement
+  html.AnchorElement anchor = html.AnchorElement(href: url)
+    ..setAttribute("download", filename); // Nom du fichier
+  html.document.body?.append(anchor);
+  anchor.click(); // Simule le clic pour lancer le téléchargement
+  anchor.remove();
 
   html.Url.revokeObjectUrl(url);
 

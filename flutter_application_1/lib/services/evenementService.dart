@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/evenement.dart'; // ton modèle Evenement
 
 class EvenementService {
-   final String baseUrl = 'http://127.0.0.1:8000/api/evenements'; 
+  final String baseUrl = 'http://127.0.0.1:8000/api/evenements';
 
   // Récupérer tous les événements
   Future<List<Evenement>> getEvenements() async {
@@ -19,7 +19,7 @@ class EvenementService {
 
   // Récupérer un événement par ID
   Future<Evenement> getEvenementById(int id) async {
-    final response = await http.get(Uri.parse('$baseUrl/evenements/$id'));
+    final response = await http.get(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode == 200) {
       return Evenement.fromJson(jsonDecode(response.body));
@@ -31,7 +31,7 @@ class EvenementService {
   // Ajouter un nouvel événement
   Future<Evenement> createEvenement(Evenement evenement) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/evenements'),
+      Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(evenement.toJson()),
     );
@@ -50,7 +50,7 @@ class EvenementService {
     }
 
     final response = await http.put(
-      Uri.parse('$baseUrl/evenements/${evenement.idEvenement}'),
+      Uri.parse('$baseUrl/${evenement.idEvenement}'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(evenement.toJson()),
     );
@@ -64,7 +64,7 @@ class EvenementService {
 
   // Supprimer un événement
   Future<void> deleteEvenement(int id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/evenements/$id'));
+    final response = await http.delete(Uri.parse('$baseUrl/$id'));
 
     if (response.statusCode != 200) {
       throw Exception('Erreur lors de la suppression de l’événement');

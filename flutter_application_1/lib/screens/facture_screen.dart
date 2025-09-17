@@ -1,7 +1,7 @@
 import 'package:flareline_template/models/bon_de_livraison.dart';
 import 'package:flutter/material.dart';
 import '../models/facture.dart';
-import '../models/article.dart'; // <-- Add this import for Article
+import '../models/article.dart'; 
 import '../models/mvtStockArticle.dart';
 import '../screens/invoice_screen.dart';
 import '../services/factureService.dart';

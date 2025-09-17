@@ -31,8 +31,8 @@ class Inventaire {
     return {
       'id_inventaire': id,
       'date_inventaire': date.toIso8601String(),
-      'articles': articles ?? [], 
-      'employes': employes ?? [], 
+      'articles': articles,
+      'employes': employes, 
     };
   }
   int getNbArticles() {

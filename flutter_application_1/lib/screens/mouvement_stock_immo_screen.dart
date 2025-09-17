@@ -1,57 +1,57 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/article.dart';
-import '../models/mvt_stock.dart';
+import '../models/materiel.dart';
+import '../models/mvtStockImmo.dart';
 import '../models/direction.dart';
-import '../services/articleService.dart';
+import '../services/materielService.dart';
 import '../services/directionService.dart';
-import '../services/mvt_stockService.dart';
-import '../services/attributionService.dart';
+import '../services/mvtStockImmoService.dart';
 
-class MouvementStockScreen extends StatefulWidget {
-  const MouvementStockScreen({super.key});
+class MouvementStockImmoScreen extends StatefulWidget {
+  const MouvementStockImmoScreen({super.key});
 
   @override
-  State<MouvementStockScreen> createState() => _MouvementStockScreenState();
+  State<MouvementStockImmoScreen> createState() => _MouvementStockImmoScreenState();
 }
 
-class _MouvementStockScreenState extends State<MouvementStockScreen> {
+class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
   // Couleurs définies
   static const Color primaryColor = Color(0xFFF9B70D);
   static const Color headerColor = Color.fromARGB(154, 131, 130, 129);
   static const Color backgroundColor = Colors.white;
   static const Color redAccent = Color(0xFFE53E3E);
 
-  List<Article> articles = [];
-  List<MvtStock> movements = [];
+  List<Materiel> materiels = [];
+  List<MovementDisplay> movements = [];
   List<Direction> directions = [];
-  Article? selectedArticle;
-  String quantity = '';
-   Future<void> _loadArticles() async {
+  
+  Future<void> _loadMateriels() async {
     try {
-      final loadedArticles = await ArticleService().getArticles();
+      final loadedMateriels = await MaterielService().getMateriels();
       setState(() {
-        articles = loadedArticles;
+        materiels = loadedMateriels;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de chargement des articles: $e")),
+        SnackBar(content: Text("Erreur de chargement des matériels: $e")),
       );
     }
   }
+  
   Future<void> _loadMovements() async {
     try {
-      final loadedMovements = await MvtStockService().getMouvementsDetails();
+      final loadedMovements = await MvtStockImmoService().getMouvementsDetails();
       setState(() {
         movements = loadedMovements;
         filteredMovements = List.from(loadedMovements);
       });
     } catch (e, stackTrace) {
       ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Erreur de chargement des mouvements: $e\n$stackTrace")),
+        SnackBar(content: Text("Erreur de chargement des mouvements: $e\n$stackTrace")),
       );
     }
   }
+  
   Future<void> _loadDirections() async {
     try {
       final loadedDirections = await DirectionService().getDirections();
@@ -65,12 +65,12 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
     }
   }
 
-  List<MvtStock> filteredMovements = [];
+  List<MovementDisplay> filteredMovements = [];
 
   // Filtres
-  String? selectedArticleFilter;
+  String? selectedMaterielFilter;
   String? selectedTypeFilter;
-  String? selectedReasonFilter;
+  String? selectedSourceFilter;
   DateTime? dateFromFilter;
   DateTime? dateToFilter;
 
@@ -78,11 +78,10 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   void initState() {
     super.initState();
     _loadMovements();
-    _loadArticles();
+    _loadMateriels();
     _loadDirections();
   }
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,7 +109,6 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
             color: Colors.grey.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -123,8 +121,8 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                Text(
-                'Gestion des entrees et sorties de stock',
+              Text(
+                'Gestion des mouvements de stock immobilisation',
                 style: TextStyle(
                   color: Color.fromARGB(255, 3, 3, 3),
                   fontSize: 25,
@@ -167,7 +165,6 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
             color: Colors.grey.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -178,7 +175,7 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Historique des mouvements',
+            'Historique des mouvements d\'immobilisation',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -195,97 +192,116 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   }
 
   Widget _buildFilters() {
-  return Wrap(
-    spacing: 16,
-    runSpacing: 16,
-    children: [
-      SizedBox(
-        width: 400, // 🔧 Augmenté pour éviter le overflow
-        child: DropdownButtonFormField<String>(
-          value: selectedArticleFilter,
-          decoration: const InputDecoration(
-            labelText: 'Tous les articles',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          items: [
-            const DropdownMenuItem(value: null, child: Text('Tous les articles')),
-            ...articles.map((article) => DropdownMenuItem(
-                  // value: article.idArticle.toString(),
-                  value: article.intitule,
-
-                  child: Text(article.intitule),
-                )),
-          ],
-          onChanged: (value) {
-            setState(() {
-              selectedArticleFilter = value;
-              _applyFilters();
-            });
-          },
-        ),
-      ),
-      SizedBox(
-        width: 180, 
-        child: DropdownButtonFormField<String>(
-          value: selectedTypeFilter,
-          decoration: const InputDecoration(
-            labelText: 'Tous les types',
-            border: OutlineInputBorder(),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('Tous les types')),
-            DropdownMenuItem(value: 'entree', child: Text('entree')),
-            DropdownMenuItem(value: 'sortie', child: Text('sortie')),
-          ],
-          onChanged: (value) {
-            setState(() {
-              selectedTypeFilter = value;
-              _applyFilters();
-            });
-          },
-        ),
-      ),
-      // Boutons
-      Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ElevatedButton.icon(
-            onPressed: _applyFilters,
-            icon: const Icon(Icons.search, color: Colors.white),
-            label: const Text(
-              'Filtrer',
-              style: TextStyle(color: Colors.white),
+    return Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: [
+        SizedBox(
+          width: 400,
+          child: DropdownButtonFormField<String>(
+            value: selectedMaterielFilter,
+            decoration: const InputDecoration(
+              labelText: 'Tous les matériels',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('Tous les matériels')),
+              ...materiels.map((materiel) => DropdownMenuItem(
+                    value: materiel.designation,
+                    child: Text(materiel.designation ?? ''),
+                  )),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedMaterielFilter = value;
+                _applyFilters();
+              });
+            },
+          ),
+        ),
+        SizedBox(
+          width: 180,
+          child: DropdownButtonFormField<String>(
+            value: selectedTypeFilter,
+            decoration: const InputDecoration(
+              labelText: 'Tous les types',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Tous les types')),
+              DropdownMenuItem(value: 'entree', child: Text('Entrée')),
+              DropdownMenuItem(value: 'sortie', child: Text('Sortie')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedTypeFilter = value;
+                _applyFilters();
+              });
+            },
+          ),
+        ),
+        SizedBox(
+          width: 200,
+          child: DropdownButtonFormField<String>(
+            value: selectedSourceFilter,
+            decoration: const InputDecoration(
+              labelText: 'Source/Destination',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Toutes')),
+              DropdownMenuItem(value: 'fond_propre', child: Text('Fond Propre')),
+              DropdownMenuItem(value: 'subvention', child: Text('Subvention')),
+            ],
+            onChanged: (value) {
+              setState(() {
+                selectedSourceFilter = value;
+                _applyFilters();
+              });
+            },
+          ),
+        ),
+        // Boutons
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton.icon(
+              onPressed: _applyFilters,
+              icon: const Icon(Icons.search, color: Colors.white),
+              label: const Text(
+                'Filtrer',
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
-          ),
-          const SizedBox(width: 12),
-          ElevatedButton.icon(
-            onPressed: _clearFilters,
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            label: const Text(
-              'Réinitialiser',
-              style: TextStyle(color: Colors.white),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey[600],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+            const SizedBox(width: 12),
+            ElevatedButton.icon(
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              label: const Text(
+                'Réinitialiser',
+                style: TextStyle(color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey[600],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
-          ),
-        ],
-      ),
-    ],
-  );
-}
-
+          ],
+        ),
+      ],
+    );
+  }
 
   Widget _buildMovementsTable() {
     if (filteredMovements.isEmpty) {
@@ -317,46 +333,44 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
         columns: const [
           DataColumn(label: Text('Date')),
           DataColumn(label: Text('Type')),
-          DataColumn(label: Text('Article')),
+          DataColumn(label: Text('Matériel')),
           DataColumn(label: Text('Quantité')),
-          DataColumn(label: Text('Direction')),
-          // DataColumn(label: Text('Utilisateur')),
+          DataColumn(label: Text('Total')),
+          DataColumn(label: Text('Source/Direction')),
           DataColumn(label: Text('Actions')),
         ],
         rows: filteredMovements.map((movement) {
-            final typeColor = movement.type == 'entree'
+          final typeColor = movement.type == 'entree'
               ? Colors.green[700]
               : redAccent;
-            final quantityColor = movement.type == 'entree'
+          final quantityColor = movement.type == 'entree'
               ? Colors.green[700]
               : redAccent;
 
           return DataRow(
             cells: [
-              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.date_mvt))),
+              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.dateMvt))),
               DataCell(
                 Text(
-                //    movement.type == movement.type ? 'entree' : 'sortie',
                   movement.type,
-
                   style: TextStyle(
                     color: typeColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              DataCell(Text(movement.article)),
+              DataCell(Text(movement.materielNom)),
               DataCell(
                 Text(
-                    '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
+                  '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
                   style: TextStyle(
                     color: quantityColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              DataCell(Text(movement.direction?.nom != null ? movement.direction!.nom : '-')),
-              // DataCell(Text(movement.user)),
+              DataCell(Text('${NumberFormat.currency(locale: 'fr', symbol: '€').format(movement.totalMateriel ?? 0)}')),
+              DataCell(Text(movement.sourceOrDirection ?? '-')),
               DataCell(
                 ElevatedButton(
                   onPressed: () => _showMovementDetails(movement),
@@ -383,54 +397,41 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   void _showCreateMovementDialog() {
     showDialog(
       context: context,
-      builder: (context) => CreateMovementDialog(
-        articles: articles,
+      builder: (context) => CreateMovementImmoDialog(
+        materiels: materiels,
         directions: directions,
         onMovementCreated: (newMovement) {
           setState(() {
             movements.add(newMovement);
-          final article = articles.firstWhere(
-          (a) => a.idArticle == newMovement.article,
-          orElse: () => Article(idArticle: 0, intitule: '', seuilMin: 0, code: ''),
-        );
-
-        if (newMovement.type == 'entree') {
-          article.seuilMin += newMovement.quantite.abs();
-        } else {
-          article.seuilMin -= newMovement.quantite.abs();
-        }
-                  filteredMovements = List.from(movements);
+            filteredMovements = List.from(movements);
           });
         },
       ),
     );
   }
 
-  void _showMovementDetails(MvtStock movement) {
+  void _showMovementDetails(MovementDisplay movement) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Détails du mouvement'),
         content: SizedBox(
           width: 600,
-          height: 250,
+          height: 300,
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.date_mvt)),
-                // _buildDetailRow('Type:', movement.type == movement.type ? 'entree' : 'sortie'),
-                _buildDetailRow('Type:', movement.type ),
-
-                _buildDetailRow('Article:', movement.article),
+                _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.dateMvt)),
+                _buildDetailRow('Type:', movement.type),
+                _buildDetailRow('Matériel:', movement.materielNom),
                 _buildDetailRow(
                   'Quantité:',
                   '${movement.type == 'entree' ? '+' : '-'}${movement.quantite.abs()}',
                 ),
-                // if (movement.direction != null)
-                  _buildDetailRow('Direction:', movement.direction != null ? movement.direction!.nom : '-'),
-                // _buildDetailRow('Utilisateur:', movement.utilisateur ?? '-'),
+                _buildDetailRow('Total:', '${NumberFormat.currency(locale: 'fr', symbol: '€').format(movement.totalMateriel ?? 0)}'),
+                _buildDetailRow('Source/Direction:', movement.sourceOrDirection ?? '-'),
               ],
             ),
           ),
@@ -475,24 +476,23 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   void _applyFilters() {
     setState(() {
       filteredMovements = movements.where((movement) {
-        final articleMatch = selectedArticleFilter == null || movement.article.toString() == selectedArticleFilter;
+        final materielMatch = selectedMaterielFilter == null || 
+            movement.materielNom.contains(selectedMaterielFilter!);
         final typeMatch = selectedTypeFilter == null ||
-            (selectedTypeFilter == 'entree' && movement.type == 'entree') ||
-            (selectedTypeFilter == 'sortie' && movement.type == 'sortie');
-        // final reasonMatch = selectedReasonFilter == null || movement.raison == selectedReasonFilter;
+            movement.type == selectedTypeFilter;
+        final sourceMatch = selectedSourceFilter == null ||
+            (movement.sourceOrDirection != null && movement.sourceOrDirection!.toLowerCase().contains(selectedSourceFilter!));
         
-        // Date filters can be implemented here if needed
-        
-        return articleMatch && typeMatch;
+        return materielMatch && typeMatch && sourceMatch;
       }).toList();
     });
   }
 
   void _clearFilters() {
     setState(() {
-      selectedArticleFilter = null;
+      selectedMaterielFilter = null;
       selectedTypeFilter = null;
-      selectedReasonFilter = null;
+      selectedSourceFilter = null;
       dateFromFilter = null;
       dateToFilter = null;
       filteredMovements = List.from(movements);
@@ -500,39 +500,37 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   }
 }
 
-// Dialog pour créer un nouveau mouvement
-class CreateMovementDialog extends StatefulWidget {
-  final List<Article> articles;
+// Dialog pour créer un nouveau mouvement d'immobilisation
+class CreateMovementImmoDialog extends StatefulWidget {
+  final List<Materiel> materiels;
   final List<Direction> directions;
-  final Function(MvtStock) onMovementCreated;
+  final Function(MovementDisplay) onMovementCreated;
 
-  const CreateMovementDialog({
+  const CreateMovementImmoDialog({
     super.key,
-    required this.articles,
+    required this.materiels,
     required this.directions,
     required this.onMovementCreated,
   });
-  
-  // get directions => null;
 
   @override
-  State<CreateMovementDialog> createState() => _CreateMovementDialogState();
+  State<CreateMovementImmoDialog> createState() => _CreateMovementImmoDialogState();
 }
 
-class _CreateMovementDialogState extends State<CreateMovementDialog> {
+class _CreateMovementImmoDialogState extends State<CreateMovementImmoDialog> {
   static const Color primaryColor = Color(0xFFF9B70D);
 
   String selectedMovementType = '';
-  String? selectedSortieType;
-  Direction? selectedDirection;
-  String? selectedArticleId;
+  String? selectedEntreeSource; // 'fond_propre' ou 'subvention'
+  Direction? selectedDirection; // Pour les sorties
+  String? selectedMaterielId;
   int quantity = 0;
   String comment = '';
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('➕ Nouveau mouvement de stock'),
+      title: const Text('➕ Nouveau mouvement d\'immobilisation'),
       content: SingleChildScrollView(
         child: SizedBox(
           width: 800,
@@ -542,15 +540,15 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
             children: [
               _buildMovementTypeSelection(),
               const SizedBox(height: 16),
-              if (selectedMovementType == 'sortie') ...[
-                _buildSortieTypeSelection(),
+              if (selectedMovementType == 'entree') ...[
+                _buildEntreeSourceSelection(),
                 const SizedBox(height: 16),
-                if (selectedSortieType == 'attribution') ...[
-                  _buildDirectionSelection(),
-                  const SizedBox(height: 16),
-                ],
               ],
-              _buildArticleSelection(),
+              if (selectedMovementType == 'sortie') ...[
+                _buildDirectionSelection(),
+                const SizedBox(height: 16),
+              ],
+              _buildMaterielSelection(),
               const SizedBox(height: 16),
               _buildQuantityInput(),
             ],
@@ -589,13 +587,12 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
           children: [
             Expanded(
               child: RadioListTile<String>(
-                title: const Text('📥 entree'),
+                title: const Text('📥 Entrée'),
                 value: 'entree',
                 groupValue: selectedMovementType,
                 onChanged: (value) {
                   setState(() {
                     selectedMovementType = value ?? '';
-                    selectedSortieType = null;
                     selectedDirection = null;
                   });
                 },
@@ -609,6 +606,7 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
                 onChanged: (value) {
                   setState(() {
                     selectedMovementType = value ?? '';
+                    selectedEntreeSource = null;
                   });
                 },
               ),
@@ -619,12 +617,12 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
     );
   }
 
-  Widget _buildSortieTypeSelection() {
+  Widget _buildEntreeSourceSelection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Type de sortie',
+          'Source de financement',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
@@ -632,25 +630,24 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
           children: [
             Expanded(
               child: RadioListTile<String>(
-                title: const Text('📋 Bon de sortie'),
-                value: 'bon_sortie',
-                groupValue: selectedSortieType,
+                title: const Text('💰 Fond Propre'),
+                value: 'fond_propre',
+                groupValue: selectedEntreeSource,
                 onChanged: (value) {
                   setState(() {
-                    selectedSortieType = value;
-                    selectedDirection = null;
+                    selectedEntreeSource = value;
                   });
                 },
               ),
             ),
             Expanded(
               child: RadioListTile<String>(
-                title: const Text('👥 Attribution'),
-                value: 'attribution',
-                groupValue: selectedSortieType,
+                title: const Text('🏛️ Subvention'),
+                value: 'subvention',
+                groupValue: selectedEntreeSource,
                 onChanged: (value) {
                   setState(() {
-                    selectedSortieType = value;
+                    selectedEntreeSource = value;
                   });
                 },
               ),
@@ -666,7 +663,7 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Direction concernée',
+          'Direction de destination',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
@@ -676,7 +673,7 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
             border: OutlineInputBorder(),
             hintText: '-- Choisir une direction --',
           ),
-            items: widget.directions.map((direction) => DropdownMenuItem(
+          items: widget.directions.map((direction) => DropdownMenuItem(
                 value: direction.nom,
                 child: Text(direction.nom),
               )).toList(),
@@ -690,28 +687,28 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
     );
   }
 
-  Widget _buildArticleSelection() {
+  Widget _buildMaterielSelection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Article',
+          'Matériel',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: selectedArticleId,
+          value: selectedMaterielId,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
-            hintText: '-- Choisir un article --',
+            hintText: '-- Choisir un matériel --',
           ),
-          items: widget.articles.map((article) => DropdownMenuItem(
-                value: article.idArticle.toString(),
-                child: Text('${article.intitule} (Seuil Min: ${article.seuilMin})'),
+          items: widget.materiels.map((materiel) => DropdownMenuItem(
+                value: materiel.idMateriel.toString(),
+                child: Text('${materiel.designation} (${materiel.code})'),
               )).toList(),
           onChanged: (value) {
             setState(() {
-              selectedArticleId = value;
+              selectedMaterielId = value;
             });
           },
         ),
@@ -743,104 +740,92 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
       ],
     );
   }
+
   bool _canCreateMovement() {
-    if (selectedArticleId == null || quantity <= 0) {
+    if (selectedMaterielId == null || quantity <= 0) {
       return false;
     }
 
-    if (selectedMovementType == 'sortie') {
-      
-        print('mvt type: $selectedMovementType');
-      
-      if (selectedSortieType == null) return false;
-      if (selectedSortieType == 'attribution' && selectedDirection == null) return false;
-
+    if (selectedMovementType == 'entree') {
+      return selectedEntreeSource != null;
+    } else if (selectedMovementType == 'sortie') {
+      return selectedDirection != null;
     }
 
-    return true;
+    return false;
   }
 
   void _createMovement() async {
     if (!_canCreateMovement()) return;
 
-    // Vérif qu’un article est bien sélectionné
-    if (selectedArticleId == null) {
+    // Vérification qu'un matériel est bien sélectionné
+    if (selectedMaterielId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez sélectionner un article")),
+        const SnackBar(content: Text("Veuillez sélectionner un matériel")),
       );
       return;
     }
 
-    // Vérif que la liste n’est pas vide
-    if (widget.articles.isEmpty) {
+    // Vérification que la liste n'est pas vide
+    if (widget.materiels.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Aucun article disponible")),
+        const SnackBar(content: Text("Aucun matériel disponible")),
       );
       return;
     }
 
-    // Recherche de l’article
-    final article = widget.articles.firstWhere(
-      (a) => a.idArticle.toString() == selectedArticleId,
-      orElse: () => Article(
-        idArticle: 0,
-        intitule: '',
-        seuilMin: 0,
+    // Recherche du matériel
+    final materiel = widget.materiels.firstWhere(
+      (m) => m.idMateriel.toString() == selectedMaterielId,
+      orElse: () => Materiel(
+        idMateriel: 0,
+        designation: '',
         code: '',
       ),
     );
 
-    if (article.idArticle == 0) {
+    if (materiel.idMateriel == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Article introuvable")),
+        const SnackBar(content: Text("Matériel introuvable")),
       );
       return;
     }
 
-    // Calcul quantité (négative si sortie)
-    final movementQuantity = selectedMovementType == 'entree'
-        ? quantity.toDouble()
-        : -quantity.toDouble();
-
-    final articlesData = [
-      {
-        'id_article': article.idArticle,
-        'quantite': movementQuantity.abs(),
-      }
-    ];
-
     try {
-      bool success = false;
-
-      if (selectedDirection != null && selectedSortieType == 'attribution') {
-        final attributionService = Attributionservice();
-        success = await attributionService.createAttributionWithMvtStock(
-          articles: articlesData,
-          description: "Attribution de stock",
-          idDirection: selectedDirection!.idDirection!,
-        );
-        print("Attribution créée : $success");
+      final mvtStockImmoService = MvtStockImmoService();
+      
+      String sourceOrDirection = '';
+      if (selectedMovementType == 'entree') {
+        sourceOrDirection = selectedEntreeSource == 'fond_propre' ? 'Fond Propre' : 'Subvention';
       } else {
-        final mvtStockService = MvtStockService();
-        final type = selectedMovementType == 'entree' ? 1 : 2;
-        success = await mvtStockService.createMouvementWithArticles(
-          type,
-          articlesData,
-        );
-        print("Mouvement créé : $success");
+        sourceOrDirection = selectedDirection?.nom ?? '';
       }
 
-      if (success) {
-        final movement = MvtStock(
-        date_mvt: DateTime.now(),
-        type: selectedMovementType,
-        article: article.idArticle?.toString() ?? '',
-        quantite: movementQuantity,
-        direction: selectedSortieType == 'attribution' ? selectedDirection : null,
+      // Créer l'objet MvtStockImmo selon la vraie structure
+      final mvtStockImmo = MvtStockImmo(
+        idMateriel: materiel.idMateriel,
+        quantite: quantity.toDouble(),
+        materiel: materiel,
       );
 
+      final success = await mvtStockImmoService.createMouvement(
+        mvtStockImmo: mvtStockImmo,
+        type: selectedMovementType,
+        sourceOrDirection: sourceOrDirection,
+      );
 
-        widget.onMovementCreated(movement);
+      if (success) {
+        // Créer un objet d'affichage pour la table
+        final movementDisplay = MovementDisplay(
+          dateMvt: DateTime.now(),
+          type: selectedMovementType,
+          materielNom: materiel.designation ?? '',
+          quantite: selectedMovementType == 'entree' ? quantity.toDouble() : -quantity.toDouble(),
+          totalMateriel: mvtStockImmo.totalMateriel,
+          sourceOrDirection: sourceOrDirection,
+        );
+
+        widget.onMovementCreated(movementDisplay);
         Navigator.of(context).pop();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -858,7 +843,35 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
       );
     }
   }
-
 }
 
+// Classe d'aide pour l'affichage des mouvements dans le tableau
+class MovementDisplay {
+  final DateTime dateMvt;
+  final String type;
+  final String materielNom;
+  final double quantite;
+  final double? totalMateriel;
+  final String? sourceOrDirection;
 
+  MovementDisplay({
+    required this.dateMvt,
+    required this.type,
+    required this.materielNom,
+    required this.quantite,
+    this.totalMateriel,
+    this.sourceOrDirection,
+  });
+
+  // Factory pour convertir depuis les données de l'API
+  factory MovementDisplay.fromApiData(Map<String, dynamic> json) {
+    return MovementDisplay(
+      dateMvt: DateTime.parse(json['date_mvt']),
+      type: json['type'],
+      materielNom: json['materiel_nom'] ?? json['intitule'] ?? '',
+      quantite: double.tryParse(json['quantite'].toString()) ?? 0.0,
+      totalMateriel: double.tryParse(json['total_materiel'].toString()),
+      sourceOrDirection: json['source_direction'],
+    );
+  }
+}

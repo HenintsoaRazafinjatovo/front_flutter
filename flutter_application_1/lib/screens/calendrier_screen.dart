@@ -2,26 +2,55 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/evenement.dart';
 import '../models/type_evenement.dart';
+import '../services/evenementService.dart';
 
 class CalendrierLogistiqueScreen extends StatefulWidget {
   const CalendrierLogistiqueScreen({super.key});
 
   @override
-  State<CalendrierLogistiqueScreen> createState() => _CalendrierLogistiqueScreenState();
+  State<CalendrierLogistiqueScreen> createState() =>
+      _CalendrierLogistiqueScreenState();
 }
 
-class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen> {
-  // Couleurs de la nouvelle charte graphique
+class _CalendrierLogistiqueScreenState
+    extends State<CalendrierLogistiqueScreen> {
+  // Couleurs de la charte graphique
   static const Color primaryRed = Color.fromARGB(255, 201, 15, 49);
   static const Color primaryYellow = Color(0xFFF9B70D);
   static const Color darkGray = Color(0xFF374151);
   static const Color lightGray = Color(0xFF9CA3AF);
   static const Color backgroundColor = Colors.white;
 
+  final EvenementService _evenementService = EvenementService();
+
   DateTime currentDate = DateTime.now();
   DateTime? selectedDate;
-  
   List<Evenement> events = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadEvenements();
+  }
+
+  Future<void> _loadEvenements() async {
+    try {
+      final fetchedEvents = await _evenementService.getEvenements();
+      setState(() {
+        events = fetchedEvents;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors du chargement des événements : $e'),
+          backgroundColor: primaryRed,
+        ),
+      );
+    }
+  }
 
   void previousMonth() {
     setState(() {
@@ -58,7 +87,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
 
   void _showDayDetails(DateTime date) {
     final dayEvents = getEventsForDate(date);
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -78,7 +107,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                // ignore: deprecated_member_use
                 color: darkGray.withOpacity(0.05),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(20),
@@ -103,7 +131,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                 ],
               ),
             ),
-            
+
             // Events list
             Expanded(
               child: dayEvents.isEmpty
@@ -133,7 +161,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                       },
                     ),
             ),
-            
+
             // Add event button
             Padding(
               padding: const EdgeInsets.all(20),
@@ -174,9 +202,8 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     final descriptionController = TextEditingController();
     final timeController = TextEditingController();
     DateTime selectedEventDate = defaultDate ?? selectedDate ?? DateTime.now();
-    // TypeEvenement selectedType = TypeEvenement.livraison;
     TypeEvenement selectedType = TypeEvenement.values.firstWhere((type) => type.description == "Livraison");
-    String selectedAgency = 'Agence Aina';
+    
 
     showDialog(
       context: context,
@@ -219,7 +246,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Type
                 StatefulBuilder(
                   builder: (context, setDialogState) => DropdownButtonFormField<TypeEvenement>(
@@ -255,7 +282,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Date
                 StatefulBuilder(
                   builder: (context, setDialogState) => InkWell(
@@ -292,7 +319,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Heure
                 TextField(
                   controller: timeController,
@@ -310,43 +337,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                   ),
                 ),
                 const SizedBox(height: 16),
-                
-                // Agence
-                StatefulBuilder(
-                  builder: (context, setDialogState) => DropdownButtonFormField<String>(
-                    value: selectedAgency,
-                    decoration: InputDecoration(
-                      labelText: 'Agence',
-                      labelStyle: GoogleFonts.poppins(color: darkGray),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: primaryRed),
-                      ),
-                    ),
-                    items: [
-                      'Agence Aina',
-                      'Agence Farimbotsoa',
-                      'Agence Vonjy',
-                      'Agence Fanavotana',
-                      'Toutes les agences',
-                    ].map((agency) {
-                      return DropdownMenuItem(
-                        value: agency,
-                        child: Text(agency, style: GoogleFonts.poppins()),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setDialogState(() {
-                        selectedAgency = value!;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
                 // Description
                 TextField(
                   controller: descriptionController,
@@ -376,31 +366,13 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
             ),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (titleController.text.isNotEmpty) {
-                final newEvent = Evenement(
-                  idEvenement: events.length + 1,
-                  titre: titleController.text,
-                  typeEvenement: selectedType,
-                  dateEvenement: selectedEventDate,
-                  // time: timeController.text.isNotEmpty ? timeController.text : null,
-                  description: descriptionController.text.isNotEmpty ? descriptionController.text : null,
-                  // agency: selectedAgency,
-                );
-                
-                setState(() {
-                  events.add(newEvent);
-                });
-                
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Événement ajouté avec succès !'),
-                    backgroundColor: primaryRed,
-                  ),
-                );
-              }
-            },
+            onPressed: () => _createEvent(
+              titleController.text,
+              selectedType,
+              selectedEventDate,
+              timeController.text,
+              descriptionController.text
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryYellow,
               foregroundColor: backgroundColor,
@@ -412,6 +384,67 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     );
   }
 
+  Future<void> _createEvent(
+    String title,
+    TypeEvenement type,
+    DateTime date,
+    String time,
+    String description,
+  ) async {
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez saisir un titre'),
+          backgroundColor: primaryRed,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Parse time if provided
+      DateTime eventDate = date;
+      if (time.isNotEmpty) {
+        final timeParts = time.split(':');
+        if (timeParts.length == 2) {
+          final hour = int.tryParse(timeParts[0]) ?? 0;
+          final minute = int.tryParse(timeParts[1]) ?? 0;
+          eventDate = DateTime(date.year, date.month, date.day, hour, minute);
+        }
+      }
+
+      final newEvent = Evenement(
+        titre: title,
+        typeEvenement: type,
+        dateEvenement: eventDate,
+        description: description.isNotEmpty ? description : null,
+        
+      );
+
+      final createdEvent = await _evenementService.createEvenement(newEvent);
+
+      setState(() {
+        events.add(createdEvent);
+      });
+
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Événement ajouté avec succès !'),
+          backgroundColor: primaryRed,
+        ),
+      );
+    } catch (e) {
+      print('Erreur lors de la création de l\'événement : $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la création : $e'),
+          backgroundColor: primaryRed,
+        ),
+      );
+    }
+  }
+
   Widget _buildEventCard(Evenement event) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -419,12 +452,13 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(12),
-        // ignore: deprecated_member_use
-        border: Border.all(color: (event.typeEvenement.color ?? Colors.transparent).withOpacity(0.3)),
+        border: Border.all(
+            color: (event.typeEvenement.color ?? Colors.grey)
+                .withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            // ignore: deprecated_member_use
-            color: event.typeEvenement.color?.withOpacity(0.1) ?? Colors.transparent,
+            color: event.typeEvenement.color?.withOpacity(0.1) ??
+                Colors.grey.withOpacity(0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -438,7 +472,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  // ignore: deprecated_member_use
                   color: event.typeEvenement.color?.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -463,8 +496,8 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
                     Text(
                       '⏰ ${event.dateEvenement.hour.toString().padLeft(2, '0')}:${event.dateEvenement.minute.toString().padLeft(2, '0')}',
                       style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: lightGray,
+                        fontSize: 12,
+                        color: lightGray,
                       ),
                     ),
                   ],
@@ -476,22 +509,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
               ),
             ],
           ),
-          // if (event.agency != null) ...[
-          //   const SizedBox(height: 8),
-          //   Row(
-          //     children: [
-          //       Icon(Icons.business, size: 14, color: lightGray),
-          //       const SizedBox(width: 4),
-          //       Text(
-          //         event.agency!,
-          //         style: GoogleFonts.poppins(
-          //           fontSize: 12,
-          //           color: lightGray,
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ],
           if (event.description != null) ...[
             const SizedBox(height: 8),
             Text(
@@ -507,7 +524,7 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     );
   }
 
-  void _deleteEvent(int eventId) {
+  Future<void> _deleteEvent(int eventId) async {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -530,17 +547,28 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
             child: Text('Annuler', style: GoogleFonts.poppins(color: lightGray)),
           ),
           ElevatedButton(
-            onPressed: () {
-              setState(() {
-                events.removeWhere((event) => event.idEvenement == eventId);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Événement supprimé'),
-                  backgroundColor: primaryRed,
-                ),
-              );
+            onPressed: () async {
+              try {
+                await _evenementService.deleteEvenement(eventId);
+                setState(() {
+                  events.removeWhere((event) => event.idEvenement == eventId);
+                });
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Événement supprimé'),
+                    backgroundColor: primaryRed,
+                  ),
+                );
+              } catch (e) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erreur lors de la suppression : $e'),
+                    backgroundColor: primaryRed,
+                  ),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryRed,
@@ -553,251 +581,375 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
+  String _formatDate(DateTime date) =>
+      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 
   String _formatDateLong(DateTime date) {
     const months = [
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre'
     ];
     const weekdays = [
-      'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
+      'Lundi',
+      'Mardi',
+      'Mercredi',
+      'Jeudi',
+      'Vendredi',
+      'Samedi',
+      'Dimanche'
     ];
-    
+
     final weekday = weekdays[date.weekday - 1];
     final day = date.day;
     final month = months[date.month - 1];
     final year = date.year;
-    
+
     return '$weekday $day $month $year';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: backgroundColor,
       backgroundColor: Color(0xFFF8F9FA),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    // ignore: deprecated_member_use
-                    color: darkGray.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Calendrier Logistique',
-                        style: GoogleFonts.poppins(
-                          fontSize: 25,
-                          fontWeight: FontWeight.bold,
-                          color: const Color.fromARGB(255, 23, 23, 23),
+                  // Header
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: darkGray.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Planification des livraisons, inventaires et événements',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          color: lightGray,
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Calendrier Logistique',
+                              style: GoogleFonts.poppins(
+                                fontSize: 25,
+                                fontWeight: FontWeight.bold,
+                                color: const Color.fromARGB(255, 23, 23, 23),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Planification des livraisons, inventaires et événements',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                color: lightGray,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () => _showAddEventDialog(),
-                    icon: const Icon(Icons.add, color: backgroundColor),
-                    label: Text(
-                      'Ajouter Événement',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: backgroundColor,
-                      ),
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddEventDialog(),
+                          icon: const Icon(Icons.add, color: backgroundColor),
+                          label: Text(
+                            'Ajouter Événement',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: backgroundColor,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryYellow,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryYellow,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
                   ),
+                  const SizedBox(height: 24),
+                  // Navigation calendrier et grille
+                  _buildCalendarContainer(),
+                  const SizedBox(height: 24),
+                  // Statistiques
+                  _buildStatistics(),
                 ],
               ),
             ),
+    );
+  }
 
-            const SizedBox(height: 24),
-
-            // Navigation du calendrier
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: backgroundColor,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    // ignore: deprecated_member_use
-                    color: darkGray.withOpacity(0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+  Widget _buildCalendarContainer() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: darkGray.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Navigation mois
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: previousMonth,
+                    icon: const Icon(Icons.chevron_left, color: darkGray, size: 28),
+                    style: IconButton.styleFrom(
+                      backgroundColor: darkGray.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  SizedBox(
+                    width: 200,
+                    child: Text(
+                      '${_getMonthName(currentDate.month)} ${currentDate.year}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: darkGray,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  IconButton(
+                    onPressed: nextMonth,
+                    icon: const Icon(Icons.chevron_right, color: darkGray, size: 28),
+                    style: IconButton.styleFrom(
+                      backgroundColor: darkGray.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: Column(
+              ElevatedButton(
+                onPressed: goToToday,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryRed,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Aujourd\'hui',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Légende
+          Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: TypeEvenement.values.map((type) {
+              return Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Navigation
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            onPressed: previousMonth,
-                            icon: const Icon(Icons.chevron_left, color: darkGray, size: 28),
-                            style: IconButton.styleFrom(
-                              // ignore: deprecated_member_use
-                              backgroundColor: darkGray.withOpacity(0.1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: type.color?.withOpacity(0.3) ?? Colors.grey.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    type.description,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: darkGray,
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 24),
+
+          // En-têtes des jours
+          Row(
+            children: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+                .map((day) => Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          day,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: lightGray,
                           ),
-                          const SizedBox(width: 16),
-                          SizedBox(
-                            width: 200,
-                            child: Text(
-                              '${_getMonthName(currentDate.month)} ${currentDate.year}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: darkGray,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          IconButton(
-                            onPressed: nextMonth,
-                            icon: const Icon(Icons.chevron_right, color: darkGray, size: 28),
-                            style: IconButton.styleFrom(
-                              // ignore: deprecated_member_use
-                              backgroundColor: darkGray.withOpacity(0.1),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: goToToday,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryRed,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    ))
+                .toList(),
+          ),
+
+          const SizedBox(height: 8),
+          _buildCalendarGrid(),
+        ],
+      ),
+    );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Janvier',
+      'Février',
+      'Mars',
+      'Avril',
+      'Mai',
+      'Juin',
+      'Juillet',
+      'Août',
+      'Septembre',
+      'Octobre',
+      'Novembre',
+      'Décembre'
+    ];
+    return months[month - 1];
+  }
+
+  Widget _buildCalendarGrid() {
+    final firstDayOfMonth = DateTime(currentDate.year, currentDate.month, 1);
+    final startDate = firstDayOfMonth.subtract(
+      Duration(days: (firstDayOfMonth.weekday - 1) % 7),
+    );
+
+    final days = <Widget>[];
+    final today = DateTime.now();
+
+    for (int i = 0; i < 42; i++) {
+      final date = startDate.add(Duration(days: i));
+      final isCurrentMonth = date.month == currentDate.month;
+      final isToday = date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day;
+      final isSelected = selectedDate != null &&
+          date.year == selectedDate!.year &&
+          date.month == selectedDate!.month &&
+          date.day == selectedDate!.day;
+      final dayEvents = getEventsForDate(date);
+
+      days.add(
+        GestureDetector(
+          onTap: () => selectDate(date),
+          child: Container(
+            height: 100,
+            margin: const EdgeInsets.all(1),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? primaryRed.withOpacity(0.1)
+                  : isToday
+                      ? primaryYellow.withOpacity(0.2)
+                      : backgroundColor,
+              border: isSelected
+                  ? Border.all(color: primaryRed, width: 2)
+                  : isToday
+                      ? Border.all(color: primaryYellow, width: 2)
+                      : Border.all(color: lightGray.withOpacity(0.2)),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  date.day.toString(),
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
+                    color: isCurrentMonth
+                        ? isToday
+                            ? primaryYellow.withOpacity(0.8)
+                            : darkGray
+                        : lightGray,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: dayEvents.take(3).map((event) {
+                      return Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: event.typeEvenement.color?.withOpacity(0.7) ??
+                              lightGray.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Aujourd\'hui',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                          event.titre ?? 'Sans titre',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Légende
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 8,
-                    children: TypeEvenement.values.map((type) {
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 16,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              // ignore: deprecated_member_use
-                              color: type.color?.withOpacity(0.3) ?? Colors.transparent,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            type.description,
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: darkGray,
-                            ),
-                          ),
-                        ],
                       );
                     }).toList(),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // En-têtes des jours
-                  Row(
-                    children: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-                        .map((day) => Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                child: Text(
-                                  day,
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: lightGray,
-                                  ),
-                                ),
-                              ),
-                            ))
-                        .toList(),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Grille du calendrier
-                   _buildCalendarGrid(),
-                ],
-              ),
+                ),
+              ],
             ),
-
-            const SizedBox(height: 24),
-
-            // Statistiques
-            _buildStatistics(),
-          ],
+          ),
         ),
-      ),
+      );
+    }
+
+    return GridView.count(
+      crossAxisCount: 7,
+      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: true,
+      children: days,
     );
   }
 
@@ -875,7 +1027,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                // ignore: deprecated_member_use
                 color: darkGray.withOpacity(0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
@@ -887,7 +1038,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  // ignore: deprecated_member_use
                   color: (stat['color'] as Color).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -929,130 +1079,6 @@ class _CalendrierLogistiqueScreenState extends State<CalendrierLogistiqueScreen>
       }).toList(),
     );
   }
-
-  String _getMonthName(int month) {
-    const months = [
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-    ];
-    return months[month - 1];
-  }
-
-   Widget _buildCalendarGrid() {
-  final firstDayOfMonth = DateTime(currentDate.year, currentDate.month, 1);
-  // final lastDayOfMonth = DateTime(currentDate.year, currentDate.month + 1, 0);
-
-  // Calculer le premier lundi à afficher
-  final startDate = firstDayOfMonth.subtract(
-    Duration(days: (firstDayOfMonth.weekday - 1) % 7),
-  );
-
-  final days = <Widget>[];
-  final today = DateTime.now();
-
-  for (int i = 0; i < 42; i++) {
-    final date = startDate.add(Duration(days: i));
-    final isCurrentMonth = date.month == currentDate.month;
-    final isToday = date.year == today.year &&
-        date.month == today.month &&
-        date.day == today.day;
-    final isSelected = selectedDate != null &&
-        date.year == selectedDate!.year &&
-        date.month == selectedDate!.month &&
-        date.day == selectedDate!.day;
-    final dayEvents = getEventsForDate(date);
-
-    days.add(
-      GestureDetector(
-        onTap: () => selectDate(date),
-        child: Container(
-          height: 100,
-          margin: const EdgeInsets.all(1),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: isSelected
-                // ignore: deprecated_member_use
-                ? primaryRed.withOpacity(0.1)
-                : isToday
-                    // ignore: deprecated_member_use
-                    ? primaryYellow.withOpacity(0.2)
-                    : backgroundColor,
-            border: isSelected
-                ? Border.all(color: primaryRed, width: 2)
-                : isToday
-                    ? Border.all(color: primaryYellow, width: 2)
-                    // ignore: deprecated_member_use
-                    : Border.all(color: lightGray.withOpacity(0.2)),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                date.day.toString(),
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: isToday ? FontWeight.bold : FontWeight.w500,
-                  color: isCurrentMonth
-                      ? isToday
-                          // ignore: deprecated_member_use
-                          ? primaryYellow.withOpacity(0.8)
-                          : darkGray
-                      : lightGray,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: dayEvents.take(3).map((event) {
-                    return Container(
-                      width: double.infinity,
-                      margin: const EdgeInsets.only(bottom: 2),
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                      decoration: BoxDecoration(
-                        // ignore: deprecated_member_use
-                        // color: event.typeEvenement.color.withOpacity(0.7),
-                        color: event.typeEvenement.description == "Livraison"
-                            ? primaryRed.withOpacity(0.7)
-                            : event.typeEvenement.description == "Inventaire"
-                                ? primaryYellow.withOpacity(0.7)
-                                : event.typeEvenement.description == "Formation"
-                                    ? darkGray.withOpacity(0.7)
-                                    : event.typeEvenement.description == "Maintenance"
-                                        ? primaryRed.withOpacity(0.7)
-                                        : lightGray.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        event.titre ?? 'Sans titre',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  return GridView.count(
-    crossAxisCount: 7,
-    physics: const NeverScrollableScrollPhysics(),
-    shrinkWrap: true,
-    children: days,
-  );
 }
-// Remove duplicate TypeEvenement definition and use the imported one from models/type_evenement.dart
-}
-
 
 

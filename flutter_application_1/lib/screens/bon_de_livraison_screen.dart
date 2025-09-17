@@ -122,7 +122,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
     final blob = html.Blob([pdfBytes], 'application/pdf');
   final url = html.Url.createObjectUrlFromBlob(blob);
 
-  final anchor = html.AnchorElement(href: url)
+  html.AnchorElement(href: url)
     ..setAttribute("download", filename) // Nom du fichier
     ..click(); // Simule le clic pour lancer le téléchargement
 

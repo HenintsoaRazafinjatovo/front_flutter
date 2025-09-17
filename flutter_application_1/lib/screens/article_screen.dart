@@ -2,7 +2,6 @@ import 'package:flareline_template/models/categorie.dart';
 import 'package:flutter/material.dart';
 import '../models/article.dart';
 import '../services/articleService.dart';
-import '../models/categorie.dart';
 import '../services/categorieService.dart';
 
 void main() {

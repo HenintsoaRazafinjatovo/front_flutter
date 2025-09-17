@@ -1,6 +1,4 @@
 import 'package:flareline_template/models/mvtStockArticle.dart';
-
-import 'article.dart';
 import 'agence.dart';
 
   class Facture {

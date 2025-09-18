@@ -14,6 +14,8 @@ import '../screens/login_screen.dart';
 import '../screens/article_screen.dart';
 import '../screens/facture_screen.dart';
 import '../screens/materiel_screen.dart';
+import '../screens/mouvement_stock_immo_screen.dart';
+import '../screens/inventaire_immo_screen.dart';
 
 import '../screens/dashboard_tab.dart';
 import '../screens/charts_tab.dart';
@@ -54,6 +56,8 @@ class _MainLayoutState extends State<MainLayout> {
     {'icon': Icons.task_outlined, 'label': 'Admin commande'},
     {'icon': Icons.task_outlined, 'label': 'Bon de livraison'},
     {'icon': Icons.task_outlined, 'label': 'Matériels'},
+    {'icon': Icons.task_outlined, 'label': 'Mouvement stock immo'},
+    {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
   ];
 
   Widget _buildScreen() {
@@ -84,6 +88,10 @@ class _MainLayoutState extends State<MainLayout> {
         return const BonDeLivraisonScreen();
       case 9:
         return MaterielScreen();
+      case 10:
+        return MouvementStockImmoScreen();
+        case 11:
+        return InventoryImmoManagementScreen();
       default:
         return const MouvementStockScreen();
     }

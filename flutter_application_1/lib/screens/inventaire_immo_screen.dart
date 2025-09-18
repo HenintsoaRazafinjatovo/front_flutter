@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/article.dart' show Article;
-import '../models/inventaire_article.dart' show InventaireArticle;
+import '../models/materiel.dart' show Materiel;
+import '../models/inventaire_materiel.dart' show InventaireMateriel;
 import '../models/inventaire.dart' show Inventaire;
 import '../models/employe.dart' show Employe;
-import '../services/articleService.dart';
+import '../services/materielService.dart';
 import '../services/employeService.dart';
 import '../services/inventaireService.dart';
+import '../models/inventaireImmo.dart' show InventaireImmo;
 
 void main() {
   runApp(MyApp());
@@ -17,43 +18,43 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Gestion d\'Inventaire',
+      title: 'Inventaire immobilisations',
       theme: ThemeData(
         fontFamily: 'Poppins',
         primarySwatch: Colors.orange,
       ),
-      home: InventoryManagementScreen(),
+      home: InventoryImmoManagementScreen(),
     );
   }
 }
 
-class InventoryManagementScreen extends StatefulWidget {
+class InventoryImmoManagementScreen extends StatefulWidget {
   @override
-  _InventoryManagementScreenState createState() =>
-      _InventoryManagementScreenState();
+  _InventoryImmoManagementScreenState createState() =>
+      _InventoryImmoManagementScreenState();
 }
 
-class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
+class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementScreen> {
   DateTime selectedDate = DateTime.now();
   List<Employe> selectedEmployees = [];
-  List<Article> selectedArticles = [];
-  List<Inventaire> inventoryData = [];
+  List<Materiel> selectedMateriels = [];
+  List<InventaireImmo> inventoryData = [];
   List<Employe> employees = [];
-  List<Article> filteredArticles = [];
-  List<Article> articles = [];
+  List<Materiel> filteredMateriels = [];
+  List<Materiel> materiels = [];
   //  Timer? _debounce;
 
   bool showInventoryForm = false;
-  Future<void> _loadArticles() async {
+  Future<void> _loadMateriels() async {
     try {
-      final loadedArticles = await ArticleService().getArticles();
+      final loadedMateriels = await MaterielService().getAllMateriels();
       setState(() {
-        articles = loadedArticles;
-        filteredArticles = loadedArticles;
+        materiels = loadedMateriels;
+        filteredMateriels = loadedMateriels;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de chargement des articles: $e")),
+        SnackBar(content: Text("Erreur de chargement des matériels: $e")),
       );
     }
   }
@@ -72,12 +73,13 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   }
   Future<void> _loadInventory() async {
     try {
-      final loadedInventory = await InventaireService().getAllInventairesWithDetails();
+      final loadedInventory = await InventaireService().getAllInventairesImmoWithDetails();
       setState(() {
         inventoryData = loadedInventory;
       });
     } catch (e) {
       // ignore: use_build_context_synchronously
+      print("Erreur de chargement des inventaires: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur de chargement des inventaires: $e")),
       );
@@ -90,7 +92,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   @override
   void initState() {
     super.initState();
-    _loadArticles();
+    _loadMateriels();
     _loadEmployes();
     _loadInventory();
   }
@@ -110,9 +112,9 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
       );
       return;
     }
-    if (selectedArticles.isEmpty) {
+    if (selectedMateriels.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez sélectionner au moins un article')),
+        SnackBar(content: Text('Veuillez sélectionner au moins un matériel')),
       );
       return;
     }
@@ -120,9 +122,9 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
     setState(() {
       showInventoryForm = true;
       physicalStocks.clear();
-      selectedArticles.forEach((article) {
-        if (article.idArticle != null) {
-          physicalStockControllers[article.idArticle!]?.clear();
+      selectedMateriels.forEach((materiel) {
+        if (materiel.idMateriel != null) {
+          physicalStockControllers[materiel.idMateriel!]?.clear();
         }
       });
     });
@@ -130,21 +132,21 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
 
   void saveInventory() async {
   try {
-    List<InventaireArticle> inventaireArticles = [];
+    List<InventaireMateriel> inventaireMateriels = [];
 
-    // Construire la liste des articles d'inventaire
-    for (var article in selectedArticles) {
-      if (article.idArticle != null) {
+    // Construire la liste des matériels d'inventaire
+    for (var materiel in selectedMateriels) {
+      if (materiel.idMateriel != null) {
         double physicalStock = double.tryParse(
-              physicalStocks[article.idArticle!]?.toString() ?? '0',
+              physicalStocks[materiel.idMateriel!]?.toString() ?? '0',
             ) ??
             0;
-        double? theoreticalStock = article.stockActuel;
-        double ecart = physicalStock - theoreticalStock!;
+        double theoreticalStock = 1; // Valeur par défaut pour un matériel (généralement 1)
+        double ecart = physicalStock - theoreticalStock;
 
-        inventaireArticles.add(
-          InventaireArticle(
-            article: article,
+        inventaireMateriels.add(
+          InventaireMateriel(
+            materiel: materiel,
             stockTheorique: theoreticalStock,
             stockPhysique: physicalStock,
             ecart: ecart,
@@ -155,16 +157,16 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
 
     // Appel au service API
     InventaireService service = InventaireService();
-    bool success = await service.faireInventaire(
-      articles: inventaireArticles,
+    bool success = await service.faireInventaireImmo(
+      materiels: inventaireMateriels,
       employes: List.from(selectedEmployees),
     );
 
     if (success) {
-      Inventaire newInventory = Inventaire(
+      InventaireImmo newInventory = InventaireImmo(
         id: DateTime.now().millisecondsSinceEpoch,
         date: selectedDate,
-        articles: inventaireArticles,
+        materiels: inventaireMateriels,
         employes: List.from(selectedEmployees),
       );
 
@@ -172,7 +174,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
         inventoryData.add(newInventory);
         showInventoryForm = false;
         selectedEmployees.clear();
-        selectedArticles.clear();
+        selectedMateriels.clear();
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -196,7 +198,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
     setState(() {
       showInventoryForm = false;
       selectedEmployees.clear();
-      selectedArticles.clear();
+      selectedMateriels.clear();
     });
   }
 
@@ -207,17 +209,17 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   }
 
   int get totalItems {
-    return inventoryData.fold(0, (sum, inventory) => sum + inventory.articles.length);
+    return inventoryData.fold(0, (sum, inventory) => sum + inventory.materiels.length);
   }
 
   int get correctItems {
     return inventoryData.fold(0, (sum, inventory) => 
-      sum + inventory.articles.where((item) => item.ecart == 0).length);
+      sum + inventory.materiels.where((item) => item.ecart == 0).length);
   }
 
   int get discrepancyItems {
     return inventoryData.fold(0, (sum, inventory) => 
-      sum + inventory.articles.where((item) => item.ecart != 0).length);
+      sum + inventory.materiels.where((item) => item.ecart != 0).length);
   }
 
   @override
@@ -265,7 +267,7 @@ Widget _buildHeader() {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Gestion d\'Inventaire',
+          'Inventaire immobilisations',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.bold,
@@ -275,7 +277,7 @@ Widget _buildHeader() {
         ),
         SizedBox(height: 8),
         Text(
-          'Suivi des stocks et contrôle d\'inventaire',
+          'Suivi des matériels et contrôle d\'inventaire',
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey[600],
@@ -318,7 +320,7 @@ Widget _buildNewInventoryForm() {
         SizedBox(height: 20),
         _buildEmployeeSelector(),
         SizedBox(height: 20),
-        _buildArticleSelector(),
+        _buildMaterielSelector(),
         SizedBox(height: 24),
         _buildStartInventoryButton(),
       ],
@@ -407,13 +409,13 @@ Widget _buildEmployeeSelector() {
   );
 }
 
-// Article selector
-Widget _buildArticleSelector() {
+// Materiel selector
+Widget _buildMaterielSelector() {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        'Articles à inventorier',
+        'Matériels à inventorier',
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -429,9 +431,9 @@ Widget _buildArticleSelector() {
           borderRadius: BorderRadius.circular(8),
         ),
         child: ListView.builder(
-          itemCount: articles.length,
+          itemCount: materiels.length,
           itemBuilder: (context, index) {
-            Article article = articles[index];
+            Materiel materiel = materiels[index];
             return CheckboxListTile(
               title: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -441,29 +443,29 @@ Widget _buildArticleSelector() {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          article.intitule,
+                          materiel.designation ?? 'N/A',
                           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                         Text(
-                          'Code: ${article.code}',
+                          'Code: ${materiel.code ?? 'N/A'}',
                           style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                         ),
                       ],
                     ),
                   ),
                   Text(
-                    'Seuil: ${article.seuilMin.toInt()}',
+                    'Ref: ${materiel.reference ?? 'N/A'}',
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                   ),
                 ],
               ),
-              value: selectedArticles.any((a) => a.idArticle == article.idArticle),
+              value: selectedMateriels.any((m) => m.idMateriel == materiel.idMateriel),
               onChanged: (bool? value) {
                 setState(() {
                   if (value == true) {
-                    selectedArticles.add(article);
+                    selectedMateriels.add(materiel);
                   } else {
-                    selectedArticles.removeWhere((a) => a.idArticle == article.idArticle);
+                    selectedMateriels.removeWhere((m) => m.idMateriel == materiel.idMateriel);
                   }
                 });
               },
@@ -531,7 +533,7 @@ Widget _buildInventoryForm() {
         SizedBox(height: 24),
         _buildInventoryInfo(),
         SizedBox(height: 20),
-        ..._buildArticleInputs(),
+        ..._buildMaterielInputs(),
         SizedBox(height: 24),
         _buildInventoryActions(),
       ],
@@ -569,7 +571,7 @@ Widget _buildInventoryInfo() {
           style: TextStyle(fontSize: 14, color: Colors.blue[700]),
         ),
         Text(
-          'Articles à inventorier: ${selectedArticles.length}',
+          'Matériels à inventorier: ${selectedMateriels.length}',
           style: TextStyle(fontSize: 14, color: Colors.blue[700]),
         ),
       ],
@@ -577,10 +579,10 @@ Widget _buildInventoryInfo() {
   );
 }
 
-// Article inputs for physical stock
-List<Widget> _buildArticleInputs() {
-  return selectedArticles.map((article) {
-    double theoreticalStock = article.stockActuel ?? 0;
+// Materiel inputs for physical stock
+List<Widget> _buildMaterielInputs() {
+  return selectedMateriels.map((materiel) {
+    double theoreticalStock = 1; // Valeur par défaut pour un matériel
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       padding: EdgeInsets.all(16),
@@ -592,7 +594,7 @@ List<Widget> _buildArticleInputs() {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            article.intitule,
+            materiel.designation ?? 'N/A',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -600,7 +602,7 @@ List<Widget> _buildArticleInputs() {
             ),
           ),
           Text(
-            'Code: ${article.code} | Stock actuel: ${theoreticalStock.toInt()}',
+            'Code: ${materiel.code ?? 'N/A'} | Stock théorique: ${theoreticalStock.toInt()}',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
@@ -610,11 +612,11 @@ List<Widget> _buildArticleInputs() {
           Row(
             children: [
               Expanded(
-                child: _buildPhysicalStockInput(article),
+                child: _buildPhysicalStockInput(materiel),
               ),
               SizedBox(width: 16),
               Expanded(
-                child: _buildVarianceDisplay(article, theoreticalStock),
+                child: _buildVarianceDisplay(materiel, theoreticalStock),
               ),
             ],
           ),
@@ -624,7 +626,7 @@ List<Widget> _buildArticleInputs() {
   }).toList();
 }
 
-  Widget _buildPhysicalStockInput(Article article) {
+  Widget _buildPhysicalStockInput(Materiel materiel) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -639,7 +641,7 @@ List<Widget> _buildArticleInputs() {
         SizedBox(height: 4),
       
         TextField(
-          controller: physicalStockControllers[article.idArticle!],
+          controller: physicalStockControllers[materiel.idMateriel!],
           keyboardType: TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
@@ -660,7 +662,7 @@ List<Widget> _buildArticleInputs() {
           ),
           onChanged: (value) {
             setState(() {
-              physicalStocks[article.idArticle!] = double.tryParse(value) ?? 0;
+              physicalStocks[materiel.idMateriel!] = double.tryParse(value) ?? 0;
             });
           },
         ),
@@ -668,7 +670,7 @@ List<Widget> _buildArticleInputs() {
     );
   }
 // Variance display
-  Widget _buildVarianceDisplay(Article article, double theoreticalStock) {
+  Widget _buildVarianceDisplay(Materiel materiel, double theoreticalStock) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -690,7 +692,7 @@ List<Widget> _buildArticleInputs() {
         ),
         child: Builder(
           builder: (context) {
-            double physicalStock = physicalStocks[article.idArticle!] ?? 0;
+            double physicalStock = physicalStocks[materiel.idMateriel!] ?? 0;
             double variance = physicalStock - theoreticalStock;
             Color varianceColor = variance == 0
                 ? Colors.green[600]!
@@ -847,7 +849,7 @@ List<DataColumn> _buildTableColumns() {
     ),
     DataColumn(
       label: Text(
-        'Nombre article',
+        'Nombre matériel',
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -871,7 +873,7 @@ List<DataColumn> _buildTableDetailsColumns() {
   return [  
     DataColumn(
       label: Text(
-        'Code article',
+        'Code matériel',
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -881,7 +883,7 @@ List<DataColumn> _buildTableDetailsColumns() {
     ),
     DataColumn(
       label: Text(
-        'Intitulé',
+        'Désignation',
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,
@@ -938,7 +940,7 @@ Widget _buildSummaryCards() {
       Expanded(
         child: _buildSummaryCard(
           value: '$totalItems',
-          label: 'Articles inventoriés',
+          label: 'Matériels inventoriés',
           color: Colors.blue,
         ),
       ),
@@ -998,7 +1000,7 @@ Widget _buildSummaryCard({
   List<DataRow> _buildInventoryRows() {
     List<DataRow> rows = [];
     
-    for (Inventaire inventory in inventoryData) {
+    for (InventaireImmo inventory in inventoryData) {
         rows.add(DataRow(
           cells: [
             DataCell(Text(
@@ -1006,7 +1008,9 @@ Widget _buildSummaryCard({
               style: TextStyle(fontSize: 14),
             )),
             DataCell(Text(
-              inventory.employes.map((e) => e.nom).join(', '),
+              (inventory.employes != null)
+                  ? inventory.employes!.map((e) => e.nom).join(', ')
+                  : '',
               style: TextStyle(fontSize: 14),
             )),
             DataCell(Column(
@@ -1014,7 +1018,7 @@ Widget _buildSummaryCard({
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  inventory.getNbArticles().toString(),
+                  inventory.getNbMateriels().toString(),
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
               ],
@@ -1074,35 +1078,35 @@ Widget _buildSummaryCard({
     
     return rows;
   }
-  List<DataRow> _buildInventoryDetailsRows(Inventaire inventory) {
+  List<DataRow> _buildInventoryDetailsRows(InventaireImmo inventory) {
     List<DataRow> rows = [];
-      for (InventaireArticle inventaireArticle in inventory.articles) {
-        Color varianceColor = inventaireArticle.ecart == 0
+      for (InventaireMateriel inventaireMateriel in inventory.materiels) {
+        Color varianceColor = inventaireMateriel.ecart == 0
             ? Colors.green[600]!
-            : inventaireArticle.ecart > 0
+            : inventaireMateriel.ecart > 0
                 ? Colors.blue[600]!
                 : Colors.red[600]!;
-        String varianceText = inventaireArticle.ecart > 0 
-            ? '+${inventaireArticle.ecart.toStringAsFixed(1)}' 
-            : inventaireArticle.ecart.toStringAsFixed(1);
+        String varianceText = inventaireMateriel.ecart > 0 
+            ? '+${inventaireMateriel.ecart.toStringAsFixed(1)}' 
+            : inventaireMateriel.ecart.toStringAsFixed(1);
 
         rows.add(DataRow(
           cells: [
             DataCell(Text(
-              inventaireArticle.article.code,
+              inventaireMateriel.materiel.code ?? 'N/A',
               style: TextStyle(fontSize: 14),
             )),
             DataCell(
                 Text(
-                  inventaireArticle.article.intitule,
+                  inventaireMateriel.materiel.designation ?? 'N/A',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 )),
             DataCell(Text(
-              inventaireArticle.stockTheorique.toStringAsFixed(1),
+              inventaireMateriel.stockTheorique.toStringAsFixed(1),
               style: TextStyle(fontSize: 14),
             )),
             DataCell(Text(
-              inventaireArticle.stockPhysique.toStringAsFixed(1),
+              inventaireMateriel.stockPhysique.toStringAsFixed(1),
               style: TextStyle(fontSize: 14),
             )),
             DataCell(Text(
@@ -1117,15 +1121,15 @@ Widget _buildSummaryCard({
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: inventaireArticle.ecart == 0 ? Colors.green[100] : Colors.red[100],
+                  color: inventaireMateriel.ecart == 0 ? Colors.green[100] : Colors.red[100],
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  inventaireArticle.ecart == 0 ? 'Conforme' : 'Écart',
+                  inventaireMateriel.ecart == 0 ? 'Conforme' : 'Écart',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
-                    color: inventaireArticle.ecart == 0 ? Colors.green[800] : Colors.red[800],
+                    color: inventaireMateriel.ecart == 0 ? Colors.green[800] : Colors.red[800],
                   ),
                 ),
               ),

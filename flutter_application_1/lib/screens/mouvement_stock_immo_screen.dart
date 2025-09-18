@@ -22,12 +22,12 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
   static const Color redAccent = Color(0xFFE53E3E);
 
   List<Materiel> materiels = [];
-  List<MovementDisplay> movements = [];
+  List<MvtStockImmo> movements = [];
   List<Direction> directions = [];
   
   Future<void> _loadMateriels() async {
     try {
-      final loadedMateriels = await MaterielService().getMateriels();
+      final loadedMateriels = await MaterielService().getAllMateriels();
       setState(() {
         materiels = loadedMateriels;
       });
@@ -40,12 +40,16 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
   
   Future<void> _loadMovements() async {
     try {
-      final loadedMovements = await MvtStockImmoService().getMouvementsDetails();
+      final loadedMovements = await MvtStockImmoService().getMouvementsImmo();
       setState(() {
         movements = loadedMovements;
         filteredMovements = List.from(loadedMovements);
+        for (var mvt in loadedMovements) {
+          print('Mouvement: date=${mvt.dateMouvement}, type=${mvt.typeMouvement}, materiel=${mvt.materiel?.designation}, quantite=${mvt.quantite}, total=${mvt.totalMateriel}');
+        }
       });
     } catch (e, stackTrace) {
+      print("Erreur de chargement des mouvements: $e\n$stackTrace");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur de chargement des mouvements: $e\n$stackTrace")),
       );
@@ -65,7 +69,7 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
     }
   }
 
-  List<MovementDisplay> filteredMovements = [];
+  List<MvtStockImmo> filteredMovements = [];
 
   // Filtres
   String? selectedMaterielFilter;
@@ -335,42 +339,42 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
           DataColumn(label: Text('Type')),
           DataColumn(label: Text('Matériel')),
           DataColumn(label: Text('Quantité')),
-          DataColumn(label: Text('Total')),
-          DataColumn(label: Text('Source/Direction')),
+          // DataColumn(label: Text('Total')),
+          // DataColumn(label: Text('Source/Direction')),
           DataColumn(label: Text('Actions')),
         ],
         rows: filteredMovements.map((movement) {
-          final typeColor = movement.type == 'entree'
+          final typeColor = movement.typeMouvement == 'entree'
               ? Colors.green[700]
               : redAccent;
-          final quantityColor = movement.type == 'entree'
+          final quantityColor = movement.typeMouvement   == 'entree'
               ? Colors.green[700]
               : redAccent;
 
           return DataRow(
             cells: [
-              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.dateMvt))),
+              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.dateMouvement ?? DateTime.now()))),
               DataCell(
                 Text(
-                  movement.type,
+                  movement.typeMouvement ?? '',
                   style: TextStyle(
                     color: typeColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              DataCell(Text(movement.materielNom)),
+              DataCell(Text(movement.materiel?.designation ?? 'misy ka')),
               DataCell(
                 Text(
-                  '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
+                  '${movement.typeMouvement == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
                   style: TextStyle(
                     color: quantityColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              DataCell(Text('${NumberFormat.currency(locale: 'fr', symbol: '€').format(movement.totalMateriel ?? 0)}')),
-              DataCell(Text(movement.sourceOrDirection ?? '-')),
+              // DataCell(Text('${NumberFormat.currency(locale: 'fr', symbol: '€').format(movement.totalMateriel ?? 0)}')),
+              // DataCell(Text(movement.sourceOrDirection ?? '-')),
               DataCell(
                 ElevatedButton(
                   onPressed: () => _showMovementDetails(movement),
@@ -410,7 +414,7 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
     );
   }
 
-  void _showMovementDetails(MovementDisplay movement) {
+  void _showMovementDetails(MvtStockImmo movement) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -423,15 +427,15 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.dateMvt)),
-                _buildDetailRow('Type:', movement.type),
-                _buildDetailRow('Matériel:', movement.materielNom),
+                _buildDetailRow('Date:', DateFormat('dd/MM/yyyy').format(movement.dateMouvement ?? DateTime.now())),
+                _buildDetailRow('Type:', movement.typeMouvement ?? ''),
+                _buildDetailRow('Matériel:', movement.materiel?.designation ?? '-'),
                 _buildDetailRow(
                   'Quantité:',
-                  '${movement.type == 'entree' ? '+' : '-'}${movement.quantite.abs()}',
+                  '${movement.typeMouvement == 'entree' ? '+' : '-'}${movement.quantite.abs()}',
                 ),
                 _buildDetailRow('Total:', '${NumberFormat.currency(locale: 'fr', symbol: '€').format(movement.totalMateriel ?? 0)}'),
-                _buildDetailRow('Source/Direction:', movement.sourceOrDirection ?? '-'),
+                // _buildDetailRow('Source/Direction:', movement.sourceOrDirection ?? '-'),
               ],
             ),
           ),
@@ -476,15 +480,26 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
   void _applyFilters() {
     setState(() {
       filteredMovements = movements.where((movement) {
-        final materielMatch = selectedMaterielFilter == null || 
-            movement.materielNom.contains(selectedMaterielFilter!);
+        final materielMatch = selectedMaterielFilter == null ||
+            (movement.materiel != null &&
+             (movement.materiel!.designation ?? '').contains(selectedMaterielFilter!));
         final typeMatch = selectedTypeFilter == null ||
-            movement.type == selectedTypeFilter;
-        final sourceMatch = selectedSourceFilter == null ||
-            (movement.sourceOrDirection != null && movement.sourceOrDirection!.toLowerCase().contains(selectedSourceFilter!));
-        
-        return materielMatch && typeMatch && sourceMatch;
-      }).toList();
+            (movement.typeMouvement != null && movement.typeMouvement == selectedTypeFilter);
+        // final sourceMatch = selectedSourceFilter == null ||
+        //     (movement.sourceOrDirection != null &&
+        //      movement.sourceOrDirection!.toLowerCase().contains(selectedSourceFilter!));
+        // return materielMatch && typeMatch && sourceMatch;
+        return materielMatch && typeMatch;
+
+      }).map((movement) => MvtStockImmo(
+        dateMouvement: movement.dateMouvement ?? DateTime.now(),
+        typeMouvement: movement.typeMouvement ?? '',
+        materiel: movement.materiel,
+        quantite: movement.typeMouvement == 'entree'
+            ? movement.quantite ?? 0
+            : -(movement.quantite ?? 0),
+        totalMateriel: movement.totalMateriel,
+      )).toList();
     });
   }
 
@@ -504,7 +519,7 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
 class CreateMovementImmoDialog extends StatefulWidget {
   final List<Materiel> materiels;
   final List<Direction> directions;
-  final Function(MovementDisplay) onMovementCreated;
+  final Function(MvtStockImmo) onMovementCreated;
 
   const CreateMovementImmoDialog({
     super.key,
@@ -555,22 +570,22 @@ class _CreateMovementImmoDialogState extends State<CreateMovementImmoDialog> {
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Annuler'),
-        ),
-        ElevatedButton(
-          onPressed: _canCreateMovement() ? _createMovement : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primaryColor,
-          ),
-          child: const Text(
-            'Valider',
-            style: TextStyle(color: Colors.white),
-          ),
-        ),
-      ],
+      // actions: [
+      //   TextButton(
+      //     onPressed: () => Navigator.of(context).pop(),
+      //     child: const Text('Annuler'),
+      //   ),
+      //   ElevatedButton(
+      //     onPressed: _canCreateMovement() ? _createMovement : null,
+      //     style: ElevatedButton.styleFrom(
+      //       backgroundColor: primaryColor,
+      //     ),
+      //     child: const Text(
+      //       'Valider',
+      //       style: TextStyle(color: Colors.white),
+      //     ),
+      //   ),
+      // ],
     );
   }
 
@@ -755,123 +770,93 @@ class _CreateMovementImmoDialogState extends State<CreateMovementImmoDialog> {
     return false;
   }
 
-  void _createMovement() async {
-    if (!_canCreateMovement()) return;
+  // void _createMovement() async {
+  //   if (!_canCreateMovement()) return;
 
-    // Vérification qu'un matériel est bien sélectionné
-    if (selectedMaterielId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Veuillez sélectionner un matériel")),
-      );
-      return;
-    }
+  //   // Vérification qu'un matériel est bien sélectionné
+  //   if (selectedMaterielId == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Veuillez sélectionner un matériel")),
+  //     );
+  //     return;
+  //   }
 
-    // Vérification que la liste n'est pas vide
-    if (widget.materiels.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Aucun matériel disponible")),
-      );
-      return;
-    }
+  //   // Vérification que la liste n'est pas vide
+  //   if (widget.materiels.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Aucun matériel disponible")),
+  //     );
+  //     return;
+  //   }
 
-    // Recherche du matériel
-    final materiel = widget.materiels.firstWhere(
-      (m) => m.idMateriel.toString() == selectedMaterielId,
-      orElse: () => Materiel(
-        idMateriel: 0,
-        designation: '',
-        code: '',
-      ),
-    );
+  //   // Recherche du matériel
+  //   final materiel = widget.materiels.firstWhere(
+  //     (m) => m.idMateriel.toString() == selectedMaterielId,
+  //     orElse: () => Materiel(
+  //       idMateriel: 0,
+  //       designation: '',
+  //       code: '',
+  //     ),
+  //   );
 
-    if (materiel.idMateriel == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Matériel introuvable")),
-      );
-      return;
-    }
+  //   if (materiel.idMateriel == 0) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Matériel introuvable")),
+  //     );
+  //     return;
+  //   }
 
-    try {
-      final mvtStockImmoService = MvtStockImmoService();
+  //   try {
+  //     final mvtStockImmoService = MvtStockImmoService();
       
-      String sourceOrDirection = '';
-      if (selectedMovementType == 'entree') {
-        sourceOrDirection = selectedEntreeSource == 'fond_propre' ? 'Fond Propre' : 'Subvention';
-      } else {
-        sourceOrDirection = selectedDirection?.nom ?? '';
-      }
+  //     String sourceOrDirection = '';
+  //     if (selectedMovementType == 'entree') {
+  //       sourceOrDirection = selectedEntreeSource == 'fond_propre' ? 'Fond Propre' : 'Subvention';
+  //     } else {
+  //       sourceOrDirection = selectedDirection?.nom ?? '';
+  //     }
 
-      // Créer l'objet MvtStockImmo selon la vraie structure
-      final mvtStockImmo = MvtStockImmo(
-        idMateriel: materiel.idMateriel,
-        quantite: quantity.toDouble(),
-        materiel: materiel,
-      );
+  //     // Créer l'objet MvtStockImmo selon la vraie structure
+  //     final mvtStockImmo = MvtStockImmo(
+  //       idMateriel: materiel.idMateriel,
+  //       quantite: quantity.toDouble(),
+  //       materiel: materiel,
+  //     );
 
-      final success = await mvtStockImmoService.createMouvement(
-        mvtStockImmo: mvtStockImmo,
-        type: selectedMovementType,
-        sourceOrDirection: sourceOrDirection,
-      );
+  //     final success = await mvtStockImmoService.createMouvement(
+  //       mvtStockImmo: mvtStockImmo,
+  //       type: selectedMovementType,
+  //       sourceOrDirection: sourceOrDirection,
+  //     );
 
-      if (success) {
-        // Créer un objet d'affichage pour la table
-        final movementDisplay = MovementDisplay(
-          dateMvt: DateTime.now(),
-          type: selectedMovementType,
-          materielNom: materiel.designation ?? '',
-          quantite: selectedMovementType == 'entree' ? quantity.toDouble() : -quantity.toDouble(),
-          totalMateriel: mvtStockImmo.totalMateriel,
-          sourceOrDirection: sourceOrDirection,
-        );
+  //     if (success) {
+  //       // Créer un objet d'affichage pour la table
+  //       final movementDisplay = MovementDisplay(
+  //         dateMvt: DateTime.now(),
+  //         type: selectedMovementType,
+  //         materielNom: materiel.designation ?? '',
+  //         quantite: selectedMovementType == 'entree' ? quantity.toDouble() : -quantity.toDouble(),
+  //         totalMateriel: mvtStockImmo.totalMateriel,
+  //         sourceOrDirection: sourceOrDirection,
+  //       );
 
-        widget.onMovementCreated(movementDisplay);
-        Navigator.of(context).pop();
+  //       widget.onMovementCreated(movementDisplay);
+  //       Navigator.of(context).pop();
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Mouvement créé avec succès")),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Échec de la création du mouvement")),
-        );
-      }
-    } catch (e) {
-      print("Erreur : $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur : $e")),
-      );
-    }
-  }
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Mouvement créé avec succès")),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Échec de la création du mouvement")),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     print("Erreur : $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text("Erreur : $e")),
+  //     );
+  //   }
+  // }
 }
 
-// Classe d'aide pour l'affichage des mouvements dans le tableau
-class MovementDisplay {
-  final DateTime dateMvt;
-  final String type;
-  final String materielNom;
-  final double quantite;
-  final double? totalMateriel;
-  final String? sourceOrDirection;
-
-  MovementDisplay({
-    required this.dateMvt,
-    required this.type,
-    required this.materielNom,
-    required this.quantite,
-    this.totalMateriel,
-    this.sourceOrDirection,
-  });
-
-  // Factory pour convertir depuis les données de l'API
-  factory MovementDisplay.fromApiData(Map<String, dynamic> json) {
-    return MovementDisplay(
-      dateMvt: DateTime.parse(json['date_mvt']),
-      type: json['type'],
-      materielNom: json['materiel_nom'] ?? json['intitule'] ?? '',
-      quantite: double.tryParse(json['quantite'].toString()) ?? 0.0,
-      totalMateriel: double.tryParse(json['total_materiel'].toString()),
-      sourceOrDirection: json['source_direction'],
-    );
-  }
-}

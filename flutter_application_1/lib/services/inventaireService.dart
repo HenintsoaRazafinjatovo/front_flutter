@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:flareline_template/models/inventaire_materiel.dart';
 import 'package:http/http.dart' as http;
 import '../models/inventaire.dart';
+import '../models/inventaireImmo.dart';
 import '../models/inventaire_article.dart';
 import '../models/employe.dart';
 
@@ -84,5 +86,55 @@ class InventaireService {
       throw Exception('Erreur de connexion: $e');
     }
   }
-  
+  Future<List<InventaireImmo>> getAllInventairesImmoWithDetails() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/getInventaireWithMateriels'),
+
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((json) => InventaireImmo.fromJson(json)).toList();
+      } else {
+        throw Exception('Erreur ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Erreur de connexion: $e');
+    }
+  }
+  Future<bool> faireInventaireImmo({
+    required List<InventaireMateriel> materiels,
+    required List<Employe> employes,
+  }) async {
+    final url = Uri.parse('$baseUrl/faireInventaireImmo');
+
+    final body = jsonEncode({
+      'materiels': materiels
+          .map((a) => {
+                'id_materiel': a.materiel.idMateriel,
+                'stock_physique': a.stockPhysique,
+              })
+          .toList(),
+      'employes': employes.map((e) => e.idEmploye).toList(),
+    });
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: body,
+    );
+
+    if (response.statusCode == 201) {
+      // return Inventaire.fromJson(jsonDecode(response.body));
+      return true;
+
+    } else {
+      throw Exception(
+          'Erreur lors de la création de l\'inventaire: ${response.body}');
+    }
+  }
 }

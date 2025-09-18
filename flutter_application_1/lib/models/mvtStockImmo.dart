@@ -5,14 +5,16 @@ class MvtStockImmo {
   final double quantite; // quantité du mouvement
   final Materiel? materiel;
   final double? totalMateriel;
-  // final String typeMouvement; // "ENTREE" ou "SORTIE"
+   final String? typeMouvement;
+   final DateTime? dateMouvement; // Date du mouvement
 
   MvtStockImmo({
     this.idMateriel,
     required this.quantite,
     this.materiel,
     this.totalMateriel,
-    // required this.typeMouvement,
+     this.typeMouvement,
+      this.dateMouvement,
   });
 
   factory MvtStockImmo.fromJson(Map<String, dynamic> json) {
@@ -27,23 +29,28 @@ class MvtStockImmo {
     double totalMateriel = json['total_materiel'] != null
         ? double.tryParse(json['total_materiel'].toString()) ?? 0.0
         : quantite * prix;
+    
 
     return MvtStockImmo(
       idMateriel: json['id_materiel'],
       quantite: quantite,
-      materiel: json['intitule'] != null
+      materiel: json['materiel'] != null
           ? Materiel(
               idMateriel: json['id_materiel'] ?? 0,
-              designation: json['intitule'],
+              designation: json['materiel'],
               dateAcquisition:json['date_acquisition'] != null
                   ? DateTime.parse(json['date_acquisition'])
                   : null,
               code: '',
               reference: '',
+
             )
           : null,
       totalMateriel: totalMateriel,
-      // typeMouvement: json['type_mouvement'] ?? 'ENTREE',
+      dateMouvement: json['date_mvt'] != null
+          ? DateTime.parse(json['date_mvt'])
+          : null,
+       typeMouvement: json['type'] ?? 'ENTREE',
     );
   }
 
@@ -57,5 +64,3 @@ class MvtStockImmo {
     };
   }
 }
-      // 'type_mouvement': typeMouvement,
- 

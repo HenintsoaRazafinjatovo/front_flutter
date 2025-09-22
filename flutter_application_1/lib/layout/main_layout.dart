@@ -16,6 +16,8 @@ import '../screens/facture_screen.dart';
 import '../screens/materiel_screen.dart';
 import '../screens/mouvement_stock_immo_screen.dart';
 import '../screens/inventaire_immo_screen.dart';
+import '../screens/statistiqueImmo_screen.dart';
+import '../screens/decharge_screen.dart';
 
 import '../screens/dashboard_tab.dart';
 import '../screens/charts_tab.dart';
@@ -58,6 +60,8 @@ class _MainLayoutState extends State<MainLayout> {
     {'icon': Icons.task_outlined, 'label': 'Matériels'},
     {'icon': Icons.task_outlined, 'label': 'Mouvement stock immo'},
     {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
+    {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
+    {'icon': Icons.settings, 'label': 'Decharge'},
   ];
 
   Widget _buildScreen() {
@@ -92,6 +96,10 @@ class _MainLayoutState extends State<MainLayout> {
         return MouvementStockImmoScreen();
         case 11:
         return InventoryImmoManagementScreen();
+      case 12:
+        return StatistiqueImmoScreen();
+      case 13:
+        return  DechargeScreen();
       default:
         return const MouvementStockScreen();
     }

@@ -38,4 +38,31 @@ class StatistiqueService {
       throw Exception("Erreur lors de la récupération de l’évolution des commandes: $e");
     }
   }
+
+  Future<List<dynamic>> getMouvementsParSemaineImmo(int mois, int annee) async {
+    try {
+      final response = await _dio.get('/mouvements-par-semaine/$mois/$annee');
+      return response.data['mouvements_par_semaine'];
+    } catch (e) {
+      throw Exception("Erreur lors de la récupération des mouvements par semaine: $e");
+    }
+  }
+  Future<List<dynamic>> getStockParNature() async {
+    try {
+      final response = await _dio.get('/stock-par-nature');
+      return response.data['stock_par_nature'];
+    } catch (e) {
+      throw Exception("Erreur lors de la récupération des stocks par nature: $e");
+    }
+  }
+ Future<List<Map<String, dynamic>>> getStockTurnover() async {
+  try {
+    final response = await _dio.get('/stock-turnover-par-nature');
+    // ⚡ Le JSON est déjà une liste, donc on n'a pas besoin d'indexer par clé
+    return List<Map<String, dynamic>>.from(response.data);
+  } catch (e) {
+    throw Exception("Erreur lors de la récupération du stock turnover: $e");
+  }
+}
+
 }

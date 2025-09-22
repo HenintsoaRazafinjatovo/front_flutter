@@ -198,6 +198,7 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Seuil min'),
                 ),
+                
               ],
             ),
           ),
@@ -725,6 +726,12 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                                 ),
                                 DataColumn(
                                   label: Text(
+                                    'Stock actuel',
+                                    style: TextStyle(fontFamily: 'Poppins'),
+                                  ),
+                                ),
+                                DataColumn(
+                                  label: Text(
                                     'Actions',
                                     style: TextStyle(fontFamily: 'Poppins'),
                                   ),
@@ -755,6 +762,12 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                                     DataCell(
                                       Text(
                                         article.seuilMin.toString(),
+                                        style: TextStyle(fontFamily: 'Poppins'),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      Text(
+                                        article.stockActuel.toString(),
                                         style: TextStyle(fontFamily: 'Poppins'),
                                       ),
                                     ),

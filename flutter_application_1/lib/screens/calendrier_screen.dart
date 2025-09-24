@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/evenement.dart';
+import '../models/bon_de_livraison.dart';
 import '../models/type_evenement.dart';
 import '../services/evenementService.dart';
+import '../services/bon_de_livraisonService.dart';
 
 class CalendrierLogistiqueScreen extends StatefulWidget {
   const CalendrierLogistiqueScreen({super.key});
@@ -26,12 +28,14 @@ class _CalendrierLogistiqueScreenState
   DateTime currentDate = DateTime.now();
   DateTime? selectedDate;
   List<Evenement> events = [];
+  List<BonDeLivraison> bonLivraisons = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadEvenements();
+    _loadBonLivraisons();
   }
 
   Future<void> _loadEvenements() async {
@@ -51,7 +55,23 @@ class _CalendrierLogistiqueScreenState
       );
     }
   }
-
+  Future<void> _loadBonLivraisons() async {
+    try {
+      final bonLivraisonService = BonDeLivraisonService();
+      final fetchedBonLivraisons = await bonLivraisonService.getBonDeLivraisonNonLiees();
+      setState(() {
+        bonLivraisons = fetchedBonLivraisons;
+      }); 
+      // Traite les bonLivraisons récupérés si nécessaire
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors du chargement des bons de livraison : $e'),
+          backgroundColor: primaryRed,
+        ),
+      );
+    }
+  }
   void previousMonth() {
     setState(() {
       currentDate = DateTime(currentDate.year, currentDate.month - 1, 1);
@@ -197,14 +217,201 @@ class _CalendrierLogistiqueScreenState
     );
   }
 
+  // void _showAddEventDialog([DateTime? defaultDate]) {
+  //   final titleController = TextEditingController();
+  //   final descriptionController = TextEditingController();
+  //   final timeController = TextEditingController();
+  //   DateTime selectedEventDate = defaultDate ?? selectedDate ?? DateTime.now();
+  //   BonDeLivraison? selectedBonLivraison;
+  //   TypeEvenement selectedType = TypeEvenement.values.firstWhere((type) => type.description == "Livraison");
+    
+
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       backgroundColor: backgroundColor,
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  //       title: Row(
+  //         children: [
+  //           Icon(Icons.add_circle, color: primaryRed),
+  //           const SizedBox(width: 8),
+  //           Text(
+  //             'Nouvel événement',
+  //             style: GoogleFonts.poppins(
+  //               fontSize: 18,
+  //               fontWeight: FontWeight.bold,
+  //               color: darkGray,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //       content: SizedBox(
+  //         width: 400,
+  //         child: SingleChildScrollView(
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               // Titre
+  //               TextField(
+  //                 controller: titleController,
+  //                 decoration: InputDecoration(
+  //                   labelText: 'Titre',
+  //                   labelStyle: GoogleFonts.poppins(color: darkGray),
+  //                   border: OutlineInputBorder(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                   ),
+  //                   focusedBorder: OutlineInputBorder(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                     borderSide: const BorderSide(color: primaryRed),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 16),
+
+  //               // Type
+  //               StatefulBuilder(
+  //                 builder: (context, setDialogState) => DropdownButtonFormField<TypeEvenement>(
+  //                   value: selectedType,
+  //                   decoration: InputDecoration(
+  //                     labelText: 'Type',
+  //                     labelStyle: GoogleFonts.poppins(color: darkGray),
+  //                     border: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                     ),
+  //                     focusedBorder: OutlineInputBorder(
+  //                       borderRadius: BorderRadius.circular(8),
+  //                       borderSide: const BorderSide(color: primaryRed),
+  //                     ),
+  //                   ),
+  //                   items: TypeEvenement.values.map((type) {
+  //                     return DropdownMenuItem(
+  //                       value: type,
+  //                       child: Row(
+  //                         children: [
+  //                           Text(type.emoji ?? ''),
+  //                           const SizedBox(width: 8),
+  //                           Text(type.description, style: GoogleFonts.poppins()),
+  //                         ],
+  //                       ),
+  //                     );
+  //                   }).toList(),
+  //                   onChanged: (value) {
+  //                     setDialogState(() {
+  //                       selectedType = value!;
+  //                     });
+  //                   },
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 16),
+
+  //               // Date
+  //               StatefulBuilder(
+  //                 builder: (context, setDialogState) => InkWell(
+  //                   onTap: () async {
+  //                     final date = await showDatePicker(
+  //                       context: context,
+  //                       initialDate: selectedEventDate,
+  //                       firstDate: DateTime(2020),
+  //                       lastDate: DateTime(2030),
+  //                     );
+  //                     if (date != null) {
+  //                       setDialogState(() {
+  //                         selectedEventDate = date;
+  //                       });
+  //                     }
+  //                   },
+  //                   child: InputDecorator(
+  //                     decoration: InputDecoration(
+  //                       labelText: 'Date',
+  //                       labelStyle: GoogleFonts.poppins(color: darkGray),
+  //                       border: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(8),
+  //                       ),
+  //                       focusedBorder: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(8),
+  //                         borderSide: const BorderSide(color: primaryRed),
+  //                       ),
+  //                     ),
+  //                     child: Text(
+  //                       _formatDate(selectedEventDate),
+  //                       style: GoogleFonts.poppins(),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 16),
+
+  //               // Heure
+  //               TextField(
+  //                 controller: timeController,
+  //                 decoration: InputDecoration(
+  //                   labelText: 'Heure (optionnel)',
+  //                   labelStyle: GoogleFonts.poppins(color: darkGray),
+  //                   hintText: '09:00',
+  //                   border: OutlineInputBorder(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                   ),
+  //                   focusedBorder: OutlineInputBorder(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                     borderSide: const BorderSide(color: primaryRed),
+  //                   ),
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 16),
+  //               // Description
+  //               TextField(
+  //                 controller: descriptionController,
+  //                 maxLines: 3,
+  //                 decoration: InputDecoration(
+  //                   labelText: 'Description (optionnel)',
+  //                   labelStyle: GoogleFonts.poppins(color: darkGray),
+  //                   border: OutlineInputBorder(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                   ),
+  //                   focusedBorder: OutlineInputBorder(
+  //                     borderRadius: BorderRadius.circular(8),
+  //                     borderSide: const BorderSide(color: primaryRed),
+  //                   ),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.pop(context),
+  //           child: Text(
+  //             'Annuler',
+  //             style: GoogleFonts.poppins(color: lightGray),
+  //           ),
+  //         ),
+  //         ElevatedButton(
+  //           onPressed: () => _createEvent(
+  //             titleController.text,
+  //             selectedType,
+  //             selectedEventDate,
+  //             timeController.text,
+  //             descriptionController.text
+  //           ),
+  //           style: ElevatedButton.styleFrom(
+  //             backgroundColor: primaryYellow,
+  //             foregroundColor: backgroundColor,
+  //           ),
+  //           child: Text('Ajouter', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   void _showAddEventDialog([DateTime? defaultDate]) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
     final timeController = TextEditingController();
     DateTime selectedEventDate = defaultDate ?? selectedDate ?? DateTime.now();
     TypeEvenement selectedType = TypeEvenement.values.firstWhere((type) => type.description == "Livraison");
+    BonDeLivraison? selectedBonLivraison;
     
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -227,29 +434,29 @@ class _CalendrierLogistiqueScreenState
         content: SizedBox(
           width: 400,
           child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Titre
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: 'Titre',
-                    labelStyle: GoogleFonts.poppins(color: darkGray),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: primaryRed),
+            child: StatefulBuilder(
+              builder: (context, setDialogState) => Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Titre
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Titre',
+                      labelStyle: GoogleFonts.poppins(color: darkGray),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: primaryRed),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Type
-                StatefulBuilder(
-                  builder: (context, setDialogState) => DropdownButtonFormField<TypeEvenement>(
+                  // Type
+                  DropdownButtonFormField<TypeEvenement>(
                     value: selectedType,
                     decoration: InputDecoration(
                       labelText: 'Type',
@@ -277,15 +484,79 @@ class _CalendrierLogistiqueScreenState
                     onChanged: (value) {
                       setDialogState(() {
                         selectedType = value!;
+                        selectedBonLivraison = null; // Reset la sélection quand on change de type
                       });
                     },
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Date
-                StatefulBuilder(
-                  builder: (context, setDialogState) => InkWell(
+                  const SizedBox(height: 16),
+                  if (selectedType.description == "Livraison") ...[
+                    DropdownButtonFormField<BonDeLivraison>(
+                      value: selectedBonLivraison,
+                      isExpanded: true, // Ajout de cette propriété importante
+                      decoration: InputDecoration(
+                        labelText: 'Bon de livraison',
+                        labelStyle: GoogleFonts.poppins(color: darkGray),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: primaryRed),
+                        ),
+                      ),
+                      hint: Text(
+                        'Sélectionner un bon de livraison',
+                        style: GoogleFonts.poppins(color: lightGray),
+                      ),
+                      items: bonLivraisons.map((bon) {
+                        return DropdownMenuItem(
+                          value: bon,
+                          child: Container(
+                            width: double.infinity, // Force la largeur complète
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                    '${bon.reference ?? 'Sans référence'} - ${bon.description ?? ''}',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    color: darkGray,
+                                    fontSize: 14, // Réduction de la taille de police
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (bon.description != null && bon.description!.isNotEmpty)
+                                  Flexible( // Utilisation de Flexible au lieu d'un Text direct
+                                    child: Text(
+                                      bon.description!,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11, // Réduction de la taille de police
+                                        color: lightGray,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setDialogState(() {
+                          selectedBonLivraison = value;
+                          // Auto-remplir le titre avec le numéro du bon
+                          if (value != null && value.idBonDeLivraison != null) {
+                            titleController.text = 'Livraison - ${value.reference ?? value.idBonDeLivraison}';
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  // Date
+                  InkWell(
                     onTap: () async {
                       final date = await showDatePicker(
                         context: context,
@@ -317,43 +588,44 @@ class _CalendrierLogistiqueScreenState
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Heure
-                TextField(
-                  controller: timeController,
-                  decoration: InputDecoration(
-                    labelText: 'Heure (optionnel)',
-                    labelStyle: GoogleFonts.poppins(color: darkGray),
-                    hintText: '09:00',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: primaryRed),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Description
-                TextField(
-                  controller: descriptionController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'Description (optionnel)',
-                    labelStyle: GoogleFonts.poppins(color: darkGray),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: primaryRed),
+                  // Heure
+                  TextField(
+                    controller: timeController,
+                    decoration: InputDecoration(
+                      labelText: 'Heure (optionnel)',
+                      labelStyle: GoogleFonts.poppins(color: darkGray),
+                      hintText: '09:00',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: primaryRed),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+
+                  // Description
+                  TextField(
+                    controller: descriptionController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Description (optionnel)',
+                      labelStyle: GoogleFonts.poppins(color: darkGray),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: primaryRed),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -371,7 +643,8 @@ class _CalendrierLogistiqueScreenState
               selectedType,
               selectedEventDate,
               timeController.text,
-              descriptionController.text
+              descriptionController.text,
+              idLivraison: selectedBonLivraison?.idBonDeLivraison,
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryYellow,
@@ -384,66 +657,137 @@ class _CalendrierLogistiqueScreenState
     );
   }
 
-  Future<void> _createEvent(
-    String title,
-    TypeEvenement type,
-    DateTime date,
-    String time,
-    String description,
-  ) async {
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Veuillez saisir un titre'),
-          backgroundColor: primaryRed,
-        ),
-      );
-      return;
-    }
+  // Future<void> _createEvent(
+  //   String title,
+  //   TypeEvenement type,
+  //   DateTime date,
+  //   String time,
+  //   String description,
+  // ) async {
+  //   if (title.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Veuillez saisir un titre'),
+  //         backgroundColor: primaryRed,
+  //       ),
+  //     );
+  //     return;
+  //   }
 
-    try {
-      // Parse time if provided
-      DateTime eventDate = date;
-      if (time.isNotEmpty) {
-        final timeParts = time.split(':');
-        if (timeParts.length == 2) {
-          final hour = int.tryParse(timeParts[0]) ?? 0;
-          final minute = int.tryParse(timeParts[1]) ?? 0;
-          eventDate = DateTime(date.year, date.month, date.day, hour, minute);
-        }
-      }
+  //   try {
+  //     // Parse time if provided
+  //     DateTime eventDate = date;
+  //     if (time.isNotEmpty) {
+  //       final timeParts = time.split(':');
+  //       if (timeParts.length == 2) {
+  //         final hour = int.tryParse(timeParts[0]) ?? 0;
+  //         final minute = int.tryParse(timeParts[1]) ?? 0;
+  //         eventDate = DateTime(date.year, date.month, date.day, hour, minute);
+  //       }
+  //     }
 
-      final newEvent = Evenement(
-        titre: title,
-        typeEvenement: type,
-        dateEvenement: eventDate,
-        description: description.isNotEmpty ? description : null,
+  //     final newEvent = Evenement(
+  //       titre: title,
+  //       typeEvenement: type,
+  //       dateEvenement: eventDate,
+  //       description: description.isNotEmpty ? description : null,
         
-      );
+  //     );
 
-      final createdEvent = await _evenementService.createEvenement(newEvent);
+  //     final createdEvent = await _evenementService.createEvenement(newEvent);
 
-      setState(() {
-        events.add(createdEvent);
-      });
+  //     setState(() {
+  //       events.add(createdEvent);
+  //     });
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Événement ajouté avec succès !'),
-          backgroundColor: primaryRed,
-        ),
-      );
-    } catch (e) {
-      print('Erreur lors de la création de l\'événement : $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors de la création : $e'),
-          backgroundColor: primaryRed,
-        ),
-      );
-    }
+  //     Navigator.pop(context);
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(
+  //         content: Text('Événement ajouté avec succès !'),
+  //         backgroundColor: primaryRed,
+  //       ),
+  //     );
+  //   } catch (e) {
+  //     print('Erreur lors de la création de l\'événement : $e');
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Erreur lors de la création : $e'),
+  //         backgroundColor: primaryRed,
+  //       ),
+  //     );
+  //   }
+  // }
+  Future<void> _createEvent(
+  String title,
+  TypeEvenement type,
+  DateTime date,
+  String time,
+  String description, {
+  int? idLivraison, // facultatif, seulement utilisé si type = livraison
+}) async {
+  if (title.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Veuillez saisir un titre'),
+        backgroundColor: primaryRed,
+      ),
+    );
+    return;
   }
+
+  try {
+    // Parse time si fourni
+    DateTime eventDate = date;
+    if (time.isNotEmpty) {
+      final timeParts = time.split(':');
+      if (timeParts.length == 2) {
+        final hour = int.tryParse(timeParts[0]) ?? 0;
+        final minute = int.tryParse(timeParts[1]) ?? 0;
+        eventDate = DateTime(date.year, date.month, date.day, hour, minute);
+      }
+    }
+
+    final newEvent = Evenement(
+      titre: title,
+      typeEvenement: type,
+      dateEvenement: eventDate,
+      description: description.isNotEmpty ? description : null,
+    );
+
+    Evenement createdEvent;
+
+    if (type.description.toLowerCase() == "livraison") {
+      if (idLivraison == null) {
+        throw Exception("Un idLivraison est requis pour un événement de type livraison.");
+      }
+      createdEvent =
+          await _evenementService.createEvenementWithLivraison(newEvent, idLivraison);
+    } else {
+      createdEvent = await _evenementService.createEvenement(newEvent);
+    }
+
+    setState(() {
+      events.add(createdEvent);
+    });
+
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Événement ajouté avec succès !'),
+        backgroundColor: primaryRed,
+      ),
+    );
+  } catch (e) {
+    print('Erreur lors de la création de l\'événement : $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Erreur lors de la création : $e'),
+        backgroundColor: primaryRed,
+      ),
+    );
+  }
+}
+
 
   Widget _buildEventCard(Evenement event) {
     return Container(

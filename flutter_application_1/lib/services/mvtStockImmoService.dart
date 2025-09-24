@@ -1,6 +1,9 @@
+import 'package:flareline_template/models/decharge.dart';
+
 import '../models/materiel.dart';
 import 'dart:convert';
 import '../models/mvtStockImmo.dart';
+import '../models/attribution.dart';
 import 'package:http/http.dart' as http;
      
  // Classe d'aide pour l'affichage des mouvements dans le tableau
@@ -95,5 +98,74 @@ class MvtStockImmoService {
       return false;
     }
   }
+  Future<bool> createWithAttribution({
+    required List<MvtStockImmo> materiels,
+    required Attribution attribution,
+    required Decharge decharge,
+  }) async {
+    final url = Uri.parse('$baseUrl/createWithImmoAndAttribution');
+
+    final body = jsonEncode({
+      'materiels': materiels.map((m) => m.toJson()).toList(),
+      'attribution': attribution.toJson(),
+      'decharge': decharge.toJson(),
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print('Mouvement avec attribution créé avec succès');
+        return true;
+      } else {
+        print('Erreur API: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return false;
+    }
+  }
+  Future<bool> createWithOrigine({
+    required List<MvtStockImmo> materiels,
+    required int idOrigine,
+  }) async {
+    final url = Uri.parse('$baseUrl/createWithOrigine');
+
+    final body = jsonEncode({
+      'materiels': materiels,
+      'id_origine': idOrigine,
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        print('Mouvement avec origine créé avec succès');
+        return true;
+      } else {
+        print('Erreur API: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Exception: $e');
+      return false;
+    }
+  }
+
 }
   

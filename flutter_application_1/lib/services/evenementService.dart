@@ -42,6 +42,23 @@ class EvenementService {
       throw Exception('Erreur lors de la création de l’événement');
     }
   }
+  Future<Evenement> createEvenementWithLivraison(Evenement evenement,int idLivraison) async {
+    final body = jsonEncode({
+      ...evenement.toJson(),
+      'id_bon_de_livraison': idLivraison,
+    });
+    final response = await http.post(
+      Uri.parse('$baseUrl/with-livraison'),
+      headers: {'Content-Type': 'application/json'},
+      body: body,
+    );
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return Evenement.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Erreur lors de la création de l’événement');
+    }
+  }
 
   // Mettre à jour un événement
   Future<Evenement> updateEvenement(Evenement evenement) async {

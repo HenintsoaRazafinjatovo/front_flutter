@@ -2,7 +2,8 @@ class Attribution {
   final int? idAttribution;
   final DateTime dateAttribution;
   final String description;
-  final String direction; // Nom de la direction au lieu de l'ID
+  final String direction; 
+  final int? idDirection;
   final int idMvt;
 
   Attribution({
@@ -11,6 +12,7 @@ class Attribution {
     required this.description,
     required this.direction,
     required this.idMvt,
+    this.idDirection,
   });
 
   factory Attribution.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class Attribution {
       description: json['description'] ?? '',
       direction: json['direction'] ?? '', // nom_direction attendu depuis l'API
       idMvt: json['id_mvt'] as int,
+      idDirection: json['id_direction'] as int?,
     );
   }
 
@@ -30,6 +33,7 @@ class Attribution {
       'description': description,
       'direction': direction,
       'id_mvt': idMvt,
+      'id_direction': idDirection,
     };
   }
 }

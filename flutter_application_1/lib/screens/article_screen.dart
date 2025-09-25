@@ -738,7 +738,6 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                                 ),
                               ],
                               rows: filteredArticles.map((article) {
-                                print('Article: ${article.intitule}, Code: ${article.code}, Seuil Min: ${article.seuilMin}');
                                 return DataRow(
                                   cells: [
                                     DataCell(

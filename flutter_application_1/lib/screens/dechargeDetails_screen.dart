@@ -567,7 +567,6 @@ class DechargeDetailScreen extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed:  () async {
-                      print('dezecharge id: ${decharge.idDecharge}');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Impression de la decharge...')),
                         

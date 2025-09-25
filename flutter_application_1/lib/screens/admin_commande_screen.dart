@@ -53,11 +53,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
     try {
       final loadedCommandes = await BonDeCommandeService().getBonDeCommandeWithStatus();
       setState(() {
-        orders = loadedCommandes.cast<BonDeCommande>();
-        for (var order in orders) {
-  print('Commande ${order.idBonDeCommande} - Agence: ${order.agence?.codeAgence ?? 'N/A'}');
-}
-     
+        orders = loadedCommandes.cast<BonDeCommande>();   
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -118,16 +114,24 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
       ),
     );
   }
-  void showOrderDetails(BonDeCommande order) {
+void showOrderDetails(BonDeCommande order) {
+  // Vérifier si un article demandé dépasse le stock disponible
+  bool hasInsufficientStock = order.articles?.any((item) {
+        final int qte = (item.quantite ?? 0).toInt();
+        final int stock = (item.article?.stockActuel ?? 0).toInt();
+        return qte > stock;
+      }) ??
+      false;
+
   showDialog(
     context: context,
     builder: (context) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        width: 600,
+        width: 1000,
         constraints: const BoxConstraints(maxHeight: 600),
         padding: const EdgeInsets.all(24),
-        child: Scrollbar( 
+        child: Scrollbar(
           thumbVisibility: true,
           child: SingleChildScrollView(
             primary: true,
@@ -154,8 +158,6 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-
-                // --- INFORMATIONS GÉNÉRALES ---
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -234,10 +236,10 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                   ),
                 ),
 
+
                 const SizedBox(height: 20),
 
-                // --- ARTICLES ---
-                Text(
+               Text(
                   'Articles commandés',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
@@ -272,8 +274,14 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12))),
                             Expanded(
-                                flex: 1,
-                                child: Text('Qté',
+                                flex: 3,
+                                child: Text('Qté commandée',
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12))),
+                            Expanded(
+                                flex: 3,
+                                child: Text('Qté en stock',
                                     style: GoogleFonts.poppins(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12))),
@@ -294,44 +302,63 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                       ),
                       if (order.articles != null &&
                           order.articles!.isNotEmpty)
-                        ...order.articles!.map((item) => Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                border: Border(
-                                    top: BorderSide(
-                                        color: Colors.grey.shade200)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                          item.article?.intitule ??
-                                              'Article non spécifié',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 12))),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Text('${item.quantite}',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 12))),
-                                  Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                          '${(item.prixUnitaire ?? item.article?.prix ?? 0.0).toStringAsFixed(2)}',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 12))),
-                                  Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                          '${item.totalArticle.toStringAsFixed(2)}',
-                                          style: GoogleFonts.poppins(
-                                              fontSize: 12,
-                                              fontWeight:
-                                                  FontWeight.w600))),
-                                ],
-                              ),
-                            ))
+                        ...order.articles!.map((item) {
+                          bool insufficient =
+                              (item.quantite ?? 0) >
+                              (item.article?.stockActuel ?? 0);
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                  top: BorderSide(
+                                      color: Colors.grey.shade200)),
+                              color: insufficient
+                                  ? Colors.red.shade50
+                                  : null, // 🔴 surligner si insuffisant
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                        item.article?.intitule ??
+                                            'Article non spécifié',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: insufficient
+                                                ? Colors.red
+                                                : Colors.black))),
+                                Expanded(
+                                    flex: 3,
+                                    child: Text('${item.quantite}',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12))),
+                                Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                        '${item.article?.stockActuel}',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: insufficient
+                                                ? Colors.red
+                                                : Colors.black))),
+                                Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                        '${(item.prixUnitaire ?? item.article?.prix ?? 0.0).toStringAsFixed(2)}',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12))),
+                                Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                        '${item.totalArticle.toStringAsFixed(2)}',
+                                        style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600))),
+                              ],
+                            ),
+                          );
+                        })
                       else
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -386,6 +413,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                   ),
                 ),
 
+
                 const SizedBox(height: 20),
 
                 // --- ACTIONS ---
@@ -394,12 +422,16 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                   children: [
                     if (order.status_commande == 'En attente') ...[
                       ElevatedButton(
-                        onPressed: () {
-                          validateOrder(order);
-                          Navigator.pop(context);
-                        },
+                        onPressed: hasInsufficientStock
+                            ? null // 🔴 désactivé uniquement si en attente & stock insuffisant
+                            : () {
+                                validateOrder(order);
+                                Navigator.pop(context);
+                              },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade600,
+                          backgroundColor: hasInsufficientStock
+                              ? Colors.grey
+                              : Colors.green.shade600,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
@@ -422,7 +454,8 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    if (order.status_commande == 'Validee' && order.bon_de_sortie == false) ...[
+                    if (order.status_commande == 'Validee' &&
+                        order.bon_de_sortie == false) ...[
                       ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
@@ -437,12 +470,26 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 12),
                         ),
-                        child: const Text('📋 Bon de sortie'),
+                        child: const Text('Bon de sortie'),
                       ),
                       const SizedBox(width: 8),
                     ],
                   ],
                 ),
+
+                // ⚠️ Message seulement si stock insuffisant ET commande en attente
+                if (order.status_commande == 'En attente' &&
+                    hasInsufficientStock) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    "⚠️ Impossible de valider : quantité demandée supérieure au stock disponible.",
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -451,6 +498,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
     ),
   );
 }
+
 
 
   void clearFilters() {

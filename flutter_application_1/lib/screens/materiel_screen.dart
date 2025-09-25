@@ -171,7 +171,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
       nature: nature,
       idNature: _selectedNatureId,
     );
-    print('Attempting to create materiel: ${newMateriel.toJson()}');
 
     try {
       final response = await MaterielService().createMateriel(newMateriel);

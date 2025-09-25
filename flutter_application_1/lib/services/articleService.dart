@@ -8,8 +8,6 @@ class ArticleService {
 
   Future<List<Article>> getArticles() async {
     final response = await http.get(Uri.parse(baseUrl));
-    // print('ETOOOOOOOOO Response status: ${response.statusCode}');
-    // print('ETOOOOOOOOO articles: ${response.body}');
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
@@ -21,7 +19,6 @@ class ArticleService {
 
  
  Future<bool> addArticle(Article article) async {
-  print("Article to add: ${article.toApiJson()}");
   final response = await http.post(
     Uri.parse(baseUrl),
      headers: {
@@ -30,8 +27,6 @@ class ArticleService {
       },
     body: json.encode(article.toApiJson()),
   );
-  print('Response status: ${response.statusCode}');
-  print('Response body: ${response.body}');
   return response.statusCode == 201 || response.statusCode == 200;
 }
 

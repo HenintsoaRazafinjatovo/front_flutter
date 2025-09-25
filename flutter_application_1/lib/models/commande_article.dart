@@ -36,6 +36,9 @@ class CommandeArticle {
           ? Article(
               idArticle: json['id_article'] ?? 0,
               intitule: json['intitule'],
+              stockActuel: json['stock_actuel'] != null
+                  ? double.tryParse(json['stock_actuel'].toString()) ?? 0.0
+                  : 0.0,
               seuilMin: 0,
               code: '',
               prix: prix,

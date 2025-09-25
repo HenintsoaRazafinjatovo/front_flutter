@@ -750,8 +750,6 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
 
     if (selectedMovementType == 'sortie') {
       
-        print('mvt type: $selectedMovementType');
-      
       if (selectedSortieType == null) return false;
       if (selectedSortieType == 'attribution' && selectedDirection == null) return false;
 
@@ -819,7 +817,6 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
           description: "Attribution de stock",
           idDirection: selectedDirection!.idDirection!,
         );
-        print("Attribution créée : $success");
       } else {
         final mvtStockService = MvtStockService();
         final type = selectedMovementType == 'entree' ? 1 : 2;
@@ -827,7 +824,6 @@ class _CreateMovementDialogState extends State<CreateMovementDialog> {
           type,
           articlesData,
         );
-        print("Mouvement créé : $success");
       }
 
       if (success) {

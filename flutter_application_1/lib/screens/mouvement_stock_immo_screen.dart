@@ -68,7 +68,7 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
       setState(() {
         salles = loadedSalles;
       });
-      print('Salles chargées: ${salles.length}');
+      
     } catch (e) {
       print("Erreur de chargement des salles: $e");
       _showErrorSnackBar("Erreur de chargement des salles: $e");
@@ -80,9 +80,6 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
       setState(() {
         movements = loadedMovements;
         filteredMovements = List.from(loadedMovements);
-        for (var mvt in loadedMovements) {
-          print('Mouvement: date=${mvt.dateMouvement}, type=${mvt.typeMouvement}, materiel=${mvt.materiel?.designation}, quantite=${mvt.quantite}, total=${mvt.totalMateriel}');
-        }
       });
     } catch (e, stackTrace) {
       print("Erreur de chargement des mouvements: $e\n$stackTrace");

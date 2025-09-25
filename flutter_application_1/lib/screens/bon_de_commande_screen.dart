@@ -77,7 +77,6 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
       final int quantiteAjoutee = int.parse(quantity);
       final existingIndex =
           recapCommande.indexWhere((item) => item['article'].idArticle == selectedArticle!.idArticle);
-          print('article clic1' + selectedArticle!.idArticle.toString());
 
       setState(() {
         if (existingIndex != -1) {
@@ -87,7 +86,6 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
             'article': selectedArticle,
             'quantite': quantiteAjoutee,
           });
-           print('article clicState' + selectedArticle!.idArticle.toString());
         }
         selectedArticle = null;
         quantity = '';

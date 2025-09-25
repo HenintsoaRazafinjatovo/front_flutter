@@ -122,10 +122,8 @@ class MvtStockImmoService {
       );
 
       if (response.statusCode == 200) {
-        print('Mouvement avec attribution créé avec succès');
         return true;
       } else {
-        print('Erreur API: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -155,7 +153,6 @@ class MvtStockImmoService {
       );
 
       if (response.statusCode == 200) {
-        print('Mouvement avec origine créé avec succès');
         return true;
       } else {
         print('Erreur API: ${response.body}');

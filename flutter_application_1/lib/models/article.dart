@@ -45,6 +45,7 @@ class Article {
   Map<String, dynamic> toApiJson() {
   return {
     'intitule': intitule,
+    'stock_actuel': stockActuel,
     'seuil_min': seuilMin,
     'code': code,
     'id_categorie': categorie?.idCategorie, // on envoie juste l'id

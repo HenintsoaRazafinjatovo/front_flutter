@@ -10,7 +10,6 @@ class SalleService {
 
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      print("Salles chargées avec succès: ${response.body}");
       return data.map((json) => Salle.fromJson(json)).toList();
     } else {
       print("Erreur lors du chargement des salles: ${response.body}");

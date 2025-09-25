@@ -23,10 +23,6 @@ class MvtStockService {
         'date_mvt': DateTime.now().toIso8601String(),
       }),
     );
-
-    print("Réponse du serveur: ${response.statusCode}");
-    print("Corps de la réponse: ${response.body}");
-
     if (response.statusCode == 201) {
       final data = jsonDecode(response.body);
       return data['success'] == true;

@@ -14,6 +14,7 @@ class BonDeCommandeService {
     final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetails'));
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
+      
       return data.map((item) => BonDeCommande.fromJson(item)).toList();
     } else {
       print("Erreur nbe" + response.body);
@@ -98,7 +99,6 @@ class BonDeCommandeService {
     );
 
     if (response.statusCode == 200) {
-      print(jsonDecode(response.body)['message']);
       return true;
     } else {
       print('Erreur lors de la validation du bon de commande : ${response.statusCode} - ${response.body}');
@@ -117,7 +117,6 @@ class BonDeCommandeService {
     );
 
     if (response.statusCode == 200) {
-      print(jsonDecode(response.body)['message']);
       return true;
     } else {
       print('Erreur lors du rejet du bon de commande : ${response.statusCode} - ${response.body}');

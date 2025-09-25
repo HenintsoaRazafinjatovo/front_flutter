@@ -23,14 +23,10 @@ class Attributionservice {
         }),
       );
 
-      print("Réponse du serveur: ${response.statusCode}");
-      print("Corps de la réponse: ${response.body}");
-
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         return data['success'] == true;
       } else {
-        print('Erreur lors de la création du mouvement : ${response.statusCode} - ${response.body}');
         return false;
       }
     } catch (e) {

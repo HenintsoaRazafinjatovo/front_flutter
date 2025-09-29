@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -22,8 +23,24 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
   String descriptionCommande = '';
   final List<Map<String, dynamic>> recapCommande = [];
   final _formKey = GlobalKey<FormState>();
-
+  
   List<BonDeCommande> commandes = [];
+  
+  // Variables pour la pagination
+  int currentPage = 0;
+  int itemsPerPage = 10;
+  
+  // Getter pour obtenir les commandes paginées
+  List<BonDeCommande> get paginatedCommandes {
+    final startIndex = currentPage * itemsPerPage;
+    final endIndex = (startIndex + itemsPerPage).clamp(0, commandes.length);
+    
+    if (startIndex >= commandes.length) return [];
+    return commandes.sublist(startIndex, endIndex);
+  }
+  
+  // Getter pour le nombre total de pages
+  int get totalPages => (commandes.length / itemsPerPage).ceil();
 
   @override
   void initState() {
@@ -37,6 +54,8 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
       final loadedCommandes = await BonDeCommandeService().getBonDeCommandeWithStatus();
       setState(() {
         commandes = loadedCommandes;
+        // Réinitialiser à la première page lors du chargement
+        currentPage = 0;
       });
     } catch (e) {
       print('Erreur de chargement des bons de commande: $e');
@@ -58,19 +77,19 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
       );
     }
   }
-   void openPdfWeb(Uint8List pdfBytes, String filename) {
+  
+  void openPdfWeb(Uint8List pdfBytes, String filename) {
     final blob = html.Blob([pdfBytes], 'application/pdf');
-  final url = html.Url.createObjectUrlFromBlob(blob);
+    final url = html.Url.createObjectUrlFromBlob(blob);
 
-  html.AnchorElement anchor = html.AnchorElement(href: url)
-    ..setAttribute("download", filename); // Nom du fichier
-  html.document.body?.append(anchor);
-  anchor.click(); // Simule le clic pour lancer le téléchargement
-  anchor.remove();
+    html.AnchorElement anchor = html.AnchorElement(href: url)
+      ..setAttribute("download", filename);
+    html.document.body?.append(anchor);
+    anchor.click();
+    anchor.remove();
 
-  html.Url.revokeObjectUrl(url);
-
-}
+    html.Url.revokeObjectUrl(url);
+  }
 
   void ajouterOuMettreAJourArticle() {
     if (_formKey.currentState!.validate()) {
@@ -134,12 +153,128 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
           recapCommande.clear();
           descriptionCommande = '';
         });
+        // Recharger les commandes après création
+        _loadCommandes();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Erreur lors de la création du bon de commande.")),
         );
       }
     }
+  }
+  
+  // Widget pour la pagination
+  Widget _buildPaginationControls() {
+    if (commandes.isEmpty || totalPages <= 1) return const SizedBox.shrink();
+    
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Bouton Première page
+          IconButton(
+            icon: const Icon(Icons.first_page),
+            onPressed: currentPage == 0
+                ? null
+                : () => setState(() => currentPage = 0),
+            tooltip: 'Première page',
+          ),
+          
+          // Bouton Page précédente
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: currentPage == 0
+                ? null
+                : () => setState(() => currentPage--),
+            tooltip: 'Page précédente',
+          ),
+          
+          const SizedBox(width: 16),
+          
+          // Affichage des numéros de page
+          ...List.generate(totalPages, (index) {
+            // Afficher seulement quelques pages autour de la page actuelle
+            if (totalPages <= 7 ||
+                index == 0 ||
+                index == totalPages - 1 ||
+                (index >= currentPage - 1 && index <= currentPage + 1)) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: InkWell(
+                  onTap: () => setState(() => currentPage = index),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: currentPage == index
+                          ? const Color(0xFFF9B70D)
+                          : Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      '${index + 1}',
+                      style: TextStyle(
+                        color: currentPage == index ? Colors.white : Colors.black87,
+                        fontWeight: currentPage == index
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            } else if (index == currentPage - 2 || index == currentPage + 2) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 4),
+                child: Text('...'),
+              );
+            }
+            return const SizedBox.shrink();
+          }),
+          
+          const SizedBox(width: 16),
+          
+          // Bouton Page suivante
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: currentPage >= totalPages - 1
+                ? null
+                : () => setState(() => currentPage++),
+            tooltip: 'Page suivante',
+          ),
+          
+          // Bouton Dernière page
+          IconButton(
+            icon: const Icon(Icons.last_page),
+            onPressed: currentPage >= totalPages - 1
+                ? null
+                : () => setState(() => currentPage = totalPages - 1),
+            tooltip: 'Dernière page',
+          ),
+          
+          const SizedBox(width: 16),
+          
+          // Sélecteur du nombre d'éléments par page
+          DropdownButton<int>(
+            value: itemsPerPage,
+            items: [5, 10, 20, 50].map((value) {
+              return DropdownMenuItem<int>(
+                value: value,
+                child: Text('$value / page'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  itemsPerPage = value;
+                  currentPage = 0; // Retour à la première page
+                });
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -171,7 +306,6 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                     key: _formKey,
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        // Si l'écran est trop petit, utiliser une disposition en colonne
                         if (constraints.maxWidth < 600) {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -259,7 +393,6 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                             ],
                           );
                         } else {
-                          // Utiliser le layout en ligne pour les écrans plus grands
                           return Row(
                             children: [
                               Expanded(
@@ -422,79 +555,72 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // -> Remplacer le LayoutBuilder existant (celui là : LayoutBuilder(builder: (context, constraints) { ... }))
-LayoutBuilder(
-  builder: (context, constraints) {
-    // champ description réutilisable
-    final descriptionField = TextFormField(
-      decoration: const InputDecoration(
-        labelText: 'Description',
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Color.fromARGB(243, 62, 61, 62)),
-        ),
-      ),
-      onChanged: (val) => descriptionCommande = val,
-      validator: (value) {
-        if (value == null || value.isEmpty) return 'Description requise';
-        return null;
-      },
-    );
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final descriptionField = TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: 'Description',
+                            border: OutlineInputBorder(),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Color.fromARGB(243, 62, 61, 62)),
+                            ),
+                          ),
+                          onChanged: (val) => descriptionCommande = val,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) return 'Description requise';
+                            return null;
+                          },
+                        );
 
-    final totalText = Text(
-      'Total: ${calculerTotal().toStringAsFixed(2)}',
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
+                        final totalText = Text(
+                          'Total: ${calculerTotal().toStringAsFixed(2)}',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
 
-    final validateBtn = ElevatedButton.icon(
-      onPressed: validerCommandeFinale,
-      icon: const Icon(Icons.check_circle, color: Colors.white),
-      label: const Text('Valider la commande', style: TextStyle(color: Colors.white)),
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        backgroundColor: const Color(0xFFF9B70D),
-      ),
-    );
+                        final validateBtn = ElevatedButton.icon(
+                          onPressed: validerCommandeFinale,
+                          icon: const Icon(Icons.check_circle, color: Colors.white),
+                          label: const Text('Valider la commande', style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            backgroundColor: const Color(0xFFF9B70D),
+                          ),
+                        );
 
-    // Si vraiment étroit (petits écrans / vues imbriquées), empiler verticalement
-    if (constraints.maxWidth < 360) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          descriptionField,
-          const SizedBox(height: 12),
-          totalText,
-          const SizedBox(height: 8),
-          SizedBox(width: double.infinity, child: validateBtn),
-        ],
-      );
-    }
+                        if (constraints.maxWidth < 360) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              descriptionField,
+                              const SizedBox(height: 12),
+                              totalText,
+                              const SizedBox(height: 8),
+                              SizedBox(width: double.infinity, child: validateBtn),
+                            ],
+                          );
+                        }
 
-    // Pour la plupart des tailles, utiliser Wrap -> permet d'aller à la ligne proprement si besoin
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      alignment: WrapAlignment.end,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        // On limite la largeur du champ description pour éviter qu'il "mange" tout
-        SizedBox(
-          width: constraints.maxWidth > 800 ? 520 : constraints.maxWidth * 0.55,
-          child: descriptionField,
-        ),
-        // Total (avec ellipsis si nécessaire)
-        ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.25),
-          child: totalText,
-        ),
-        validateBtn,
-      ],
-    );
-  },
-),
-
+                        return Wrap(
+                          spacing: 16,
+                          runSpacing: 8,
+                          alignment: WrapAlignment.end,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: constraints.maxWidth > 800 ? 520 : constraints.maxWidth * 0.55,
+                              child: descriptionField,
+                            ),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.25),
+                              child: totalText,
+                            ),
+                            validateBtn,
+                          ],
+                        );
+                      },
+                    ),
                   ],
                 ],
               ),
@@ -510,13 +636,25 @@ LayoutBuilder(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Historique des bons de commande',
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Historique des bons de commande',
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        'Total: ${commandes.length} commande(s)',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 16),
                   Container(
@@ -541,7 +679,7 @@ LayoutBuilder(
                           DataColumn(label: Text('Date')),
                           DataColumn(label: Text('Actions')),
                         ],
-                        rows: commandes.map((cmd) {
+                        rows: paginatedCommandes.map((cmd) {
                           return DataRow(cells: [
                             DataCell(Text(cmd.idBonDeCommande.toString())),
                             DataCell(
@@ -559,20 +697,18 @@ LayoutBuilder(
                             DataCell(
                               IconButton(
                                 icon: const Icon(Icons.print_rounded, color: Color.fromARGB(154, 71, 71, 70)),
-                                onPressed:  () async {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Impression de la facture...')),
-                                  
-                                );
-                                try {
-                                final bonDeCommandeService = BonDeCommandeService();
-                                final pdfBytes = await bonDeCommandeService.generatePdf('facture', cmd.idBonDeCommande ?? 0);
-                                openPdfWeb(pdfBytes, 'BC-${cmd.idBonDeCommande}');
-
-                                } catch (e) {
-                                  print('Erreur : $e');
-                                }
-                              },
+                                onPressed: () async {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Impression de la facture...')),
+                                  );
+                                  try {
+                                    final bonDeCommandeService = BonDeCommandeService();
+                                    final pdfBytes = await bonDeCommandeService.generatePdf('facture', cmd.idBonDeCommande ?? 0);
+                                    openPdfWeb(pdfBytes, 'BC-${cmd.idBonDeCommande}');
+                                  } catch (e) {
+                                    print('Erreur : $e');
+                                  }
+                                },
                               ),
                             ),
                           ]);
@@ -580,6 +716,8 @@ LayoutBuilder(
                       ),
                     ),
                   ),
+                  // Contrôles de pagination
+                  _buildPaginationControls(),
                 ],
               ),
             ),

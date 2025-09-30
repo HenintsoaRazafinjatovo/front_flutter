@@ -54,7 +54,7 @@ class _CreateInvoiceDialogState extends State<CreateInvoiceDialog> {
   }
    Future<void> _loadLivraisons() async {
     try {
-      final loadedLivraisons = await BonDeLivraisonService().getBonDeLivraisonWithDetails();
+      final loadedLivraisons = await BonDeLivraisonService().getBonDeLivraisonNonLiees();
       setState(() {
         widget.receptions = loadedLivraisons;
       });

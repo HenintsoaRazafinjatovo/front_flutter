@@ -45,6 +45,12 @@ class DeliveryNotesScreen extends StatefulWidget {
 class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
   final Color buttonColor = const Color(0xFFF9B70D);
   final Color headerColor = const Color.fromARGB(154, 131, 130, 129);
+
+  int currentPage = 1;
+  int lastPage = 1;
+  int itemsPerPage = 10;
+  int totalLivraisons = 0;
+
   List<BonDeLivraison> livraisons = [];
   List<BonDeCommande> orders = [];
   List<BonDeLivraison> filteredDeliveryNotes = [];
@@ -53,6 +59,11 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
   int? agencyFilter;
   BonDeCommande? selectedOrder;
   String message = "";
+
+  List<BonDeLivraison> get paginatedLivraisons => livraisons;
+
+  // Getter pour le nombre total de pages
+  int get totalPages => (livraisons.length / itemsPerPage).ceil();
 
   @override
   void initState() {
@@ -64,9 +75,13 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
 
   Future<void> _loadLivraisons() async {
     try {
-      final loadedLivraisons = await BonDeLivraisonService().getBonDeLivraisonWithDetails();
+      final loadedLivraisons = await BonDeLivraisonService().getBonDeLivraisonWithDetails(page: currentPage, perPage: itemsPerPage    
+      );
       setState(() {
-        livraisons = loadedLivraisons;
+        livraisons = loadedLivraisons.data;
+        totalLivraisons = loadedLivraisons.total;
+        lastPage = loadedLivraisons.lastPage;
+        currentPage = loadedLivraisons.currentPage;
         filteredDeliveryNotes = List.from(livraisons);
       });
     } catch (e) {
@@ -180,6 +195,87 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
       filteredDeliveryNotes = List.from(livraisons);
     });
   }
+Widget _buildPaginationControls() {
+  if (lastPage <= 1) return const SizedBox.shrink();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadLivraisons();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadLivraisons();
+              },
+      ),
+
+      // Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadLivraisons();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadLivraisons();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadLivraisons();
+          }
+        },
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -425,12 +521,15 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
                             ),
                           ),
                         ),
+                         _buildPaginationControls(),
                       ],
+                          
                     ),
                   ),
                 ),
               ],
             ),
+            
           ),
         ),
       ),

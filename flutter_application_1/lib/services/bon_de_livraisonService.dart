@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/bon_de_livraison.dart';
+import '../utils/paginatedResponse.dart';
 import 'dart:typed_data';
 
 class BonDeLivraisonService {
@@ -8,17 +9,34 @@ class BonDeLivraisonService {
   final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/livraison';
 
   // Récupérer la liste des bons de livraison avec leurs détails
-  Future<List<BonDeLivraison>> getBonDeLivraisonWithDetails() async {
-    final response = await http.get(Uri.parse(baseUrl));
+  // Future<List<BonDeLivraison>> getBonDeLivraisonWithDetails() async {
+  //   final response = await http.get(Uri.parse(baseUrl));
     
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((item) => BonDeLivraison.fromJson(item)).toList();
-    } else {
-      print("Erreur : " + response.body);
-      throw Exception('Erreur lors de la récupération des bons de livraison : ${response.statusCode}');
-    }
+  //   if (response.statusCode == 200) {
+  //     List<dynamic> data = json.decode(response.body);
+  //     return data.map((item) => BonDeLivraison.fromJson(item)).toList();
+  //   } else {
+  //     print("Erreur : " + response.body);
+  //     throw Exception('Erreur lors de la récupération des bons de livraison : ${response.statusCode}');
+  //   }
+  // }
+  Future<PaginatedResponse<BonDeLivraison>> getBonDeLivraisonWithDetails({int page = 1, int perPage = 10}) async {
+  final url = Uri.parse('$baseUrl?page=$page&per_page=$perPage');
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    final jsonResponse = json.decode(response.body);
+
+    return PaginatedResponse.fromJson(
+      jsonResponse,
+      (item) => BonDeLivraison.fromJson(item),
+    );
+  } else {
+    print("Erreur : " + response.body);
+    throw Exception('Erreur lors de la récupération des bons de livraison : ${response.statusCode}');
   }
+}
   Future<List<BonDeLivraison>> getBonDeLivraisonNonLiees() async {
     final response = await http.get(Uri.parse('$baseUrl/getLivraisonsNonLiees'));
 

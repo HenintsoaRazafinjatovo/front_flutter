@@ -14,7 +14,7 @@ class InventaireService {
     int page = 1,
     int perPage = 10,
   }) async {
-    final url = Uri.parse('$baseUrl?page=$page&per_page=$perPage');
+    final url = Uri.parse('$baseUrl/getInventairesWithDetails?page=$page&per_page=$perPage');
 
     final response = await http.get(url);
 

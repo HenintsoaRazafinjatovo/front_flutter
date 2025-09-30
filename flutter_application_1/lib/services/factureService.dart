@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/facture.dart';
+import '../utils/paginatedResponse.dart';
 import 'dart:typed_data';
 
 
@@ -8,26 +9,48 @@ class FactureService {
    final String baseUrl = "http://127.0.0.1:8000/api/factures"; 
   final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/facture';
 
-  Future<List<Facture>> getFactures() async {
-    final url = Uri.parse(baseUrl);
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        final factures = data.map((json) => Facture.fromJson(json)).toList();
-        return factures;
-      } else {
-        throw Exception(
-            'Erreur lors de la récupération des factures : ${response.statusCode}');
-      }
-    } catch (e) {
-      print("Erreur ebbbbebebebe : " + e.toString());
-      if (e is http.Response) {
-        print("Response body: " + e.body);
-      }
-      throw Exception('Erreur réseau ou JSON invalide : $e');
+  // Future<List<Facture>> getFactures() async {
+  //   final url = Uri.parse(baseUrl);
+  //   try {
+  //     final response = await http.get(url);
+  //     if (response.statusCode == 200) {
+  //       final List<dynamic> data = json.decode(response.body);
+  //       final factures = data.map((json) => Facture.fromJson(json)).toList();
+  //       return factures;
+  //     } else {
+  //       throw Exception(
+  //           'Erreur lors de la récupération des factures : ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     print("Erreur ebbbbebebebe : " + e.toString());
+  //     if (e is http.Response) {
+  //       print("Response body: " + e.body);
+  //     }
+  //     throw Exception('Erreur réseau ou JSON invalide : $e');
+  //   }
+  // }
+  Future<PaginatedResponse<Facture>> getFactures({int page = 1, int perPage = 10}) async {
+  final url = Uri.parse('$baseUrl?page=$page&per_page=$perPage');
+
+  try {
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      return PaginatedResponse.fromJson(
+        jsonResponse,
+        (item) => Facture.fromJson(item),
+      );
+    } else {
+      throw Exception(
+          'Erreur lors de la récupération des factures : ${response.statusCode}');
     }
+  } catch (e) {
+    print("Erreur lors de la récupération des factures : " + e.toString());
+    throw Exception('Erreur réseau ou JSON invalide : $e');
   }
+}
   Future<Map<String, dynamic>> creerFactureParBonLivraison(int idBonLivraison) async {
   try {
     final response = await http.post(

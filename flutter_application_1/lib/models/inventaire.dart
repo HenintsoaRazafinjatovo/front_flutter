@@ -14,22 +14,39 @@ class Inventaire {
     required this.employes,
   });
 
+  // factory Inventaire.fromJson(Map<String, dynamic> json) {
+  //   final articlesList = (json['articles'] as List<dynamic>? ?? [])
+  //       .map((e) => InventaireArticle.fromJson(Map<String, dynamic>.from(e)))
+  //       .toList();
+
+  //   final employesList = (json['employes'] as List<dynamic>? ?? [])
+  //       .map((e) => Employe.fromJson(Map<String, dynamic>.from(e)))
+  //       .toList();
+
+  //   return Inventaire(
+  //     id: json['id_inventaire'],
+  //     date: DateTime.parse(json['date_inventaire']),
+  //     articles: articlesList,
+  //     employes: employesList,
+  //   );
+  // }
   factory Inventaire.fromJson(Map<String, dynamic> json) {
-    final articlesList = (json['articles'] as List<dynamic>? ?? [])
-        .map((e) => InventaireArticle.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
+  final articlesList = (json['articles'] as List<dynamic>? ?? [])
+      .map((e) => InventaireArticle.fromJson(e as Map<String, dynamic>))
+      .toList();
 
-    final employesList = (json['employes'] as List<dynamic>? ?? [])
-        .map((e) => Employe.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
+  final employesList = (json['employes'] as List<dynamic>? ?? [])
+      .map((e) => Employe.fromJson(e as Map<String, dynamic>))
+      .toList();
 
-    return Inventaire(
-      id: json['id_inventaire'],
-      date: DateTime.parse(json['date_inventaire']),
-      articles: articlesList,
-      employes: employesList,
-    );
-  }
+  return Inventaire(
+    id: json['id_inventaire'],
+    date: DateTime.parse(json['date_inventaire']),
+    articles: articlesList,
+    employes: employesList,
+  );
+}
+
 
   Map<String, dynamic> toJson() {
     return {

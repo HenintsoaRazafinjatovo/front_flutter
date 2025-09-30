@@ -460,18 +460,14 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   DateTime? selectedDate;
   
   // Variables pour la pagination
-  int currentPage = 0;
+ int currentPage = 1;
+  int lastPage = 1;
   int itemsPerPage = 10;
+  int totalFactures = 0;
   
   // Getter pour obtenir les factures paginées
-  List<Facture> get paginatedInvoices {
-    final startIndex = currentPage * itemsPerPage;
-    final endIndex = (startIndex + itemsPerPage).clamp(0, filteredInvoices.length);
-    
-    if (startIndex >= filteredInvoices.length) return [];
-    return filteredInvoices.sublist(startIndex, endIndex);
-  }
-  
+  List<Facture> get paginatedInvoices => filteredInvoices;
+
   // Getter pour le nombre total de pages
   int get totalPages => filteredInvoices.isEmpty ? 0 : (filteredInvoices.length / itemsPerPage).ceil();
   
@@ -483,11 +479,13 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   Future<void> _loadFactures() async {
     try {
       FactureService factureService = FactureService();
-      List<Facture> fetchedInvoices = await factureService.getFactures();
+      final response = await factureService.getFactures(page: currentPage, perPage: itemsPerPage);
       setState(() {
-        invoices = fetchedInvoices;
+        invoices = response.data;
         filteredInvoices = List.from(invoices);
-        currentPage = 0; // Réinitialiser à la première page
+        currentPage = response.currentPage;
+        lastPage = response.lastPage;
+        totalFactures = response.total;
       });
     } catch (e) {
       print('Erreur lors de la récupération des factures: $e');
@@ -558,110 +556,87 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
 
   // Widget pour la pagination
   Widget _buildPaginationControls() {
-    if (filteredInvoices.isEmpty || totalPages <= 1) return const SizedBox.shrink();
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.first_page),
-            onPressed: currentPage == 0
-                ? null
-                : () => setState(() => currentPage = 0),
-            tooltip: 'Première page',
-          ),
-          
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: currentPage == 0
-                ? null
-                : () => setState(() => currentPage--),
-            tooltip: 'Page précédente',
-          ),
-          
-          const SizedBox(width: 16),
-          
-          ...List.generate(totalPages, (index) {
-            if (totalPages <= 7 ||
-                index == 0 ||
-                index == totalPages - 1 ||
-                (index >= currentPage - 1 && index <= currentPage + 1)) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: InkWell(
-                  onTap: () => setState(() => currentPage = index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: currentPage == index
-                          ? buttonColor
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(
-                        color: currentPage == index ? Colors.white : Colors.black87,
-                        fontWeight: currentPage == index
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            } else if (index == currentPage - 2 || index == currentPage + 2) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...'),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-          
-          const SizedBox(width: 16),
-          
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: currentPage >= totalPages - 1
-                ? null
-                : () => setState(() => currentPage++),
-            tooltip: 'Page suivante',
-          ),
-          
-          IconButton(
-            icon: const Icon(Icons.last_page),
-            onPressed: currentPage >= totalPages - 1
-                ? null
-                : () => setState(() => currentPage = totalPages - 1),
-            tooltip: 'Dernière page',
-          ),
-          
-          const SizedBox(width: 16),
-          
-          DropdownButton<int>(
-            value: itemsPerPage,
-            items: [5, 10, 20, 50].map((value) {
-              return DropdownMenuItem<int>(
-                value: value,
-                child: Text('$value / page'),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  itemsPerPage = value;
-                  currentPage = 0;
-                });
-              }
-            },
-          ),
-        ],
+  if (lastPage <= 1) return const SizedBox.shrink();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadFactures();
+              },
       ),
-    );
-  }
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadFactures();
+              },
+      ),
+
+      // Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadFactures();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadFactures();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadFactures();
+          }
+        },
+      ),
+    ],
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {

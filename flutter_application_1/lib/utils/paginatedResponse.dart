@@ -12,17 +12,18 @@ class PaginatedResponse<T> {
   });
 
   factory PaginatedResponse.fromJson(
-    Map<String, dynamic> json,
-    T Function(Map<String, dynamic>) fromJsonT,
-  ) {
-    final dataList = json['data'] as List<dynamic>? ?? [];
-    return PaginatedResponse(
-      data: dataList
-          .map((e) => fromJsonT(Map<String, dynamic>.from(e)))
-          .toList(),
-      currentPage: json['current_page'] ?? 1,
-      lastPage: json['last_page'] ?? 1,
-      total: json['total'] ?? 0,
-    );
-  }
+  Map<String, dynamic> json,
+  T Function(Map<String, dynamic>) fromJsonT,
+) {
+  final dataList = json['data'] as List<dynamic>? ?? [];
+
+  return PaginatedResponse(
+    data: dataList
+        .map((e) => fromJsonT(e as Map<String, dynamic>)) // <-- cast direct
+        .toList(),
+    currentPage: json['current_page'] ?? 1,
+    lastPage: json['last_page'] ?? 1,
+    total: json['total'] ?? 0,
+  );
+}
 }

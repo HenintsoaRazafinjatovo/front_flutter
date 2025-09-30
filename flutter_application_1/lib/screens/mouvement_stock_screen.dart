@@ -29,7 +29,7 @@ class _MouvementStockScreenState extends State<MouvementStockScreen> {
   String quantity = '';
    Future<void> _loadArticles() async {
     try {
-      final loadedArticles = await ArticleService().getArticles();
+      final loadedArticles = await ArticleService().getAllArticles();
       setState(() {
         articles = loadedArticles;
       });

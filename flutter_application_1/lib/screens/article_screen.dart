@@ -43,11 +43,22 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
   final TextEditingController _filterIntituleController = TextEditingController();
   final TextEditingController _filterCodeController = TextEditingController();
 
+ int currentPage = 1;
+  int lastPage = 1;
+  int itemsPerPage = 10;
+  int totalArticles = 0;
+
   List<Article> articles = [];
   List<Article> filteredArticles = [];
   List<Categorie> categories = [];
   int? _selectedCategorieId;  
 
+
+  // Getter pour obtenir les articles paginés de la page courante
+  List<Article> get paginatedArticles => articles;
+
+  // Getter pour le nombre total de pages
+  int get totalPages => (articles.length / itemsPerPage).ceil();
   // Couleurs définies
   static const Color buttonColor = Color(0xFFF9B70D);
   static const Color headerRowColor = Color.fromARGB(154, 131, 130, 129);
@@ -63,10 +74,12 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
   }
   Future<void> _loadArticles() async {
     try {
-      final loadedArticles = await ArticleService().getArticles();
+      final loadedArticles = await ArticleService().getArticles(page: currentPage, perPage: itemsPerPage);
       setState(() {
-        articles = loadedArticles;
-        filteredArticles = loadedArticles;
+        articles = loadedArticles.data;
+        currentPage = loadedArticles.currentPage;
+        lastPage = loadedArticles.lastPage;
+        filteredArticles = loadedArticles.data;
       });
     } catch (e) {
       // ignore: use_build_context_synchronously
@@ -133,12 +146,10 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
     // Appel du service asynchrone pour créer l'article + historique prix
     final success = await ArticleService().addArticle(newArticle);
     if (success) {
-      setState(() {
-        articles.add(newArticle);
-        _applyFilters();
-      });
-
       _clearForm();
+      
+      // Recharger les articles depuis le serveur
+      await _loadArticles();
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -271,10 +282,8 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
               Navigator.of(context).pop(); // Fermer la boîte de dialogue
 
               if (success) {
-                setState(() {
-                  articles.remove(article);
-                  _applyFilters();
-                });
+                // Recharger les articles depuis le serveur
+                await _loadArticles();
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -371,6 +380,87 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
       ),
     );
   }
+Widget _buildPaginationControls() {
+  if (lastPage <= 1) return const SizedBox.shrink();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadArticles();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadArticles();
+              },
+      ),
+
+      // Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadArticles();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadArticles();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadArticles();
+          }
+        },
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -512,7 +602,7 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                         Row(
                         children: [
                           Expanded(
-                            flex: 1, // 👈 moitié de l'écran comme les autres champs
+                            flex: 1,
                             child: DropdownButtonFormField<int>(
                               value: _selectedCategorieId,
                               items: categories.map((cat) {
@@ -548,7 +638,7 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
 
                           // Boutons prennent l'autre moitié
                           Expanded(
-                            flex: 1, // 👈 moitié de l'écran aussi
+                            flex: 1,
                             child: Row(
                               children: [
                                 Expanded(
@@ -611,7 +701,7 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                 children: [
                  
                         Text(
-                          'Liste des Articles (${filteredArticles.length})',
+                          'Liste des Articles ',
                           style: TextStyle(
                             fontSize: 18, 
                             fontWeight: FontWeight.bold, 
@@ -796,8 +886,13 @@ class _GestionArticlesPageState extends State<GestionArticlesPage> {
                                 );
                               }).toList(),
                             ),
+                            
                           ),
                   ),
+                  
+                  // Ajout de la pagination ici
+                  SizedBox(height: 16),
+                  _buildPaginationControls(),
                 ],
               ),
               ),

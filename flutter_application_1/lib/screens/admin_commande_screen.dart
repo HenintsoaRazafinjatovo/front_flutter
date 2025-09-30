@@ -13,10 +13,18 @@ class AdminCommandeScreen extends StatefulWidget {
 class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
   String selectedStatusFilter = '';
   String selectedAgencyFilter = '';
+  int currentPage = 1;
+  int lastPage = 1;
+  int itemsPerPage = 10;
+  int totalCommandes = 0;
   List<BonDeCommande> orders = [];
   List<BonDeCommande> ordersEnAttente = [];
 
-
+ // Getter pour obtenir les commandes paginées de la page courante
+  List<BonDeCommande> get paginatedCommandes => orders;
+  
+  // Getter pour le nombre total de pages
+  int get totalPages => (orders.length / itemsPerPage).ceil();
   List<BonDeCommande> get filteredOrders {
     return orders.where((order) {
       final statusMatch = selectedStatusFilter.isEmpty || 
@@ -41,7 +49,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
         SnackBar(content: Text('Commande ${order.idBonDeCommande} validée avec succès !')),
       );
       // Optionally refresh the lists
-      await _loadCommandes();
+       await _loadCommandes();
       await _loadCommandesEnAttente();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -51,9 +59,13 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
   }
    Future<void> _loadCommandes() async {
     try {
-      final loadedCommandes = await BonDeCommandeService().getBonDeCommandeWithStatus();
+      final paginated = await BonDeCommandeService()
+          .getBonDeCommandeWithStatus(page: currentPage, perPage: itemsPerPage);
       setState(() {
-        orders = loadedCommandes.cast<BonDeCommande>();   
+        orders = paginated.data; // Use the correct property from PaginatedResponse
+        currentPage = paginated.currentPage;
+        lastPage = paginated.lastPage;
+        totalCommandes = paginated.total;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -76,7 +88,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCommandes();
+     _loadCommandes();
     _loadCommandesEnAttente();
   }
   Future<void> rejectOrder(BonDeCommande order) async {
@@ -100,7 +112,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
                 messenger.showSnackBar(
                   SnackBar(content: Text('Commande ${order.idBonDeCommande} rejetée avec succès !')),
                 );
-                await _loadCommandes();
+                // await _loadCommandes();
                 await _loadCommandesEnAttente();
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +129,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
 void showOrderDetails(BonDeCommande order) {
   // Vérifier si un article demandé dépasse le stock disponible
   bool hasInsufficientStock = order.articles?.any((item) {
-        final int qte = (item.quantite ?? 0).toInt();
+        final int qte = item.quantite.toInt();
         final int stock = (item.article?.stockActuel ?? 0).toInt();
         return qte > stock;
       }) ??
@@ -304,7 +316,7 @@ void showOrderDetails(BonDeCommande order) {
                           order.articles!.isNotEmpty)
                         ...order.articles!.map((item) {
                           bool insufficient =
-                              (item.quantite ?? 0) >
+                              item.quantite >
                               (item.article?.stockActuel ?? 0);
                           return Container(
                             padding: const EdgeInsets.all(12),
@@ -508,6 +520,88 @@ void showOrderDetails(BonDeCommande order) {
     });
   }
 
+  Widget _buildPaginationControls() {
+  if (lastPage <= 1) return const SizedBox.shrink();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadCommandes();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadCommandes();
+              },
+      ),
+
+      // 🔥 Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadCommandes();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadCommandes();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadCommandes();
+          }
+        },
+      ),
+    ],
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -706,9 +800,12 @@ void showOrderDetails(BonDeCommande order) {
                   ),
                   const SizedBox(height: 16),
                   _buildOrdersTable(filteredOrders, showStatus: true),
+                  _buildPaginationControls(),
                 ],
+                
               ),
             ),
+            
           ],
         ),
       ),

@@ -24,20 +24,15 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
   final List<Map<String, dynamic>> recapCommande = [];
   final _formKey = GlobalKey<FormState>();
   
+  int currentPage = 1;
+  int lastPage = 1;
+  int itemsPerPage = 10;
+  int totalCommandes = 0;
   List<BonDeCommande> commandes = [];
   
-  // Variables pour la pagination
-  int currentPage = 0;
-  int itemsPerPage = 10;
-  
-  // Getter pour obtenir les commandes paginées
-  List<BonDeCommande> get paginatedCommandes {
-    final startIndex = currentPage * itemsPerPage;
-    final endIndex = (startIndex + itemsPerPage).clamp(0, commandes.length);
-    
-    if (startIndex >= commandes.length) return [];
-    return commandes.sublist(startIndex, endIndex);
-  }
+
+  // Getter pour obtenir les commandes paginées de la page courante
+  List<BonDeCommande> get paginatedCommandes => commandes;
   
   // Getter pour le nombre total de pages
   int get totalPages => (commandes.length / itemsPerPage).ceil();
@@ -49,25 +44,28 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
     _loadCommandes();
   }
 
-  Future<void> _loadCommandes() async {
+   Future<void> _loadCommandes() async {
     try {
-      final loadedCommandes = await BonDeCommandeService().getBonDeCommandeWithStatus();
+      final paginated = await BonDeCommandeService()
+          .getBonDeCommandeWithStatus(page: currentPage, perPage: itemsPerPage);
+
       setState(() {
-        commandes = loadedCommandes;
-        // Réinitialiser à la première page lors du chargement
-        currentPage = 0;
+        commandes = paginated.data;
+        currentPage = paginated.currentPage;
+        lastPage = paginated.lastPage;
+        totalCommandes = paginated.total;
       });
     } catch (e) {
-      print('Erreur de chargement des bons de commande: $e');
+      print('Erreur: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de chargement des bons de commande: $e")),
+        SnackBar(content: Text("Erreur de chargement : $e")),
       );
     }
   }
 
   Future<void> _loadArticles() async {
     try {
-      final loadedArticles = await ArticleService().getArticles();
+      final loadedArticles = await ArticleService().getAllArticles();
       setState(() {
         articles = loadedArticles;
       });
@@ -162,121 +160,89 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
       }
     }
   }
-  
-  // Widget pour la pagination
   Widget _buildPaginationControls() {
-    if (commandes.isEmpty || totalPages <= 1) return const SizedBox.shrink();
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Bouton Première page
-          IconButton(
-            icon: const Icon(Icons.first_page),
-            onPressed: currentPage == 0
-                ? null
-                : () => setState(() => currentPage = 0),
-            tooltip: 'Première page',
-          ),
-          
-          // Bouton Page précédente
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: currentPage == 0
-                ? null
-                : () => setState(() => currentPage--),
-            tooltip: 'Page précédente',
-          ),
-          
-          const SizedBox(width: 16),
-          
-          // Affichage des numéros de page
-          ...List.generate(totalPages, (index) {
-            // Afficher seulement quelques pages autour de la page actuelle
-            if (totalPages <= 7 ||
-                index == 0 ||
-                index == totalPages - 1 ||
-                (index >= currentPage - 1 && index <= currentPage + 1)) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: InkWell(
-                  onTap: () => setState(() => currentPage = index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: currentPage == index
-                          ? const Color(0xFFF9B70D)
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(
-                        color: currentPage == index ? Colors.white : Colors.black87,
-                        fontWeight: currentPage == index
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            } else if (index == currentPage - 2 || index == currentPage + 2) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...'),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-          
-          const SizedBox(width: 16),
-          
-          // Bouton Page suivante
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: currentPage >= totalPages - 1
-                ? null
-                : () => setState(() => currentPage++),
-            tooltip: 'Page suivante',
-          ),
-          
-          // Bouton Dernière page
-          IconButton(
-            icon: const Icon(Icons.last_page),
-            onPressed: currentPage >= totalPages - 1
-                ? null
-                : () => setState(() => currentPage = totalPages - 1),
-            tooltip: 'Dernière page',
-          ),
-          
-          const SizedBox(width: 16),
-          
-          // Sélecteur du nombre d'éléments par page
-          DropdownButton<int>(
-            value: itemsPerPage,
-            items: [5, 10, 20, 50].map((value) {
-              return DropdownMenuItem<int>(
-                value: value,
-                child: Text('$value / page'),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  itemsPerPage = value;
-                  currentPage = 0; // Retour à la première page
-                });
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  if (lastPage <= 1) return const SizedBox.shrink();
 
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadCommandes();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadCommandes();
+              },
+      ),
+
+      // 🔥 Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadCommandes();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadCommandes();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadCommandes();
+          }
+        },
+      ),
+    ],
+  );
+}
+
+ 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(

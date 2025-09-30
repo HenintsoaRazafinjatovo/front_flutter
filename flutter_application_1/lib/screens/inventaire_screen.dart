@@ -1184,24 +1184,19 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   bool showInventoryForm = false;
   
   // Variables pour la pagination
-  int currentPage = 0;
+ int currentPage = 1;
+  int lastPage = 1;
   int itemsPerPage = 10;
-  
-  // Getter pour obtenir les inventaires paginés
-  List<Inventaire> get paginatedInventoryData {
-    final startIndex = currentPage * itemsPerPage;
-    final endIndex = (startIndex + itemsPerPage).clamp(0, inventoryData.length);
-    
-    if (startIndex >= inventoryData.length) return [];
-    return inventoryData.sublist(startIndex, endIndex);
-  }
-  
+  int totalInventaires = 0;
+
+  List<Inventaire> get paginatedInventaires => inventoryData;
+
   // Getter pour le nombre total de pages
-  int get totalPages => inventoryData.isEmpty ? 0 : (inventoryData.length / itemsPerPage).ceil();
+  int get totalPages => (inventoryData.length / itemsPerPage).ceil();
 
   Future<void> _loadArticles() async {
     try {
-      final loadedArticles = await ArticleService().getArticles();
+      final loadedArticles = await ArticleService().getAllArticles();
       setState(() {
         articles = loadedArticles;
         filteredArticles = loadedArticles;
@@ -1228,12 +1223,14 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   
   Future<void> _loadInventory() async {
     try {
-      final loadedInventory = await InventaireService().getAllInventairesWithDetails();
+      final loadedInventory = await InventaireService().getAllInventaires(page: currentPage, perPage: itemsPerPage);
       setState(() {
-        inventoryData = loadedInventory;
-        currentPage = 0; // Réinitialiser à la première page
+        inventoryData = loadedInventory.data;
+        currentPage = loadedInventory.currentPage;
+        lastPage = loadedInventory.lastPage;
       });
     } catch (e) {
+      print('Erreur : $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur de chargement des inventaires: $e")),
       );
@@ -1359,7 +1356,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
     setState(() {
       inventoryData.removeWhere((inventory) => inventory.id == id);
       // Ajuster la page si nécessaire
-      if (paginatedInventoryData.isEmpty && currentPage > 0) {
+      if (paginatedInventaires.isEmpty && currentPage > 0) {
         currentPage--;
       }
     });
@@ -1379,112 +1376,87 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
       sum + inventory.articles.where((item) => item.ecart != 0).length);
   }
 
-  // Widget pour la pagination
-  Widget _buildPaginationControls() {
-    if (inventoryData.isEmpty || totalPages <= 1) return const SizedBox.shrink();
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.first_page),
-            onPressed: currentPage == 0
-                ? null
-                : () => setState(() => currentPage = 0),
-            tooltip: 'Première page',
-          ),
-          
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: currentPage == 0
-                ? null
-                : () => setState(() => currentPage--),
-            tooltip: 'Page précédente',
-          ),
-          
-          const SizedBox(width: 16),
-          
-          ...List.generate(totalPages, (index) {
-            if (totalPages <= 7 ||
-                index == 0 ||
-                index == totalPages - 1 ||
-                (index >= currentPage - 1 && index <= currentPage + 1)) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: InkWell(
-                  onTap: () => setState(() => currentPage = index),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: currentPage == index
-                          ? const Color(0xFFF9B70D)
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      '${index + 1}',
-                      style: TextStyle(
-                        color: currentPage == index ? Colors.white : Colors.black87,
-                        fontWeight: currentPage == index
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            } else if (index == currentPage - 2 || index == currentPage + 2) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: Text('...'),
-              );
-            }
-            return const SizedBox.shrink();
-          }),
-          
-          const SizedBox(width: 16),
-          
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: currentPage >= totalPages - 1
-                ? null
-                : () => setState(() => currentPage++),
-            tooltip: 'Page suivante',
-          ),
-          
-          IconButton(
-            icon: const Icon(Icons.last_page),
-            onPressed: currentPage >= totalPages - 1
-                ? null
-                : () => setState(() => currentPage = totalPages - 1),
-            tooltip: 'Dernière page',
-          ),
-          
-          const SizedBox(width: 16),
-          
-          DropdownButton<int>(
-            value: itemsPerPage,
-            items: [5, 10, 20, 50].map((value) {
-              return DropdownMenuItem<int>(
-                value: value,
-                child: Text('$value / page'),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  itemsPerPage = value;
-                  currentPage = 0;
-                });
-              }
-            },
-          ),
-        ],
+Widget _buildPaginationControls() {
+  if (lastPage <= 1) return const SizedBox.shrink();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadInventory();
+              },
       ),
-    );
-  }
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadInventory();
+              },
+      ),
+
+      // Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadInventory();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadInventory();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadInventory();
+          }
+        },
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -1503,6 +1475,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
                 SizedBox(height: 10),
                 if (showInventoryForm) _buildInventoryForm(),
                 _buildInventoryList(),
+                 _buildPaginationControls(),
               ],
             ),
           ),
@@ -2264,7 +2237,7 @@ class _InventoryManagementScreenState extends State<InventoryManagementScreen> {
   List<DataRow> _buildInventoryRows() {
     List<DataRow> rows = [];
     
-    for (Inventaire inventory in paginatedInventoryData) {
+    for (Inventaire inventory in paginatedInventaires) {
       rows.add(DataRow(
         cells: [
           DataCell(Text(

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/bon_de_commande.dart';
+import '../utils/paginatedResponse.dart';
 import 'dart:typed_data';
 
 
@@ -8,19 +9,26 @@ class BonDeCommandeService {
   final String baseUrl='http://127.0.0.1:8000/api/bon_de_commandes';
   final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/commande';
 
+  Future<PaginatedResponse<BonDeCommande>> getBonDeCommandeWithStatus({
+  int page = 1,
+  int perPage = 10,
+}) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/getBonDeCommandeWithDetails?page=$page&per_page=$perPage'),
+  );
 
-  // Récupérer la liste des bons de commande
-  Future<List<BonDeCommande>> getBonDeCommandeWithStatus() async {
-    final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetails'));
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      
-      return data.map((item) => BonDeCommande.fromJson(item)).toList();
-    } else {
-      print("Erreur nbe" + response.body);
-      throw Exception('Erreur lors de la récupération des bons de commande : ${response.statusCode}');
-    }
+  if (response.statusCode == 200) {
+    final jsonResponse = json.decode(response.body);
+    return PaginatedResponse.fromJson(
+      jsonResponse,
+      (item) => BonDeCommande.fromJson(item),
+    );
+  } else {
+    throw Exception('Erreur lors de la récupération: ${response.statusCode}');
   }
+}
+
+
   Future<List<BonDeCommande>> getBonDeCommandeWithStatusEnAttente() async {
     final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetailsEnAttente'));
     if (response.statusCode == 200) {

@@ -1698,7 +1698,7 @@ class _CalendrierLogistiqueScreenState
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                    '${bon.reference ?? 'Sans référence'} - ${bon.description ?? ''}',
+                                    '${bon.reference} - ${bon.description}',
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.w600,
                                     color: darkGray,
@@ -1706,9 +1706,9 @@ class _CalendrierLogistiqueScreenState
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (bon.description != null && bon.description!.isNotEmpty)
+                                if (bon.description.isNotEmpty)
                                   Text(
-                                    bon.description!,
+                                    bon.description,
                                     style: GoogleFonts.poppins(
                                       fontSize: 11,
                                       color: lightGray,

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/mvt_stock.dart'; 
+import '../utils/paginatedResponse.dart';
 
 class MvtStockService {
   final String baseUrl = "http://127.0.0.1:8000/api/mvt-stocks"; 
@@ -12,7 +13,7 @@ class MvtStockService {
 
   try {
     final response = await http.post(
-      url,
+        url,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -39,16 +40,17 @@ class MvtStockService {
   }
 }
 
-  Future<List<MvtStock>> getMouvementsDetails() async {
-    final url = Uri.parse('$baseUrl/details'); // remplace par la route de ton controller
+  Future<PaginatedResponse<MvtStock>> getMouvementsDetails({int page = 1 , int perPage = 10}) async {
+    final url = Uri.parse('$baseUrl/details?page=$page&per_page=$perPage'); // remplace par la route de ton controller
 
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonData = json.decode(response.body);
-
-      // Convertit chaque élément en MvtStock
-      return jsonData.map((item) => MvtStock.fromJson(item)).toList();
+      final jsonData = json.decode(response.body);
+  return PaginatedResponse.fromJson(
+          jsonData,
+          (item) => MvtStock.fromJson(item),
+       );
     } else {
       throw Exception(
           'Erreur lors de la récupération des mouvements: ${response.statusCode}');

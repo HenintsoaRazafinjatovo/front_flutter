@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flareline_template/utils/paginatedResponse.dart';
+
 import '../models/decharge.dart';
 import 'package:http/http.dart' as http;
 
@@ -10,15 +12,18 @@ class DechargeService {
 
 
   // Récupérer toutes les décharges
-  Future<List<Decharge>> getDecharges() async {
+  Future<PaginatedResponse<Decharge>> getDecharges({int page = 1, int perPage = 10}) async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      final response = await http.get(Uri.parse('$baseUrl?page=$page&per_page=$perPage'));
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonData = json.decode(response.body);
+        final  jsonData = json.decode(response.body);
 
         // Convertir chaque élément en Decharge
-        return jsonData.map((item) => Decharge.fromJson(item)).toList();
+        return PaginatedResponse.fromJson(
+          jsonData,
+          (item) => Decharge.fromJson(item),
+        );
       } else {
         throw Exception('Erreur lors du chargement des décharges');
       }

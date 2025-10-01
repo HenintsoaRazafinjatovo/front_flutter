@@ -662,7 +662,7 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                             DataCell(Text(cmd.dateBonDeCommande.toString())),
                             DataCell(
                               IconButton(
-                                icon: const Icon(Icons.print_rounded, color: Color.fromARGB(154, 71, 71, 70)),
+                                icon: const Icon(Icons.download, color: Color(0xFFF9B70D)),
                                 onPressed: () async {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(content: Text('Impression de la facture...')),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../layout/main_layout.dart'; 
+import 'homePage_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           // ignore: use_build_context_synchronously
           context,
-          MaterialPageRoute(builder: (_) => const MainLayout()),
+          MaterialPageRoute(builder: (_) => const HomePage()),
         );
 
         // ignore: use_build_context_synchronously

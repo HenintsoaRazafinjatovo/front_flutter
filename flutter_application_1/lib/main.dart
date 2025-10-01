@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       // home: const LoginScreen(),
-      home: const MainLayout(), // <-- Affiche la page de connexion en premier
+      home: const MainLayout(selectedModule: ModuleType.stock), // <-- Affiche la page de connexion en premier
        // <-- Affiche la page de connexion en premier
     );
   }

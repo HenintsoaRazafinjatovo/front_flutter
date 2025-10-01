@@ -2,17 +2,32 @@ import 'dart:convert';
 import 'dart:typed_data'; 
 import 'package:http/http.dart' as http;
 import '../models/materiel.dart';
+import '../utils/paginatedResponse.dart';
 
 class MaterielService {
   final String baseUrl = 'http://127.0.0.1:8000/api/materiels';
 
   // Récupérer tous les matériels
-  Future<List<Materiel>> getAllMateriels() async {
-    final url = Uri.parse(baseUrl);
+  Future<PaginatedResponse<Materiel>> getAllMateriels({int page = 1, int perPage = 10}) async {
+    final url = Uri.parse('$baseUrl?page=$page&perPage=$perPage');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
+      final data = json.decode(response.body);
+      return PaginatedResponse.fromJson(
+        data,
+        (item) => Materiel.fromJson(item),
+      );
+    } else {
+      throw Exception('Erreur lors de la récupération des matériels : ${response.statusCode}');
+    }
+  }
+  Future<List<Materiel>> getAllMaterielsList() async {
+    final url = Uri.parse('$baseUrl/all');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
       return data.map((json) => Materiel.fromJson(json)).toList();
     } else {
       throw Exception('Erreur lors de la récupération des matériels : ${response.statusCode}');

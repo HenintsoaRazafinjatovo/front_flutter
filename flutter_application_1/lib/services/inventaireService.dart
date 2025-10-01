@@ -124,16 +124,19 @@ class InventaireService {
       throw Exception('Erreur de connexion: $e');
     }
   }
-  Future<List<InventaireImmo>> getAllInventairesImmoWithDetails() async {
+  Future<PaginatedResponse<InventaireImmo>> getAllInventairesImmoWithDetails({int page = 1, int perPage = 10}) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/getInventaireWithMateriels'),
+        Uri.parse('$baseUrl/getInventaireWithMateriels?page=$page&per_page=$perPage'),
 
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonData = json.decode(response.body);
-        return jsonData.map((json) => InventaireImmo.fromJson(json)).toList();
+        final jsonData = json.decode(response.body);
+        return PaginatedResponse.fromJson(
+          jsonData,
+          (item) => InventaireImmo.fromJson(item),
+        );  
       } else {
         throw Exception('Erreur ${response.statusCode}: ${response.body}');
       }

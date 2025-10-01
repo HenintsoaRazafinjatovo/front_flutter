@@ -24,12 +24,22 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
   static const Color backgroundColor = Colors.white;
   static const Color redAccent = Color(0xFFE53E3E);
 
+  int currentPage = 1;
+  int lastPage = 1;
+  int itemsPerPage = 10;
+  int totalMouvements = 0;
+
   List<Materiel> materiels = [];
   List<MvtStockImmo> movements = [];
   List<Direction> directions = [];
   List<MvtStockImmo> filteredMovements = [];
   List<Salle> salles = [];
 
+ // Getter pour obtenir les mouvements paginés de la page courante
+  List<MvtStockImmo> get paginatedMovements => movements;
+
+  // Getter pour le nombre total de pages
+  int get totalPages => (movements.length / itemsPerPage).ceil();
   // Filtres
   String? selectedMaterielFilter;
   String? selectedTypeFilter;
@@ -54,7 +64,7 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
 
   Future<void> _loadMateriels() async {
     try {
-      final loadedMateriels = await MaterielService().getAllMateriels();
+      final loadedMateriels = await MaterielService().getAllMaterielsList();
       setState(() {
         materiels = loadedMateriels;
       });
@@ -76,10 +86,13 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
   }
   Future<void> _loadMovements() async {
     try {
-      final loadedMovements = await MvtStockImmoService().getMouvementsImmo();
+      final loadedMovements = await MvtStockImmoService().getMouvementsImmo(page: currentPage, perPage: itemsPerPage);
       setState(() {
-        movements = loadedMovements;
-        filteredMovements = List.from(loadedMovements);
+        movements = loadedMovements.data;
+        totalMouvements = loadedMovements.total;
+        lastPage = loadedMovements.lastPage;
+        currentPage = loadedMovements.currentPage;
+        filteredMovements = List.from(loadedMovements.data);
       });
     } catch (e, stackTrace) {
       print("Erreur de chargement des mouvements: $e\n$stackTrace");
@@ -105,6 +118,87 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
       );
     }
   }
+Widget _buildPaginationControls() {
+  if (lastPage <= 1) return const SizedBox.shrink();
+
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      IconButton(
+        icon: const Icon(Icons.first_page),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage = 1);
+                _loadMovements();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.chevron_left),
+        onPressed: currentPage == 1
+            ? null
+            : () {
+                setState(() => currentPage--);
+                _loadMovements();
+              },
+      ),
+
+      // Current page avec background color
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF9B70D),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          '$currentPage / $lastPage',
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+
+      IconButton(
+        icon: const Icon(Icons.chevron_right),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage++);
+                _loadMovements();
+              },
+      ),
+      IconButton(
+        icon: const Icon(Icons.last_page),
+        onPressed: currentPage >= lastPage
+            ? null
+            : () {
+                setState(() => currentPage = lastPage);
+                _loadMovements();
+              },
+      ),
+      const SizedBox(width: 16),
+      DropdownButton<int>(
+        value: itemsPerPage,
+        items: [5, 10, 20, 50].map((value) {
+          return DropdownMenuItem<int>(
+            value: value,
+            child: Text('$value / page'),
+          );
+        }).toList(),
+        onChanged: (value) {
+          if (value != null) {
+            setState(() {
+              itemsPerPage = value;
+              currentPage = 1;
+            });
+            _loadMovements();
+          }
+        },
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -210,6 +304,7 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
           _buildFilters(),
           const SizedBox(height: 24),
           _buildMovementsTable(),
+          _buildPaginationControls(),
         ],
       ),
     );

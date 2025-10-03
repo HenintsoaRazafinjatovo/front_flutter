@@ -8,6 +8,7 @@ import 'dart:typed_data';
 class BonDeCommandeService {
   final String baseUrl='http://127.0.0.1:8000/api/bon_de_commandes';
   final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/commande';
+  final String predictionUrl = 'http://127.0.0.1:8000/api/fetch-predictions';
 
   Future<PaginatedResponse<BonDeCommande>> getBonDeCommandeWithStatus({
   int page = 1,
@@ -49,6 +50,22 @@ class BonDeCommandeService {
           'Erreur lors de la récupération des bons de commande : ${response.statusCode}');
     }
   }
+  Future<BonDeCommande> getCommandePrediction(DateTime date, int idAgence) async {
+  final formattedDate = date.toIso8601String().split("T")[0]; // YYYY-MM-DD
+  final uri = Uri.parse('$predictionUrl?date=$formattedDate&agence=$idAgence');
+
+  final response = await http.get(uri, headers: {'Accept': 'application/json'});
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+    return BonDeCommande.fromJson(data); // assure-toi que BonDeCommande.fromJson gère "articles" et "agence"
+  } else {
+    throw Exception(
+        'Erreur lors de la récupération de la commande prédictive : ${response.statusCode} - ${response.body}');
+  }
+}
+
+  
 
   Future<bool> addBonDeCommande({
     required String description,

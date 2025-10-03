@@ -8,8 +8,8 @@ class BonDeCommande {
   final int? nbArticle;
   final double? total;
   final List<CommandeArticle>? articles;
-  final String description;
-  String status_commande;
+  final String? description;
+  String? status_commande;
   bool? bon_de_sortie;
 
   BonDeCommande({
@@ -20,8 +20,8 @@ class BonDeCommande {
     this.total,
     this.articles,
     this.bon_de_sortie,
-    required this.description,
-    required this.status_commande,
+   this.description,
+    this.status_commande,
   });
 
   factory BonDeCommande.fromJson(Map<String, dynamic> json) {

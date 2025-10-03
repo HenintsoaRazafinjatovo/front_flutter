@@ -652,13 +652,13 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                               SizedBox(
                                 width: 200,
                                 child: Text(
-                                  cmd.description,
+                                  cmd.description ?? '',
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 2,
                                 ),
                               ),
                             ),
-                            DataCell(Text(cmd.status_commande)),
+                            DataCell(Text(cmd.status_commande ?? '')),
                             DataCell(Text(cmd.dateBonDeCommande.toString())),
                             DataCell(
                               IconButton(

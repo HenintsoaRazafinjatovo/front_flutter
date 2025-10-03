@@ -238,7 +238,7 @@ void showOrderDetails(BonDeCommande order) {
                                     style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         color: Colors.black54)),
-                                _buildStatusChip(order.status_commande),
+                                _buildStatusChip(order.status_commande ?? 'En attente'),
                               ],
                             ),
                           ),
@@ -938,7 +938,7 @@ void showOrderDetails(BonDeCommande order) {
                 ),
                 Expanded(flex: 2, child: Text('${order.total?.toStringAsFixed(2) ?? '0.00'} ', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600))),
                 if (showStatus)
-                  Expanded(flex: 2, child: _buildStatusChip(order.status_commande)),
+                  Expanded(flex: 2, child: _buildStatusChip(order.status_commande ?? 'En attente')),
                 Expanded(
                   flex: 3,
                   child: Row(

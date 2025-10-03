@@ -6,7 +6,7 @@ class Article {
   double seuilMin;
   final String code;
   double? prix; 
-  double? stockActuel;
+  double? stockActuel;  
   final Categorie? categorie;
 
   Article({

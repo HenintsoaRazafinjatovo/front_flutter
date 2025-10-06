@@ -384,98 +384,197 @@ Widget _buildPaginationControls() {
 }
 
 
+  // Widget _buildMovementsTable() {
+  //   if (filteredMovements.isEmpty) {
+  //     return Container(
+  //       height: 200,
+  //       alignment: Alignment.center,
+  //       child: const Text(
+  //         'Aucun mouvement trouvé',
+  //         style: TextStyle(
+  //           color: Colors.grey,
+  //           fontSize: 16,
+  //         ),
+  //       ),
+  //     );
+  //   }
+
+  //   return SingleChildScrollView(
+  //     scrollDirection: Axis.horizontal,
+  //     child: DataTable(
+  //       headingRowColor: WidgetStateProperty.all(headerColor),
+  //       headingTextStyle: const TextStyle(
+  //         fontWeight: FontWeight.w600,
+  //         color: Colors.black87,
+  //       ),
+  //       border: TableBorder.all(
+  //         color: Colors.grey[300]!,
+  //         width: 1,
+  //       ),
+  //       columns: const [
+  //         DataColumn(label: Text('Date')),
+  //         DataColumn(label: Text('Type')),
+  //         DataColumn(label: Text('Article')),
+  //         DataColumn(label: Text('Quantité')),
+  //         DataColumn(label: Text('Direction')),
+  //         // DataColumn(label: Text('Utilisateur')),
+  //         DataColumn(label: Text('Actions')),
+  //       ],
+  //       rows: filteredMovements.map((movement) {
+  //           final typeColor = movement.type == 'entree'
+  //             ? Colors.green[700]
+  //             : redAccent;
+  //           final quantityColor = movement.type == 'entree'
+  //             ? Colors.green[700]
+  //             : redAccent;
+
+  //         return DataRow(
+  //           cells: [
+  //             DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.date_mvt))),
+  //             DataCell(
+  //               Text(
+  //               //    movement.type == movement.type ? 'entree' : 'sortie',
+  //                 movement.type,
+
+  //                 style: TextStyle(
+  //                   color: typeColor,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //             ),
+  //             DataCell(Text(movement.article)),
+  //             DataCell(
+  //               Text(
+  //                   '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
+  //                 style: TextStyle(
+  //                   color: quantityColor,
+  //                   fontWeight: FontWeight.w600,
+  //                 ),
+  //               ),
+  //             ),
+  //             DataCell(Text(movement.direction?.nom != null ? movement.direction!.nom : '-')),
+  //             // DataCell(Text(movement.user)),
+  //             DataCell(
+  //               ElevatedButton(
+  //                 onPressed: () => _showMovementDetails(movement),
+  //                 style: ElevatedButton.styleFrom(
+  //                   backgroundColor: primaryColor,
+  //                   minimumSize: const Size(80, 32),
+  //                 ),
+  //                 child: const Text(
+  //                   'Détails',
+  //                   style: TextStyle(
+  //                     color: Colors.white,
+  //                     fontSize: 12,
+  //                   ),
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         );
+  //       }).toList(),
+  //     ),
+  //   );
+  // }
   Widget _buildMovementsTable() {
-    if (filteredMovements.isEmpty) {
-      return Container(
-        height: 200,
-        alignment: Alignment.center,
-        child: const Text(
-          'Aucun mouvement trouvé',
-          style: TextStyle(
-            color: Colors.grey,
-            fontSize: 16,
-          ),
+  if (filteredMovements.isEmpty) {
+    return Container(
+      height: 200,
+      alignment: Alignment.center,
+      child: const Text(
+        'Aucun mouvement trouvé',
+        style: TextStyle(
+          color: Colors.grey,
+          fontSize: 16,
         ),
-      );
-    }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        headingRowColor: WidgetStateProperty.all(headerColor),
-        headingTextStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-          color: Colors.black87,
-        ),
-        border: TableBorder.all(
-          color: Colors.grey[300]!,
-          width: 1,
-        ),
-        columns: const [
-          DataColumn(label: Text('Date')),
-          DataColumn(label: Text('Type')),
-          DataColumn(label: Text('Article')),
-          DataColumn(label: Text('Quantité')),
-          DataColumn(label: Text('Direction')),
-          // DataColumn(label: Text('Utilisateur')),
-          DataColumn(label: Text('Actions')),
-        ],
-        rows: filteredMovements.map((movement) {
-            final typeColor = movement.type == 'entree'
-              ? Colors.green[700]
-              : redAccent;
-            final quantityColor = movement.type == 'entree'
-              ? Colors.green[700]
-              : redAccent;
-
-          return DataRow(
-            cells: [
-              DataCell(Text(DateFormat('dd/MM/yyyy').format(movement.date_mvt))),
-              DataCell(
-                Text(
-                //    movement.type == movement.type ? 'entree' : 'sortie',
-                  movement.type,
-
-                  style: TextStyle(
-                    color: typeColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              DataCell(Text(movement.article)),
-              DataCell(
-                Text(
-                    '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
-                  style: TextStyle(
-                    color: quantityColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              DataCell(Text(movement.direction?.nom != null ? movement.direction!.nom : '-')),
-              // DataCell(Text(movement.user)),
-              DataCell(
-                ElevatedButton(
-                  onPressed: () => _showMovementDetails(movement),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    minimumSize: const Size(80, 32),
-                  ),
-                  child: const Text(
-                    'Détails',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
       ),
     );
   }
+
+  return LayoutBuilder(
+    builder: (context, constraints) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minWidth: constraints.maxWidth),
+          child: DataTable(
+            headingRowColor: WidgetStateProperty.all(headerColor),
+            headingTextStyle: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            border: TableBorder.all(
+              color: Colors.grey[300]!,
+              width: 1,
+            ),
+            // ✅ Chaque colonne prend une largeur flexible et égale
+            columns: const [
+              DataColumn(label: Expanded(child: Text('Date', textAlign: TextAlign.center))),
+              DataColumn(label: Expanded(child: Text('Type', textAlign: TextAlign.center))),
+              DataColumn(label: Expanded(child: Text('Article', textAlign: TextAlign.center))),
+              DataColumn(label: Expanded(child: Text('Quantité', textAlign: TextAlign.center))),
+              DataColumn(label: Expanded(child: Text('Direction', textAlign: TextAlign.center))),
+              DataColumn(label: Expanded(child: Text('Actions', textAlign: TextAlign.center))),
+            ],
+            rows: filteredMovements.map((movement) {
+              final typeColor = movement.type == 'entree'
+                  ? Colors.green[700]
+                  : redAccent;
+              final quantityColor = movement.type == 'entree'
+                  ? Colors.green[700]
+                  : redAccent;
+
+              return DataRow(
+                cells: [
+                  DataCell(Center(child: Text(DateFormat('dd/MM/yyyy').format(movement.date_mvt)))),
+                  DataCell(Center(
+                    child: Text(
+                      movement.type,
+                      style: TextStyle(
+                        color: typeColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )),
+                  DataCell(Center(child: Text(movement.article))),
+                  DataCell(Center(
+                    child: Text(
+                      '${movement.type == 'entree' ? '+ ' : '- '}${movement.quantite.abs()}',
+                      style: TextStyle(
+                        color: quantityColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )),
+                  DataCell(Center(
+                    child: Text(movement.direction?.nom ?? '-'),
+                  )),
+                  DataCell(Center(
+                    child: ElevatedButton(
+                      onPressed: () => _showMovementDetails(movement),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        minimumSize: const Size(80, 32),
+                      ),
+                      child: const Text(
+                        'Détails',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  )),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
   void _showCreateMovementDialog() {
     showDialog(

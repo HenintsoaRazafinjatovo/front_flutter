@@ -777,117 +777,72 @@ Widget _buildPaginationControls() {
                               ),
                             ),
                           )
-                        : SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: DataTable(
-                              headingRowColor: WidgetStateProperty.all(headerRowColor),
-                              headingTextStyle: TextStyle(
-                                color: const Color.fromARGB(255, 58, 57, 57), 
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Poppins',
-                              ),
-                              dataTextStyle: TextStyle(
-                                fontFamily: 'Poppins',
-                              ),
-                              columns: [
-                                DataColumn(
-                                  label: Text(
-                                    'Intitulé',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Text(
-                                    'Code',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Text(
-                                    'Prix',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Text(
-                                    'Seuil Min.',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Text(
-                                    'Stock actuel',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                                DataColumn(
-                                  label: Text(
-                                    'Actions',
-                                    style: TextStyle(fontFamily: 'Poppins'),
-                                  ),
-                                ),
-                              ],
-                              rows: filteredArticles.map((article) {
-                                return DataRow(
-                                  cells: [
-                                    DataCell(
-                                      Text(
-                                        article.intitule,
-                                        style: TextStyle(fontFamily: 'Poppins'),
-                                      ),
+                        : LayoutBuilder(
+                            builder: (context, constraints) {
+                              final tableWidth = constraints.maxWidth;
+
+                              return SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: ConstrainedBox(
+                                  constraints: BoxConstraints(minWidth: tableWidth),
+                                  child: DataTable(
+                                    headingRowColor: WidgetStateProperty.all(headerRowColor),
+                                    headingTextStyle: TextStyle(
+                                      color: const Color.fromARGB(255, 58, 57, 57),
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Poppins',
                                     ),
-                                    DataCell(
-                                      Text(
-                                        article.code,
-                                        style: TextStyle(fontFamily: 'Poppins'),
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Text(
-                                        '${article.prix?.toStringAsFixed(2)} ',
-                                        style: TextStyle(fontFamily: 'Poppins'),
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Text(
-                                        article.seuilMin.toString(),
-                                        style: TextStyle(fontFamily: 'Poppins'),
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Text(
-                                        article.stockActuel.toString(),
-                                        style: TextStyle(fontFamily: 'Poppins'),
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.visibility, color: const Color.fromARGB(255, 83, 87, 91)),
-                                            onPressed: () => _showDetails(article),
-                                            tooltip: 'Détails',
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.edit, color: buttonColor),
-                                            onPressed: () => _editArticle(article: article),
-                                            tooltip: 'Modifier',
-                                          ),
-                                          IconButton(
-                                            icon: Icon(Icons.delete, color: accentColor),
-                                            onPressed: () => _deleteArticle(article),
-                                            tooltip: 'Supprimer',
+                                    dataTextStyle: TextStyle(fontFamily: 'Poppins'),
+                                    columnSpacing: 30, // espace entre colonnes
+                                    horizontalMargin: 16,
+                                    columns: const [
+                                      DataColumn(label: Expanded(child: Text('Intitulé', textAlign: TextAlign.center))),
+                                      DataColumn(label: Expanded(child: Text('Code', textAlign: TextAlign.center))),
+                                      DataColumn(label: Expanded(child: Text('Prix', textAlign: TextAlign.center))),
+                                      DataColumn(label: Expanded(child: Text('Seuil Min.', textAlign: TextAlign.center))),
+                                      DataColumn(label: Expanded(child: Text('Stock actuel', textAlign: TextAlign.center))),
+                                      DataColumn(label: Expanded(child: Text('Actions', textAlign: TextAlign.center))),
+                                    ],
+                                    rows: filteredArticles.map((article) {
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(Center(child: Text(article.intitule))),
+                                          DataCell(Center(child: Text(article.code))),
+                                          DataCell(Center(child: Text('${article.prix?.toStringAsFixed(2)}'))),
+                                          DataCell(Center(child: Text(article.seuilMin.toString()))),
+                                          DataCell(Center(child: Text(article.stockActuel?.toString() ?? '0'))),
+                                          DataCell(
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: Icon(Icons.visibility, color: Color.fromARGB(255, 83, 87, 91)),
+                                                  onPressed: () => _showDetails(article),
+                                                  tooltip: 'Détails',
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(Icons.edit, color: buttonColor),
+                                                  onPressed: () => _editArticle(article: article),
+                                                  tooltip: 'Modifier',
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(Icons.delete, color: accentColor),
+                                                  onPressed: () => _deleteArticle(article),
+                                                  tooltip: 'Supprimer',
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }).toList(),
-                            ),
-                            
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
+
                   ),
                   
                   // Ajout de la pagination ici

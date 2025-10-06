@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -160,87 +159,87 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
       }
     }
   }
+  
   Widget _buildPaginationControls() {
-  if (lastPage <= 1) return const SizedBox.shrink();
+    if (lastPage <= 1) return const SizedBox.shrink();
 
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      IconButton(
-        icon: const Icon(Icons.first_page),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage = 1);
-                _loadCommandes();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.chevron_left),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage--);
-                _loadCommandes();
-              },
-      ),
-
-      // 🔥 Current page avec background color
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9B70D),
-          borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.first_page),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage = 1);
+                  _loadCommandes();
+                },
         ),
-        child: Text(
-          '$currentPage / $lastPage',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage--);
+                  _loadCommandes();
+                },
+        ),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9B70D),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$currentPage / $lastPage',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
 
-      IconButton(
-        icon: const Icon(Icons.chevron_right),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage++);
-                _loadCommandes();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.last_page),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage = lastPage);
-                _loadCommandes();
-              },
-      ),
-      const SizedBox(width: 16),
-      DropdownButton<int>(
-        value: itemsPerPage,
-        items: [5, 10, 20, 50].map((value) {
-          return DropdownMenuItem<int>(
-            value: value,
-            child: Text('$value / page'),
-          );
-        }).toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              itemsPerPage = value;
-              currentPage = 1;
-            });
-            _loadCommandes();
-          }
-        },
-      ),
-    ],
-  );
-}
+        IconButton(
+          icon: const Icon(Icons.chevron_right),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage++);
+                  _loadCommandes();
+                },
+        ),
+        IconButton(
+          icon: const Icon(Icons.last_page),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage = lastPage);
+                  _loadCommandes();
+                },
+        ),
+        const SizedBox(width: 16),
+        DropdownButton<int>(
+          value: itemsPerPage,
+          items: [5, 10, 20, 50].map((value) {
+            return DropdownMenuItem<int>(
+              value: value,
+              child: Text('$value / page'),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                itemsPerPage = value;
+                currentPage = 1;
+              });
+              _loadCommandes();
+            }
+          },
+        ),
+      ],
+    );
+  }
 
  
   @override
@@ -472,52 +471,82 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                         border: Border.all(color: Colors.grey.shade300),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: DataTable(
-                          headingRowColor: WidgetStateProperty.all(const Color.fromARGB(154, 131, 130, 129)),
-                          headingTextStyle: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          columnSpacing: 24,
-                          columns: const [
-                            DataColumn(label: Text('Article')),
-                            DataColumn(label: Text('PU')),
-                            DataColumn(label: Text('Quantité')),
-                            DataColumn(label: Text('Montant')),
-                            DataColumn(label: Text('')),
-                          ],
-                          rows: List.generate(recapCommande.length, (index) {
-                            final item = recapCommande[index];
-                            final article = item['article'] as Article;
-                            final quantite = item['quantite'];
-                            final montant = article.prix! * quantite;
-
-                            return DataRow(cells: [
-                              DataCell(
-                                SizedBox(
-                                  width: 200,
-                                  child: Text(
-                                    article.intitule,
-                                    softWrap: true,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          return SizedBox(
+                            width: constraints.maxWidth,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: ConstrainedBox(
+                                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                                child: DataTable(
+                                  headingRowColor: WidgetStateProperty.all(const Color.fromARGB(154, 131, 130, 129)),
+                                  headingTextStyle: const TextStyle(
+                                    color: Color.fromARGB(255, 44, 41, 41),
+                                    fontWeight: FontWeight.bold,
                                   ),
+                                  columnSpacing: constraints.maxWidth * 0.02,
+                                  dataRowMinHeight: 60,
+                                  dataRowMaxHeight: 80,
+                                  columns: const [
+                                    DataColumn(label: Text('Article')),
+                                    DataColumn(label: Text('PU')),
+                                    DataColumn(label: Text('Quantité')),
+                                    DataColumn(label: Text('Montant')),
+                                    DataColumn(label: Text('')),
+                                  ],
+                                  rows: List.generate(recapCommande.length, (index) {
+                                    final item = recapCommande[index];
+                                    final article = item['article'] as Article;
+                                    final quantite = item['quantite'];
+                                    final montant = article.prix! * quantite;
+
+                                    return DataRow(cells: [
+                                      DataCell(
+                                        SizedBox(
+                                          width: constraints.maxWidth * 0.45,
+                                          child: Text(
+                                            article.intitule,
+                                            softWrap: true,
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                          width: constraints.maxWidth * 0.12,
+                                          child: Text('${article.prix}'),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                          width: constraints.maxWidth * 0.12,
+                                          child: Text('$quantite'),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                          width: constraints.maxWidth * 0.15,
+                                          child: Text('${montant.toStringAsFixed(2)}'),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                          width: constraints.maxWidth * 0.08,
+                                          child: IconButton(
+                                            icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                            onPressed: () => supprimerLigne(index),
+                                          ),
+                                        ),
+                                      ),
+                                    ]);
+                                  }),
                                 ),
                               ),
-                              DataCell(Text('${article.prix}')),
-                              DataCell(Text('$quantite')),
-                              DataCell(Text('${montant.toStringAsFixed(2)}')),
-                              DataCell(
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.redAccent),
-                                  onPressed: () => supprimerLigne(index),
-                                ),
-                              ),
-                            ]);
-                          }),
-                        ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -629,60 +658,90 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(const Color.fromARGB(154, 131, 130, 129)),
-                        headingTextStyle: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        columnSpacing: 24,
-                        columns: const [
-                          DataColumn(label: Text('ID')),
-                          DataColumn(label: Text('Description')),
-                          DataColumn(label: Text('Status')),
-                          DataColumn(label: Text('Date')),
-                          DataColumn(label: Text('Actions')),
-                        ],
-                        rows: paginatedCommandes.map((cmd) {
-                          return DataRow(cells: [
-                            DataCell(Text(cmd.idBonDeCommande.toString())),
-                            DataCell(
-                              SizedBox(
-                                width: 200,
-                                child: Text(
-                                  cmd.description ?? '',
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SizedBox(
+                          width: constraints.maxWidth,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                              child: DataTable(
+                                headingRowColor: WidgetStateProperty.all(const Color.fromARGB(154, 131, 130, 129)),
+                                headingTextStyle: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
                                 ),
+                                columnSpacing: constraints.maxWidth * 0.02,
+                                dataRowMinHeight: 60,
+                                dataRowMaxHeight: 80,
+                                columns: const [
+                                  DataColumn(label: Text('ID')),
+                                  DataColumn(label: Text('Description')),
+                                  DataColumn(label: Text('Status')),
+                                  DataColumn(label: Text('Date')),
+                                  DataColumn(label: Text('Actions')),
+                                ],
+                                rows: paginatedCommandes.map((cmd) {
+                                  return DataRow(cells: [
+                                    DataCell(
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.08,
+                                        child: Text(cmd.idBonDeCommande.toString()),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.35,
+                                        child: Text(
+                                          cmd.description ?? '',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.18,
+                                        child: Text(cmd.status_commande ?? ''),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.2,
+                                        child: Text(cmd.dateBonDeCommande.toString()),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      SizedBox(
+                                        width: constraints.maxWidth * 0.1,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.download, color: Color(0xFFF9B70D)),
+                                          onPressed: () async {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text('Impression de la facture...')),
+                                            );
+                                            try {
+                                              final bonDeCommandeService = BonDeCommandeService();
+                                              final pdfBytes = await bonDeCommandeService.generatePdf('facture', cmd.idBonDeCommande ?? 0);
+                                              openPdfWeb(pdfBytes, 'BC-${cmd.idBonDeCommande}');
+                                            } catch (e) {
+                                              print('Erreur : $e');
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ]);
+                                }).toList(),
                               ),
                             ),
-                            DataCell(Text(cmd.status_commande ?? '')),
-                            DataCell(Text(cmd.dateBonDeCommande.toString())),
-                            DataCell(
-                              IconButton(
-                                icon: const Icon(Icons.download, color: Color(0xFFF9B70D)),
-                                onPressed: () async {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Impression de la facture...')),
-                                  );
-                                  try {
-                                    final bonDeCommandeService = BonDeCommandeService();
-                                    final pdfBytes = await bonDeCommandeService.generatePdf('facture', cmd.idBonDeCommande ?? 0);
-                                    openPdfWeb(pdfBytes, 'BC-${cmd.idBonDeCommande}');
-                                  } catch (e) {
-                                    print('Erreur : $e');
-                                  }
-                                },
-                              ),
-                            ),
-                          ]);
-                        }).toList(),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  // Contrôles de pagination
+                  const SizedBox(height: 16),
                   _buildPaginationControls(),
                 ],
               ),

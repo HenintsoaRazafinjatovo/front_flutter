@@ -897,29 +897,40 @@ Widget _buildPaginationControls() {
   }
 
   Widget _buildInventoryTable() {
-    if (inventoryData.isNotEmpty) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          headingRowColor: MaterialStateProperty.all(
-            Color.fromARGB(154, 131, 130, 129),
+  if (inventoryData.isNotEmpty) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: DataTable(
+              columnSpacing: 20, // Espacement régulier
+              headingRowColor: MaterialStateProperty.all(
+                const Color.fromARGB(154, 131, 130, 129),
+              ),
+              dataRowMinHeight: 56,
+              dataRowMaxHeight: 56,
+              columns: _buildTableColumns(),
+              rows: _buildInventoryRows(),
+            ),
           ),
-          columns: _buildTableColumns(),
-          rows: _buildInventoryRows(),
+        );
+      },
+    );
+  } else {
+    return Center(
+      child: Text(
+        'Aucun inventaire réalisé pour le moment',
+        style: TextStyle(
+          fontSize: 16,
+          color: Colors.grey[500],
         ),
-      );
-    } else {
-      return Center(
-        child: Text(
-          'Aucun inventaire réalisé pour le moment',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey[500],
-          ),
-        ),
-      );
-    }
+      ),
+    );
   }
+}
+
 
   List<DataColumn> _buildTableColumns() {
     return [

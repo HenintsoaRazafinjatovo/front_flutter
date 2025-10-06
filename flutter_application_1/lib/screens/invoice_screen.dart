@@ -18,45 +18,56 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
   List<Facture> invoices = [];
   List<Facture> filteredInvoices = [];
   List<BonDeLivraison> receptions = [];
-  
+
   String? selectedAgency;
   String? selectedStatus;
   DateTime? selectedDate;
-  
+
   // Variables pour la pagination
- int currentPage = 1;
+  int currentPage = 1;
   int lastPage = 1;
   int itemsPerPage = 10;
   int totalFactures = 0;
-  
+
   // Getter pour obtenir les factures paginées
   List<Facture> get paginatedInvoices => filteredInvoices;
 
   // Getter pour le nombre total de pages
-  int get totalPages => filteredInvoices.isEmpty ? 0 : (filteredInvoices.length / itemsPerPage).ceil();
-  
+  int get totalPages => filteredInvoices.isEmpty
+      ? 0
+      : (filteredInvoices.length / itemsPerPage).ceil();
+
   // Couleurs personnalisées
   final Color buttonColor = Color(0xFFF9B70D);
   final Color headerRowColor = Color.fromARGB(154, 131, 130, 129);
   final Color accentColor = Colors.redAccent;
 
-  final double colNumFacture = 20;    // Largeur colonne N° Facture
-final double colDate = 60;          // Largeur colonne Date
-final double colAgence = 45;        // Largeur colonne Agence
-final double colArticles = 90;      // Largeur colonne Articles
-final double colHT = 100;            // Largeur colonne HT
-final double colTTC = 100;           // Largeur colonne TTC
-final double colActions = 60;       // Largeur colonne Actions
+  final double colNumFacture = 20; // Largeur colonne N° Facture
+  final double colDate = 80; // Largeur colonne Date
+  final double colAgence = 60; // Largeur colonne Agence
+  final double colArticles = 90; // Largeur colonne Articles
+  final double colHT = 100; // Largeur colonne HT
+  final double colTTC = 100; // Largeur colonne TTC
+  final double colActions = 60; // Largeur colonne Actions
 
-// Calcul de la largeur totale du tableau
-double get tableWidth => colNumFacture + colDate + colAgence + 
-                         colArticles + colHT + colTTC + colActions + 
-                         (20 * 6);
+  // Calcul de la largeur totale du tableau
+  double get tableWidth =>
+      colNumFacture +
+      colDate +
+      colAgence +
+      colArticles +
+      colHT +
+      colTTC +
+      colActions +
+      (20 * 6);
 
   Future<void> _loadFactures() async {
     try {
       FactureService factureService = FactureService();
-      final response = await factureService.getFactures(page: currentPage, perPage: itemsPerPage);
+      final response = await factureService.getFactures(
+        page: currentPage,
+        perPage: itemsPerPage,
+      );
       setState(() {
         invoices = response.data;
         filteredInvoices = List.from(invoices);
@@ -71,13 +82,13 @@ double get tableWidth => colNumFacture + colDate + colAgence +
       );
     }
   }
-  
+
   @override
   void initState() {
     super.initState();
     _loadFactures();
   }
-  
+
   void _showCreateInvoiceDialog() {
     showDialog(
       context: context,
@@ -112,9 +123,13 @@ double get tableWidth => colNumFacture + colDate + colAgence +
   void _applyFilters() {
     setState(() {
       filteredInvoices = invoices.where((invoice) {
-        bool dateMatch = selectedDate == null ||
-            invoice.dateFacture == DateFormat('dd/MM/yyyy').format(selectedDate!);
-        bool agencyMatch = selectedAgency == null || invoice.agence?.codeAgence == selectedAgency;
+        bool dateMatch =
+            selectedDate == null ||
+            invoice.dateFacture ==
+                DateFormat('dd/MM/yyyy').format(selectedDate!);
+        bool agencyMatch =
+            selectedAgency == null ||
+            invoice.agence?.codeAgence == selectedAgency;
         return dateMatch && agencyMatch;
       }).toList();
       currentPage = 0; // Retour à la première page après filtrage
@@ -133,87 +148,86 @@ double get tableWidth => colNumFacture + colDate + colAgence +
 
   // Widget pour la pagination
   Widget _buildPaginationControls() {
-  if (lastPage <= 1) return const SizedBox.shrink();
+    if (lastPage <= 1) return const SizedBox.shrink();
 
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      IconButton(
-        icon: const Icon(Icons.first_page),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage = 1);
-                _loadFactures();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.chevron_left),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage--);
-                _loadFactures();
-              },
-      ),
-
-      // Current page avec background color
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9B70D),
-          borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.first_page),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage = 1);
+                  _loadFactures();
+                },
         ),
-        child: Text(
-          '$currentPage / $lastPage',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage--);
+                  _loadFactures();
+                },
+        ),
+
+        // Current page avec background color
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9B70D),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$currentPage / $lastPage',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
 
-      IconButton(
-        icon: const Icon(Icons.chevron_right),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage++);
-                _loadFactures();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.last_page),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage = lastPage);
-                _loadFactures();
-              },
-      ),
-      const SizedBox(width: 16),
-      DropdownButton<int>(
-        value: itemsPerPage,
-        items: [5, 10, 20, 50].map((value) {
-          return DropdownMenuItem<int>(
-            value: value,
-            child: Text('$value / page'),
-          );
-        }).toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              itemsPerPage = value;
-              currentPage = 1;
-            });
-            _loadFactures();
-          }
-        },
-      ),
-    ],
-  );
-}
-
+        IconButton(
+          icon: const Icon(Icons.chevron_right),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage++);
+                  _loadFactures();
+                },
+        ),
+        IconButton(
+          icon: const Icon(Icons.last_page),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage = lastPage);
+                  _loadFactures();
+                },
+        ),
+        const SizedBox(width: 16),
+        DropdownButton<int>(
+          value: itemsPerPage,
+          items: [5, 10, 20, 50].map((value) {
+            return DropdownMenuItem<int>(
+              value: value,
+              child: Text('$value / page'),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                itemsPerPage = value;
+                currentPage = 1;
+              });
+              _loadFactures();
+            }
+          },
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -256,10 +270,7 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                       SizedBox(height: 8),
                       Text(
                         'Gestion des factures',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 16,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
                       ),
                     ],
                   ),
@@ -275,7 +286,10 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: buttonColor,
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -332,7 +346,11 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                       ),
                       ElevatedButton.icon(
                         onPressed: _clearFilters,
-                        icon: Icon(Icons.refresh, color: Colors.white, size: 16),
+                        icon: Icon(
+                          Icons.refresh,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                         label: Text(
                           'Réinitialiser',
                           style: TextStyle(color: Colors.white, fontSize: 12),
@@ -349,7 +367,7 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                     ],
                   ),
                   SizedBox(height: 16),
-                  
+
                   // Filtres interactifs
                   Wrap(
                     spacing: 16,
@@ -378,11 +396,16 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                               labelText: 'Date',
                               border: OutlineInputBorder(),
                               suffixIcon: Icon(Icons.calendar_today),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                             ),
                             child: Text(
                               selectedDate != null
-                                  ? DateFormat('dd/MM/yyyy').format(selectedDate!)
+                                  ? DateFormat(
+                                      'dd/MM/yyyy',
+                                    ).format(selectedDate!)
                                   : 'Toutes les dates',
                               style: TextStyle(fontSize: 14),
                             ),
@@ -397,19 +420,32 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                           decoration: InputDecoration(
                             labelText: 'Agence',
                             border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                           ),
                           value: selectedAgency,
                           items: [
                             DropdownMenuItem<String>(
                               value: null,
-                              child: Text('Toutes les agences', style: TextStyle(fontSize: 14)),
+                              child: Text(
+                                'Toutes les agences',
+                                style: TextStyle(fontSize: 14),
+                              ),
                             ),
-                            ...['Agence Paris Centre', 'Agence Lyon Nord', 'Agence Marseille Sud', 'Agence Toulouse Ouest']
-                                .map((agency) {
+                            ...[
+                              'Agence Paris Centre',
+                              'Agence Lyon Nord',
+                              'Agence Marseille Sud',
+                              'Agence Toulouse Ouest',
+                            ].map((agency) {
                               return DropdownMenuItem<String>(
                                 value: agency,
-                                child: Text(agency, style: TextStyle(fontSize: 14)),
+                                child: Text(
+                                  agency,
+                                  style: TextStyle(fontSize: 14),
+                                ),
                               );
                             }),
                           ],
@@ -421,261 +457,203 @@ double get tableWidth => colNumFacture + colDate + colAgence +
                           },
                         ),
                       ),
-
-                      // Filtre par statut
-                      SizedBox(
-                        width: 180,
-                        child: DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            labelText: 'Statut',
-                            border: OutlineInputBorder(),
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          ),
-                          value: selectedStatus,
-                          items: [
-                            DropdownMenuItem<String>(
-                              value: null,
-                              child: Text('Tous les statuts', style: TextStyle(fontSize: 14)),
-                            ),
-                            ...['Brouillon', 'Émise', 'Payée', 'Annulée'].map((status) {
-                              return DropdownMenuItem<String>(
-                                value: status,
-                                child: Text(status, style: TextStyle(fontSize: 14)),
-                              );
-                            }),
-                          ],
-                          onChanged: (value) {
-                            setState(() {
-                              selectedStatus = value;
-                            });
-                            _applyFilters();
-                          },
-                        ),
-                      ),
                     ],
                   ),
-                  
-                  SizedBox(height: 24),
-                  
-                  // // Tableau des factures
-                  // SingleChildScrollView(
-                  //   scrollDirection: Axis.horizontal,
-                  //   child: DataTable(
-                  //     headingRowColor: WidgetStateProperty.all(headerRowColor),
-                  //     headingTextStyle: TextStyle(
-                  //       fontWeight: FontWeight.bold,
-                  //       color: const Color.fromARGB(255, 49, 49, 49),
-                  //     ),
-                  //     columns: [
-                  //       DataColumn(label: Text('N° Facture')),
-                  //       DataColumn(label: Text('Date')),
-                  //       DataColumn(label: Text('Agence')),
-                  //       DataColumn(label: Text('Articles')),
-                  //       DataColumn(label: Text('HT')),
-                  //       DataColumn(label: Text('TTC')),
-                  //       DataColumn(label: Text('Actions')),
-                  //     ],
-                  //     rows: paginatedInvoices.map((invoice) {
-                  //       return DataRow(
-                  //         cells: [
-                  //           DataCell(Text(
-                  //             invoice.idFacture.toString(),
-                  //             style: TextStyle(fontWeight: FontWeight.w500),
-                  //           )),
-                  //           DataCell(Text(DateFormat('dd/MM/yyyy').format(invoice.dateFacture))),
-                  //           DataCell(Text(invoice.agence?.codeAgence ?? '')),
-                  //           DataCell(Text('${invoice.articles.length} articles')),
-                  //           DataCell(Text('${invoice.montant != null ? invoice.montant!.toStringAsFixed(2) : '0.00'} Ar')),
-                  //           DataCell(Text(
-                  //             '${invoice.montantTtc != null ? invoice.montantTtc!.toStringAsFixed(2) : '0.00'} Ar',
-                  //             style: TextStyle(fontWeight: FontWeight.w500),
-                  //           )),
-                  //           DataCell(
-                  //             ElevatedButton(
-                  //               onPressed: () => _showInvoiceDetails(invoice),
-                  //               style: ElevatedButton.styleFrom(
-                  //                 backgroundColor: buttonColor,
-                  //                 minimumSize: Size(60, 30),
-                  //                 padding: EdgeInsets.symmetric(horizontal: 8),
-                  //                 shape: RoundedRectangleBorder(
-                  //                   borderRadius: BorderRadius.circular(6),
-                  //                 ),
-                  //               ),
-                  //               child: Text(
-                  //                 'Voir',
-                  //                 style: TextStyle(color: Colors.white),
-                  //               ),
-                  //             ),
-                  //           ),
-                  //         ],
-                  //       );
-                  //     }).toList(),
-                  //   ),
-                  // ),
-                  
-                  // // Contrôles de pagination
-                  // _buildPaginationControls(),
-                  // Remplacez la section du tableau (à partir de "// Tableau des factures")
-// par ce code :
 
-Container(
-  width: double.infinity,
-  child: SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    child: ConstrainedBox(
-      constraints: BoxConstraints(
-        minWidth: MediaQuery.of(context).size.width - 80, // Occupe toute la largeur
-      ),
-      child: DataTable(
-        columnSpacing: 20,
-        dataRowMinHeight: 48,
-        dataRowMaxHeight: 60,
-        headingRowColor: WidgetStateProperty.all(headerRowColor),
-        headingTextStyle: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: const Color.fromARGB(255, 49, 49, 49),
-        ),
-        columns: [
-          DataColumn(
-            label: SizedBox(
-              width: colNumFacture,
-              child: Text('N° Facture', textAlign: TextAlign.center),
-            ),
-          ),
-          DataColumn(
-            label: SizedBox(
-              width: colDate,
-              child: Text('Date', textAlign: TextAlign.center),
-            ),
-          ),
-          DataColumn(
-            label: SizedBox(
-              width: colAgence,
-              child: Text('Agence', textAlign: TextAlign.center),
-            ),
-          ),
-          DataColumn(
-            label: SizedBox(
-              width: colArticles,
-              child: Text('Articles', textAlign: TextAlign.center),
-            ),
-          ),
-          DataColumn(
-            label: SizedBox(
-              width: colHT,
-              child: Text('HT', textAlign: TextAlign.right),
-            ),
-          ),
-          DataColumn(
-            label: SizedBox(
-              width: colTTC,
-              child: Text('TTC', textAlign: TextAlign.right),
-            ),
-          ),
-          DataColumn(
-            label: SizedBox(
-              width: colActions,
-              child: Text('Actions', textAlign: TextAlign.center),
-            ),
-          ),
-        ],
-        rows: paginatedInvoices.map((invoice) {
-          return DataRow(
-            cells: [
-              DataCell(
-                SizedBox(
-                  width: colNumFacture,
-                  child: Text(
-                    invoice.idFacture.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: colDate,
-                  child: Text(
-                    DateFormat('dd/MM/yyyy').format(invoice.dateFacture),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: colAgence,
-                  child: Tooltip(
-                    message: invoice.agence?.codeAgence ?? '',
-                    child: Text(
-                      invoice.agence?.codeAgence ?? '',
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: colArticles,
-                  child: Text(
-                    '${invoice.articles.length} articles',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: colHT,
-                  child: Text(
-                    '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2) : '0.00'} Ar',
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: colTTC,
-                  child: Text(
-                    '${invoice.montantTtc != null ? invoice.montantTtc!.toStringAsFixed(2) : '0.00'} Ar',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ),
-              DataCell(
-                SizedBox(
-                  width: colActions,
-                  child: Center(
-                    child: ElevatedButton(
-                      onPressed: () => _showInvoiceDetails(invoice),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: buttonColor,
-                        minimumSize: Size(60, 30),
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
+                  SizedBox(height: 24),
+
+                  Container(
+                    width: double.infinity,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth:
+                              MediaQuery.of(context).size.width -
+                              370, // Occupe toute la largeur
+                        ),
+                        child: DataTable(
+                          columnSpacing: 20,
+                          dataRowMinHeight: 48,
+                          dataRowMaxHeight: 60,
+                          headingRowColor: WidgetStateProperty.all(
+                            headerRowColor,
+                          ),
+                          headingTextStyle: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: const Color.fromARGB(255, 49, 49, 49),
+                          ),
+                          columns: [
+                            DataColumn(
+                              label: SizedBox(
+                                width: colNumFacture,
+                                child: Text(
+                                  'N° Facture',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            DataColumn(
+                              label: SizedBox(
+                                width: colDate,
+                                child: Text(
+                                  'Date',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            DataColumn(
+                              label: SizedBox(
+                                width: colAgence,
+                                child: Text(
+                                  'Agence',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            DataColumn(
+                              label: SizedBox(
+                                width: colArticles,
+                                child: Text(
+                                  'Articles',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                            DataColumn(
+                              label: SizedBox(
+                                width: colHT,
+                                child: Text('HT', textAlign: TextAlign.right),
+                              ),
+                            ),
+                            DataColumn(
+                              label: SizedBox(
+                                width: colTTC,
+                                child: Text('TTC', textAlign: TextAlign.right),
+                              ),
+                            ),
+                            DataColumn(
+                              label: SizedBox(
+                                width: colActions,
+                                child: Text(
+                                  'Actions',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          ],
+                          rows: paginatedInvoices.map((invoice) {
+                            return DataRow(
+                              cells: [
+                                DataCell(
+                                  SizedBox(
+                                    width: colNumFacture,
+                                    child: Text(
+                                      invoice.idFacture.toString(),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: colDate,
+                                    child: Text(
+                                      DateFormat(
+                                        'dd/MM/yyyy',
+                                      ).format(invoice.dateFacture),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: colAgence,
+                                    child: Tooltip(
+                                      message: invoice.agence?.codeAgence ?? '',
+                                      child: Text(
+                                        invoice.agence?.codeAgence ?? '',
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: colArticles,
+                                    child: Text(
+                                      '${invoice.articles.length} articles',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: colHT,
+                                    child: Text(
+                                      '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2) : '0.00'} Ar',
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: colTTC,
+                                    child: Text(
+                                      '${invoice.montantTtc != null ? invoice.montantTtc!.toStringAsFixed(2) : '0.00'} Ar',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  SizedBox(
+                                    width: colActions,
+                                    child: Center(
+                                      child: ElevatedButton(
+                                        onPressed: () =>
+                                            _showInvoiceDetails(invoice),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: buttonColor,
+                                          minimumSize: Size(60, 30),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Voir',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
                         ),
                       ),
-                      child: Text(
-                        'Voir',
-                        style: TextStyle(color: Colors.white, fontSize: 12),
-                      ),
                     ),
                   ),
-                ),
-              ),
-            ],
-          );
-        }).toList(),
-      ),
-    ),
-  ),
-),
 
-SizedBox(height: 16),
+                  SizedBox(height: 16),
 
-// Contrôles de pagination
-_buildPaginationControls(),                ],
+                  // Contrôles de pagination
+                  _buildPaginationControls(),
+                ],
               ),
             ),
           ],

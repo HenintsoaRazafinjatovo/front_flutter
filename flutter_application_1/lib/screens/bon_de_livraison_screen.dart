@@ -126,24 +126,15 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
     await OpenFile.open(file.path);
   }
   void openPdfWeb(Uint8List pdfBytes, String filename) {
-  // final blob = html.Blob([pdfBytes], 'application/pdf');
-  // final url = html.Url.createObjectUrlFromBlob(blob);
-
-  // // Ouvre le PDF dans un nouvel onglet
-  // html.window.open(url, filename);
-
-  // // Libère l'URL une fois ouvert
-  // html.Url.revokeObjectUrl(url);
     final blob = html.Blob([pdfBytes], 'application/pdf');
-  final url = html.Url.createObjectUrlFromBlob(blob);
+    final url = html.Url.createObjectUrlFromBlob(blob);
 
-  html.AnchorElement(href: url)
-    ..setAttribute("download", filename) // Nom du fichier
-    ..click(); // Simule le clic pour lancer le téléchargement
+    html.AnchorElement(href: url)
+      ..setAttribute("download", filename)
+      ..click();
 
-  html.Url.revokeObjectUrl(url);
-
-}
+    html.Url.revokeObjectUrl(url);
+  }
   void _showCreateModal() {
     showDialog(
       context: context,
@@ -169,7 +160,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
           note: note,
           buttonColor: buttonColor,
           headerColor: headerColor,
-          openPdfWeb: openPdfWeb, // Pass the openPdfWeb function
+          openPdfWeb: openPdfWeb,
         );
       },
     );
@@ -195,87 +186,87 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
       filteredDeliveryNotes = List.from(livraisons);
     });
   }
-Widget _buildPaginationControls() {
-  if (lastPage <= 1) return const SizedBox.shrink();
 
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      IconButton(
-        icon: const Icon(Icons.first_page),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage = 1);
-                _loadLivraisons();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.chevron_left),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage--);
-                _loadLivraisons();
-              },
-      ),
+  Widget _buildPaginationControls() {
+    if (lastPage <= 1) return const SizedBox.shrink();
 
-      // Current page avec background color
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9B70D),
-          borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.first_page),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage = 1);
+                  _loadLivraisons();
+                },
         ),
-        child: Text(
-          '$currentPage / $lastPage',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage--);
+                  _loadLivraisons();
+                },
+        ),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9B70D),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$currentPage / $lastPage',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
 
-      IconButton(
-        icon: const Icon(Icons.chevron_right),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage++);
-                _loadLivraisons();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.last_page),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage = lastPage);
-                _loadLivraisons();
-              },
-      ),
-      const SizedBox(width: 16),
-      DropdownButton<int>(
-        value: itemsPerPage,
-        items: [5, 10, 20, 50].map((value) {
-          return DropdownMenuItem<int>(
-            value: value,
-            child: Text('$value / page'),
-          );
-        }).toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              itemsPerPage = value;
-              currentPage = 1;
-            });
-            _loadLivraisons();
-          }
-        },
-      ),
-    ],
-  );
-}
+        IconButton(
+          icon: const Icon(Icons.chevron_right),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage++);
+                  _loadLivraisons();
+                },
+        ),
+        IconButton(
+          icon: const Icon(Icons.last_page),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage = lastPage);
+                  _loadLivraisons();
+                },
+        ),
+        const SizedBox(width: 16),
+        DropdownButton<int>(
+          value: itemsPerPage,
+          items: [5, 10, 20, 50].map((value) {
+            return DropdownMenuItem<int>(
+              value: value,
+              child: Text('$value / page'),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                itemsPerPage = value;
+                currentPage = 1;
+              });
+              _loadLivraisons();
+            }
+          },
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -356,180 +347,341 @@ Widget _buildPaginationControls() {
                 
                 const SizedBox(height: 24),
                 
-                // Delivery Notes List
+                // Delivery Notes List - WRAPPED IN EXPANDED AND SINGLECHILDSCROLLVIEW
                 Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Liste des bons de livraison',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
+                  child: SingleChildScrollView(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
                           ),
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        // Filters
-                        Row(
-                          children: [
-                            Expanded(
-                              child: InkWell(
-                                onTap: () async {
-                                  final date = await showDatePicker(
-                                    context: context,
-                                    initialDate: dateFilter ?? DateTime.now(),
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2030),
-                                  );
-                                  if (date != null) {
-                                    setState(() {
-                                      dateFilter = date;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey[300]!),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        dateFilter == null
-                                            ? 'Sélectionner une date'
-                                            : DateFormat('dd/MM/yyyy').format(dateFilter!),
-                                        style: TextStyle(color: Colors.grey[700]),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                        ],
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Liste des bons de livraison',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[800],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                value: agencyFilter, // ⚠️ maintenant c’est un idAgence (int?), pas un String
-                                decoration: InputDecoration(
-                                  hintText: 'Toutes les agences',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                ),
-                                items: [
-                                  const DropdownMenuItem<int>(
-                                    value: null,
-                                    child: Text('Toutes les agences'),
-                                  ),
-                                  ...agences.map((agence) => DropdownMenuItem<int>(
-                                        value: agence.idAgence,
-                                        child: Text(agence.codeAgence),
-                                      )),
-                                ],
-                                onChanged: (value) {
-                                  setState(() {
-                                    agencyFilter = value;
-                                  });
-                                },
-                              ),
-                            ),
-
-                            const SizedBox(width: 16),
-                            ElevatedButton(
-                              onPressed: _applyFilters,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: buttonColor,
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              ),
-                              child: const Text('Filtrer', style: TextStyle(color: Colors.white)),
-                            ),
-                            const SizedBox(width: 8),
-                            ElevatedButton(
-                              onPressed: _clearFilters,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey[500],
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              ),
-                              child: const Text('Réinitialiser', style: TextStyle(color: Colors.white)),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 24),
-                        
-                        // Table
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: DataTable(
-                              headingRowColor: MaterialStateProperty.all(headerColor),
-                              showCheckboxColumn: false,
-                              columns: const [
-                                DataColumn(label: Text('N° Bon', style: TextStyle(fontWeight: FontWeight.w600))),
-                                DataColumn(label: Text('Date', style: TextStyle(fontWeight: FontWeight.w600))),
-                                // DataColumn(label: Text('Commande', style: TextStyle(fontWeight: FontWeight.w600))),
-                                DataColumn(label: Text('Agence', style: TextStyle(fontWeight: FontWeight.w600))),
-                                DataColumn(label: Text('Articles', style: TextStyle(fontWeight: FontWeight.w600))),
-                                DataColumn(label: SizedBox(width: 120, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.w600)))),
-                              ],
-                              rows: filteredDeliveryNotes.map((note) {
-                                return DataRow(
-                                  cells: [
-                                    DataCell(Text('${note.idBonDeLivraison}', style: const TextStyle(fontWeight: FontWeight.w500))),
-                                    DataCell(Text(DateFormat('dd/MM/yyyy').format(note.dateBonDeLivraison))),
-                                    // DataCell(Text(note.orderNumber)),
-                                    DataCell(Text(note.agence?.codeAgence ?? "")),
-                                    DataCell(Text('${note.articles?.length ?? 0} article${(note.articles?.length ?? 0) > 1 ? 's' : ''}')),
-                                    DataCell(
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          ElevatedButton(
-                                            onPressed: () => _showViewModal(note),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: buttonColor,
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                              minimumSize: const Size(80, 0),
-                                            ),
-                                            child: const Text('Voir', style: TextStyle(color: Colors.white, fontSize: 12)),
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Filters - Responsive layout
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              if (constraints.maxWidth > 768) {
+                                // Desktop layout
+                                return Row(
+                                  children: [
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () async {
+                                          final date = await showDatePicker(
+                                            context: context,
+                                            initialDate: dateFilter ?? DateTime.now(),
+                                            firstDate: DateTime(2020),
+                                            lastDate: DateTime(2030),
+                                          );
+                                          if (date != null) {
+                                            setState(() {
+                                              dateFilter = date;
+                                            });
+                                          }
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: Colors.grey[300]!),
+                                            borderRadius: BorderRadius.circular(8),
                                           ),
-                                        ],
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                dateFilter == null
+                                                    ? 'Sélectionner une date'
+                                                    : DateFormat('dd/MM/yyyy').format(dateFilter!),
+                                                style: TextStyle(color: Colors.grey[700]),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: DropdownButtonFormField<int>(
+                                        value: agencyFilter,
+                                        decoration: InputDecoration(
+                                          hintText: 'Toutes les agences',
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        ),
+                                        items: [
+                                          const DropdownMenuItem<int>(
+                                            value: null,
+                                            child: Text('Toutes les agences'),
+                                          ),
+                                          ...agences.map((agence) => DropdownMenuItem<int>(
+                                                value: agence.idAgence,
+                                                child: Text(agence.codeAgence),
+                                              )),
+                                        ],
+                                        onChanged: (value) {
+                                          setState(() {
+                                            agencyFilter = value;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    ElevatedButton(
+                                      onPressed: _applyFilters,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: buttonColor,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      ),
+                                      child: const Text('Filtrer', style: TextStyle(color: Colors.white)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ElevatedButton(
+                                      onPressed: _clearFilters,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.grey[500],
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      ),
+                                      child: const Text('Réinitialiser', style: TextStyle(color: Colors.white)),
                                     ),
                                   ],
                                 );
-                              }).toList(),
+                              } else {
+                                // Mobile layout
+                                return Column(
+                                  children: [
+                                    InkWell(
+                                      onTap: () async {
+                                        final date = await showDatePicker(
+                                          context: context,
+                                          initialDate: dateFilter ?? DateTime.now(),
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2030),
+                                        );
+                                        if (date != null) {
+                                          setState(() {
+                                            dateFilter = date;
+                                          });
+                                        }
+                                      },
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.grey[300]!),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.calendar_today, size: 16, color: Colors.grey[600]),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              dateFilter == null
+                                                  ? 'Sélectionner une date'
+                                                  : DateFormat('dd/MM/yyyy').format(dateFilter!),
+                                              style: TextStyle(color: Colors.grey[700]),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    DropdownButtonFormField<int>(
+                                      value: agencyFilter,
+                                      decoration: InputDecoration(
+                                        hintText: 'Toutes les agences',
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      ),
+                                      items: [
+                                        const DropdownMenuItem<int>(
+                                          value: null,
+                                          child: Text('Toutes les agences'),
+                                        ),
+                                        ...agences.map((agence) => DropdownMenuItem<int>(
+                                              value: agence.idAgence,
+                                              child: Text(agence.codeAgence),
+                                            )),
+                                      ],
+                                      onChanged: (value) {
+                                        setState(() {
+                                          agencyFilter = value;
+                                        });
+                                      },
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: ElevatedButton(
+                                            onPressed: _applyFilters,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: buttonColor,
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            ),
+                                            child: const Text('Filtrer', style: TextStyle(color: Colors.white)),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: ElevatedButton(
+                                            onPressed: _clearFilters,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.grey[500],
+                                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                            ),
+                                            child: const Text('Réinitialiser', style: TextStyle(color: Colors.white)),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }
+                            },
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          // Table Container with fixed height for vertical scrolling
+                          Container(
+                            height: 400, // Fixed height to enable vertical scrolling
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Container(
+                                constraints: BoxConstraints(
+                                  minWidth: MediaQuery.of(context).size.width - 370,
+                                ),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: DataTable(
+                                    columnSpacing: 20,
+                                    horizontalMargin: 20,
+                                    headingRowColor: MaterialStateProperty.all(headerColor),
+                                    showCheckboxColumn: false,
+                                    columns: const [
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text('N° Bon', 
+                                            style: TextStyle(fontWeight: FontWeight.w600),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text('Date', 
+                                            style: TextStyle(fontWeight: FontWeight.w600),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text('Agence', 
+                                            style: TextStyle(fontWeight: FontWeight.w600),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text('Articles', 
+                                            style: TextStyle(fontWeight: FontWeight.w600),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                      DataColumn(
+                                        label: Expanded(
+                                          child: Text('Actions', 
+                                            style: TextStyle(fontWeight: FontWeight.w600),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                    rows: filteredDeliveryNotes.map((note) {
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(
+                                            Center(
+                                              child: Text(
+                                                '${note.idBonDeLivraison}', 
+                                                style: const TextStyle(fontWeight: FontWeight.w500)
+                                              ),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Center(
+                                              child: Text(DateFormat('dd/MM/yyyy').format(note.dateBonDeLivraison)),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Center(
+                                              child: Text(note.agence?.codeAgence ?? ""),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Center(
+                                              child: Text('${note.articles?.length ?? 0} article${(note.articles?.length ?? 0) > 1 ? 's' : ''}'),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            Center(
+                                              child: ElevatedButton(
+                                                onPressed: () => _showViewModal(note),
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: buttonColor,
+                                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                  minimumSize: const Size(80, 0),
+                                                ),
+                                                child: const Text('Voir', style: TextStyle(color: Colors.white, fontSize: 12)),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                         _buildPaginationControls(),
-                      ],
-                          
+                          const SizedBox(height: 16),
+                          _buildPaginationControls(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            
           ),
         ),
       ),
@@ -537,7 +689,7 @@ Widget _buildPaginationControls() {
   }
 }
 
-// --- Dialog pour créer un nouveau bon de livraison ---
+// --- Les autres classes (CreateDeliveryNoteDialog et ViewDeliveryNoteDialog) restent identiques ---
 class CreateDeliveryNoteDialog extends StatefulWidget {
   final List<BonDeCommande> orders;
   final Color buttonColor;
@@ -613,91 +765,82 @@ class _CreateDeliveryNoteDialogState extends State<CreateDeliveryNoteDialog> {
         ),
       ),
       actions: [
-  TextButton(
-    onPressed: () => Navigator.of(context).pop(),
-    child: const Text('Annuler'),
-  ),
-  ElevatedButton(
-  onPressed: selectedOrder == null
-      ? null
-      : () async {
-          try {
-            // Appel API pour créer le bon de livraison
-            final success = await BonDeLivraisonService()
-                .creerBonDeLivraison(selectedOrder!.idBonDeCommande ?? 0);
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Annuler'),
+        ),
+        ElevatedButton(
+          onPressed: selectedOrder == null
+              ? null
+              : () async {
+                  try {
+                    final success = await BonDeLivraisonService()
+                        .creerBonDeLivraison(selectedOrder!.idBonDeCommande ?? 0);
 
-            if (success) {
-              // Ici on ne reçoit plus un BonDeLivraison complet depuis l’API,
-              // donc on peut soit reconstruire un objet local minimal,
-              // soit simplement notifier le succès.
-
-              // Exemple : créer un objet local factice
-              final newNote = BonDeLivraison(
-                idBonDeLivraison: 0, // pas d'ID car API ne le retourne pas
-                dateBonDeLivraison: DateTime.now(),
-                description:
-                    'Bon de livraison pour la commande #${selectedOrder!.idBonDeCommande}',
-                agence: selectedOrder!.agence,
-                articles: selectedOrder!.articles
-                  ?.map((commandeArticle) => MvtStockArticle(
-                        idArticle: commandeArticle.idArticle,
-                        quantite: commandeArticle.quantite.toDouble(), // ⚡ cast en double
-                        article: commandeArticle.article, // si CommandeArticle a un champ Article
-                        totalArticle: (commandeArticle.quantite.toDouble() *
-                            (commandeArticle.article?.prix ?? 0)), // optionnel
-                      ))
-                  .toList(),
-              total: selectedOrder!.total,
-              );
-              widget.onDeliveryNoteCreated(newNote);
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'Bon de livraison pour la commande ${selectedOrder!.idBonDeCommande} créé avec succès !'),
-                ),
-              );
-            } else {
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Échec de la création du bon de livraison.'),
-                ),
-              );
-            }
-          } catch (e) {
-            print('Erreur lors de la création du bon de livraison: $e');
-            Navigator.of(context).pop();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erreur lors de la création: $e')),
-            );
-          }
-        },
-  style: ElevatedButton.styleFrom(backgroundColor: widget.buttonColor),
-  child: const Text(
-    'Créer le bon de livraison',
-    style: TextStyle(color: Colors.white),
-  ),
-)
-
-],
-
+                    if (success) {
+                      final newNote = BonDeLivraison(
+                        idBonDeLivraison: 0,
+                        dateBonDeLivraison: DateTime.now(),
+                        description: 'Bon de livraison pour la commande #${selectedOrder!.idBonDeCommande}',
+                        agence: selectedOrder!.agence,
+                        articles: selectedOrder!.articles
+                          ?.map((commandeArticle) => MvtStockArticle(
+                                idArticle: commandeArticle.idArticle,
+                                quantite: commandeArticle.quantite.toDouble(),
+                                article: commandeArticle.article,
+                                totalArticle: (commandeArticle.quantite.toDouble() *
+                                    (commandeArticle.article?.prix ?? 0)),
+                              ))
+                          .toList(),
+                        total: selectedOrder!.total,
+                      );
+                      widget.onDeliveryNoteCreated(newNote);
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Bon de livraison pour la commande ${selectedOrder!.idBonDeCommande} créé avec succès !'),
+                        ),
+                      );
+                    } else {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Échec de la création du bon de livraison.'),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    print('Erreur lors de la création du bon de livraison: $e');
+                    Navigator.of(context).pop();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur lors de la création: $e')),
+                    );
+                  }
+                },
+          style: ElevatedButton.styleFrom(backgroundColor: widget.buttonColor),
+          child: const Text(
+            'Créer le bon de livraison',
+            style: TextStyle(color: Colors.white),
+          ),
+        )
+      ],
     );
   }
 }
-// --- Dialog pour voir les détails d'un bon de livraison ---
+
 class ViewDeliveryNoteDialog extends StatelessWidget {
   final BonDeLivraison note;
   final Color buttonColor;
   final Color headerColor;
-  final void Function(Uint8List, String) openPdfWeb; // Add openPdf callback
+  final void Function(Uint8List, String) openPdfWeb;
 
   const ViewDeliveryNoteDialog({
     super.key,
     required this.note,
     required this.buttonColor,
     required this.headerColor,
-    required this.openPdfWeb, // Require openPdf in constructor
+    required this.openPdfWeb,
   });
 
   @override
@@ -709,11 +852,10 @@ class ViewDeliveryNoteDialog extends StatelessWidget {
         children: [
           Text('Bon de livraison ${note.idBonDeLivraison}'),
           ElevatedButton.icon(
-            onPressed:  () async {
+            onPressed: () async {
               try {
-              final pdfBytes = await bonDeLivraisonService.generatePdf('livraison', note.idBonDeLivraison ?? 0);
-              openPdfWeb(pdfBytes, 'BON_DE_LIVRAISON_1');
-
+                final pdfBytes = await bonDeLivraisonService.generatePdf('livraison', note.idBonDeLivraison ?? 0);
+                openPdfWeb(pdfBytes, 'BON_DE_LIVRAISON_1');
               } catch (e) {
                 print('Erreur : $e');
               }
@@ -733,14 +875,12 @@ class ViewDeliveryNoteDialog extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text('Commande: ${note.orderNumber}', style: const TextStyle(fontWeight: FontWeight.w500)),
               Text('Agence: ${note.agence?.codeAgence ?? ""}', style: const TextStyle(fontWeight: FontWeight.w500)),
               Text('Date: ${DateFormat('dd/MM/yyyy').format(note.dateBonDeLivraison)}', style: const TextStyle(fontWeight: FontWeight.w500)),
               const SizedBox(height: 16),
               const Text('Articles:', style: TextStyle(fontWeight: FontWeight.w600)),
               ...(note.articles?.map((item) => Text('${item.article?.intitule ?? ""} - x ${item.quantite} ')) ?? []),
               const SizedBox(height: 16),
-              // Text('Total: ${note.total!.toStringAsFixed(2)} ', style: const TextStyle(fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -754,5 +894,4 @@ class ViewDeliveryNoteDialog extends StatelessWidget {
     );
   }
 }
-
 

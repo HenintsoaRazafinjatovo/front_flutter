@@ -6,15 +6,16 @@ import 'dechargeDetails_screen.dart';
 void main() {
   runApp(DechargeScreen());
 }
+
 class DechargeScreen extends StatefulWidget {
   const DechargeScreen({super.key});
 
   @override
   State<DechargeScreen> createState() => _DechargeScreenState();
-  
 }
+
 class _DechargeScreenState extends State<DechargeScreen> {
- int currentPage = 1;
+  int currentPage = 1;
   int lastPage = 1;
   int itemsPerPage = 10;
   int totalDecharges = 0;
@@ -22,7 +23,7 @@ class _DechargeScreenState extends State<DechargeScreen> {
   List<Decharge> decharges = [];
   List<Decharge> filteredDecharges = [];
 
-    // Getter pour obtenir les décharges paginées de la page courante
+  // Getter pour obtenir les décharges paginées de la page courante
   List<Decharge> get paginatedDecharges => filteredDecharges;
 
   // Getter pour le nombre total de pages
@@ -69,7 +70,7 @@ class _DechargeScreenState extends State<DechargeScreen> {
           buttonColor: buttonColor,
           headerRowColor: headerRowColor,
           accentColor: accentColor,
-        ), 
+        ),
       ),
     );
   }
@@ -90,87 +91,88 @@ class _DechargeScreenState extends State<DechargeScreen> {
       filteredDecharges = List.from(decharges);
     });
   }
+
   Widget _buildPaginationControls() {
-  if (lastPage <= 1) return const SizedBox.shrink();
+    if (lastPage <= 1) return const SizedBox.shrink();
 
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      IconButton(
-        icon: const Icon(Icons.first_page),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage = 1);
-                _loadDecharges();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.chevron_left),
-        onPressed: currentPage == 1
-            ? null
-            : () {
-                setState(() => currentPage--);
-                _loadDecharges();
-              },
-      ),
-
-      // Current page avec background color
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9B70D),
-          borderRadius: BorderRadius.circular(8),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        IconButton(
+          icon: const Icon(Icons.first_page),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage = 1);
+                  _loadDecharges();
+                },
         ),
-        child: Text(
-          '$currentPage / $lastPage',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        IconButton(
+          icon: const Icon(Icons.chevron_left),
+          onPressed: currentPage == 1
+              ? null
+              : () {
+                  setState(() => currentPage--);
+                  _loadDecharges();
+                },
+        ),
+
+        // Current page avec background color
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9B70D),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$currentPage / $lastPage',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ),
-      ),
 
-      IconButton(
-        icon: const Icon(Icons.chevron_right),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage++);
-                _loadDecharges();
-              },
-      ),
-      IconButton(
-        icon: const Icon(Icons.last_page),
-        onPressed: currentPage >= lastPage
-            ? null
-            : () {
-                setState(() => currentPage = lastPage);
-                _loadDecharges();
-              },
-      ),
-      const SizedBox(width: 16),
-      DropdownButton<int>(
-        value: itemsPerPage,
-        items: [5, 10, 20, 50].map((value) {
-          return DropdownMenuItem<int>(
-            value: value,
-            child: Text('$value / page'),
-          );
-        }).toList(),
-        onChanged: (value) {
-          if (value != null) {
-            setState(() {
-              itemsPerPage = value;
-              currentPage = 1;
-            });
-            _loadDecharges();
-          }
-        },
-      ),
-    ],
-  );
-}
+        IconButton(
+          icon: const Icon(Icons.chevron_right),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage++);
+                  _loadDecharges();
+                },
+        ),
+        IconButton(
+          icon: const Icon(Icons.last_page),
+          onPressed: currentPage >= lastPage
+              ? null
+              : () {
+                  setState(() => currentPage = lastPage);
+                  _loadDecharges();
+                },
+        ),
+        const SizedBox(width: 16),
+        DropdownButton<int>(
+          value: itemsPerPage,
+          items: [5, 10, 20, 50].map((value) {
+            return DropdownMenuItem<int>(
+              value: value,
+              child: Text('$value / page'),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                itemsPerPage = value;
+                currentPage = 1;
+              });
+              _loadDecharges();
+            }
+          },
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -228,6 +230,7 @@ class _DechargeScreenState extends State<DechargeScreen> {
 
             // Tableau
             Container(
+              width: double.infinity, // Prend toute la largeur
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -276,55 +279,146 @@ class _DechargeScreenState extends State<DechargeScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Tableau des décharges
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      headingRowColor: WidgetStateProperty.all(headerRowColor),
-                      headingTextStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 49, 49, 49),
-                      ),
-                      columns: const [
-                        DataColumn(label: Text('Salle')),
-                        DataColumn(label: Text('Bureau')),
-                        DataColumn(label: Text('Responsables')),
-                        DataColumn(label: Text('Direction')),
-                        DataColumn(label: Text('Matériels')),
-                        DataColumn(label: Text('Actions')),
-                      ],
-                      rows: filteredDecharges.map((d) {
-                        return DataRow(
-                          cells: [
-                            DataCell(Text(d.numeroSalle ?? '')),
-                            DataCell(Text(d.bureau ?? '')),
-                            DataCell(Text(d.responsables.join(', '))),
-                            DataCell(Text(d.direction ?? '')),
-                            DataCell(Text('${d.materiels.length} matériels')),
-                            DataCell(
-                              ElevatedButton(
-                                 onPressed: () => _showDechargeDetails(d),
-                                // onPressed: () => {},
-
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: buttonColor,
-                                  minimumSize: const Size(60, 30),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(6),
+                  // Tableau des décharges - Version responsive
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: constraints.maxWidth,
+                          ),
+                          child: DataTable(
+                            columnSpacing: 20,
+                            horizontalMargin: 20,
+                            headingRowColor: WidgetStateProperty.all(headerRowColor),
+                            headingTextStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 49, 49, 49),
+                            ),
+                            columns: [
+                              // Colonnes avec largeurs proportionnelles
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Salle',
+                                    textAlign: TextAlign.center,
                                   ),
                                 ),
-                                child: const Text(
-                                  'Voir',
-                                  style: TextStyle(color: Colors.white),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Bureau',
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
-                    ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Responsables',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Direction',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Matériels',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                              DataColumn(
+                                label: Expanded(
+                                  child: Text(
+                                    'Actions',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            rows: filteredDecharges.map((d) {
+                              return DataRow(
+                                cells: [
+                                  DataCell(
+                                    Center(
+                                      child: Text(
+                                        d.numeroSalle ?? '',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Center(
+                                      child: Text(
+                                        d.bureau ?? '',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Center(
+                                      child: Text(
+                                        d.responsables.join(', '),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Center(
+                                      child: Text(
+                                        d.direction ?? '',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Center(
+                                      child: Text(
+                                        '${d.materiels.length} matériels',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                  DataCell(
+                                    Center(
+                                      child: ElevatedButton(
+                                        onPressed: () => _showDechargeDetails(d),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: buttonColor,
+                                          minimumSize: const Size(60, 30),
+                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Voir',
+                                          style: TextStyle(color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      );
+                    },
                   ),
+                  
+                  const SizedBox(height: 24),
                   _buildPaginationControls(),
                 ],
               ),

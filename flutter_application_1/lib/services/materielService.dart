@@ -130,7 +130,7 @@ class MaterielService {
   }
   Future<Uint8List?> getMaterielQr(int id) async {
     try {
-      final url = Uri.parse('$baseUrl/$id/qrImage'); // attention au route exact
+      final url = Uri.parse('$baseUrl/$id/barcodeImage'); // attention au route exact
       final response = await http.get(url, headers: {
         'Accept': 'image/png', // pour signaler qu’on attend une image
       });

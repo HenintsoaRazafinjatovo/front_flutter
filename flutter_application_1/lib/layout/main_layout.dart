@@ -1,373 +1,12 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import 'package:audioplayers/audioplayers.dart';
-// import 'package:vibration/vibration.dart';
-// import 'package:animate_do/animate_do.dart';
-
-// // Import des écrans
-// import '../screens/admin_commande_screen.dart';
-// import '../screens/bon_de_commande_screen.dart';
-// import '../screens/bon_de_livraison_screen.dart';
-// import '../screens/calendrier_screen.dart';
-// import '../screens/inventaire_screen.dart';
-// import '../screens/mouvement_stock_screen.dart';
-// import '../screens/login_screen.dart';
-// import '../screens/article_screen.dart';
-// import '../screens/facture_screen.dart';
-// import '../screens/materiel_screen.dart';
-// import '../screens/mouvement_stock_immo_screen.dart';
-// import '../screens/inventaire_immo_screen.dart';
-// import '../screens/statistiqueImmo_screen.dart';
-// import '../screens/decharge_screen.dart';
-
-// import '../screens/dashboard_tab.dart';
-// import '../screens/charts_tab.dart';
-// import '../screens/prediction_tab.dart';
-
-// import '../screens/chatbot_lancher.dart';
-
-// enum ModuleType { stock, immo }
-
-// class MainLayout extends StatefulWidget {
-//   final ModuleType selectedModule;
-
-//   const MainLayout({super.key, required this.selectedModule});
-
-//   @override
-//   State<MainLayout> createState() => _MainLayoutState();
-// }
-
-// class _MainLayoutState extends State<MainLayout> {
-//   int selectedIndex = 0;
-//   String? selectedStatTab;
-//   bool isCollapsed = false;
-//   bool _playAnimation = false;
-//   bool statMenuOpen = false;
-
-//   List<Map<String, dynamic>> getNavItems() {
-//     if (widget.selectedModule == ModuleType.stock) {
-//       return [
-//         {
-//       'icon': Icons.bar_chart,
-//       'label': 'Statistiques',
-//       'subItems': [
-//         {'icon': Icons.dashboard, 'label': 'Récapitulatif', 'widget': const DashboardTab()},
-//         {'icon': Icons.show_chart, 'label': 'Graphes', 'widget': const ChartsTab()},
-//         {'icon': Icons.analytics, 'label': 'Prédiction', 'widget': const PredictionTab()},
-//       ]
-//       },
-//         {'icon': Icons.task_outlined, 'label': 'Bon de commande'},
-//         {'icon': Icons.inventory_rounded, 'label': 'Inventaire'},
-//         {'icon': Icons.calendar_month, 'label': 'Calendrier'},
-//         {'icon': Icons.blind_outlined, 'label': 'Mouvement'},
-//         {'icon': Icons.production_quantity_limits, 'label': 'Articles'},
-//         {'icon': Icons.article, 'label': 'Factures'},
-//         {'icon': Icons.task_outlined, 'label': 'Admin commande'},
-//         {'icon': Icons.task_outlined, 'label': 'Bon de livraison'},
-//       ];
-//     } else {
-//       return [
-//         {'icon': Icons.task_outlined, 'label': 'Matériels'},
-//         {'icon': Icons.swap_vert, 'label': 'Mouvement immo'},
-//         {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
-//         {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
-//         {'icon': Icons.fact_check_outlined, 'label': 'Decharge'},
-//       ];
-//     }
-//   }
-
-//   Widget _buildScreen(List<Map<String, dynamic>> navItems) {
-//     final item = navItems[selectedIndex]['label'];
-
-//     switch (item) {
-//       // Gestion stock
-//       case 'Bon de commande':
-//         return BonDeCommandeScreen();
-//       case 'Inventaire':
-//         return InventoryManagementScreen();
-//       case 'Calendrier':
-//         return const CalendrierLogistiqueScreen();
-//       case 'Statistiques':
-//         selectedStatTab ??= 'Récapitulatif';
-//         switch (selectedStatTab) {
-//           case 'Récapitulatif':
-//             return const DashboardTab();
-//           case 'Graphes':
-//             return const ChartsTab();
-//           case 'Prédiction':
-//             return const PredictionTab();
-//           default:
-//             return const Center(child: Text("Onglet non défini"));
-//         }
-//       case 'Mouvement':
-//         return const MouvementStockScreen();
-//       case 'Articles':
-//         return ArticleScreen();
-//       case 'Factures':
-//         return FactureScreen();
-//       case 'Admin commande':
-//         return const AdminCommandeScreen();
-//       case 'Bon de livraison':
-//         return const BonDeLivraisonScreen();
-
-//       // Gestion immo
-//       case 'Matériels':
-//         return MaterielScreen();
-//       case 'Mouvement immo':
-//         return MouvementStockImmoScreen();
-//       case 'Inventaire immo':
-//         return InventoryImmoManagementScreen();
-//       case 'Statistique immo':
-//         return StatistiqueImmoScreen();
-//       case 'Decharge':
-//         return DechargeScreen();
-
-//       default:
-//         return const Center(child: Text("Écran non défini"));
-//     }
-//   }
-
-//   void _handleNotificationClick() async {
-//     final player = AudioPlayer();
-//     await player.play(AssetSource('sounds/notification.mp3'));
-//     if (await Vibration.hasVibrator() ?? false) {
-//       Vibration.vibrate(duration: 150);
-//     }
-
-//     if (!mounted) return;
-//     setState(() => _playAnimation = true);
-
-//     Future.delayed(const Duration(milliseconds: 700), () {
-//       if (!mounted) return;
-//       setState(() => _playAnimation = false);
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final navItems = getNavItems();
-//     final screenWidth = MediaQuery.of(context).size.width;
-//     final sidebarWidth =
-//         isCollapsed ? 80.0 : (screenWidth * 0.3).clamp(160.0, 240.0);
-
-//     return SafeArea(
-//       child: Stack(
-//         children: [
-//           Scaffold(
-//             body: Row(
-//               children: [
-//                 // Sidebar
-//                 AnimatedContainer(
-//                   duration: const Duration(milliseconds: 250),
-//                   width: sidebarWidth,
-//                   color: Colors.white,
-//                   padding: const EdgeInsets.symmetric(vertical: 20),
-//                   child: Column(
-//                     children: [
-//                       Padding(
-//                         padding: const EdgeInsets.symmetric(horizontal: 12),
-//                         child: Row(
-//                           mainAxisSize: MainAxisSize.min,
-//                           mainAxisAlignment: isCollapsed
-//                               ? MainAxisAlignment.center
-//                               : MainAxisAlignment.spaceBetween,
-//                           children: [
-//                             if (!isCollapsed)
-//                               Flexible(
-//                                 child: SizedBox(
-//                                   height: 45,
-//                                   child: Image.asset(
-//                                     'assets/logo1.png',
-//                                     fit: BoxFit.contain,
-//                                   ),
-//                                 ),
-//                               ),
-//                             IconButton(
-//                               icon: Icon(
-//                                 isCollapsed
-//                                     ? Icons.keyboard_arrow_right
-//                                     : Icons.keyboard_arrow_left,
-//                                 color: Colors.black54,
-//                               ),
-//                               onPressed: () {
-//                                 if (!mounted) return;
-//                                 setState(() => isCollapsed = !isCollapsed);
-//                               },
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                       const SizedBox(height: 20),
-
-//                       // Menu navigation
-//                       Expanded(
-//                         child: ListView.builder(
-//                           padding: EdgeInsets.zero,
-//                           itemCount: navItems.length,
-//                           itemBuilder: (context, index) {
-//                             final item = navItems[index];
-//                             final bool isSelected = selectedIndex == index;
-
-//                             return InkWell(
-//                               onTap: () {
-//                                 if (!mounted) return;
-//                                 setState(() => selectedIndex = index);
-//                               },
-//                               borderRadius: BorderRadius.circular(8),
-//                               child: Container(
-//                                 margin: const EdgeInsets.symmetric(
-//                                     horizontal: 8, vertical: 4),
-//                                 padding: const EdgeInsets.symmetric(
-//                                     horizontal: 12, vertical: 12),
-//                                 decoration: BoxDecoration(
-//                                   color: Colors.transparent,
-//                                   borderRadius: BorderRadius.circular(8),
-//                                 ),
-//                                 child: Row(
-//                                   children: [
-//                                     Icon(
-//                                       item['icon'],
-//                                       color: isSelected
-//                                           ? const Color.fromARGB(243, 217, 15, 52)
-//                                           : Colors.black54,
-//                                     ),
-//                                     if (!isCollapsed) ...[
-//                                       const SizedBox(width: 16),
-//                                       Flexible(
-//                                         fit: FlexFit.loose,
-//                                         child: Text(
-//                                           item['label'],
-//                                           style: GoogleFonts.urbanist(
-//                                             fontSize: 16,
-//                                             fontWeight: isSelected
-//                                                 ? FontWeight.bold
-//                                                 : FontWeight.normal,
-//                                             color: isSelected
-//                                                 ? const Color.fromARGB(
-//                                                     243, 217, 15, 52)
-//                                                 : Colors.black87,
-//                                           ),
-//                                           overflow: TextOverflow.ellipsis,
-//                                           softWrap: false,
-//                                         ),
-//                                       ),
-//                                     ],
-//                                   ],
-//                                 ),
-//                               ),
-//                             );
-//                           },
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-
-//                 // Contenu principal
-//                 Expanded(
-//                   child: Column(
-//                     children: [
-//                       Container(
-//                         height: 60,
-//                         padding: const EdgeInsets.symmetric(horizontal: 24),
-//                         decoration: const BoxDecoration(
-//                           color: Colors.white,
-//                           boxShadow: [
-//                             BoxShadow(
-//                               color: Colors.black12,
-//                               blurRadius: 4,
-//                               offset: Offset(0, 2),
-//                             ),
-//                           ],
-//                         ),
-//                         child: Row(
-//                           children: [
-//                             const Spacer(),
-//                             ShakeX(
-//                               animate: _playAnimation,
-//                               duration: const Duration(milliseconds: 600),
-//                               child: IconButton(
-//                                 icon: const Icon(Icons.notifications_none),
-//                                 onPressed: _handleNotificationClick,
-//                               ),
-//                             ),
-//                             PopupMenuButton<String>(
-//                               icon: const CircleAvatar(
-//                                 radius: 18,
-//                                 backgroundImage:
-//                                     AssetImage('assets/profile.jpg'),
-//                               ),
-//                               onSelected: (value) {
-//                                 if (value == 'logout') {
-//                                   showDialog(
-//                                     context: context,
-//                                     builder: (context) {
-//                                       return AlertDialog(
-//                                         title: const Text('Déconnexion'),
-//                                         content: const Text(
-//                                             'Êtes-vous sûr de vouloir vous déconnecter ?'),
-//                                         actions: [
-//                                           TextButton(
-//                                             onPressed: () =>
-//                                                 Navigator.of(context).pop(),
-//                                             child: const Text('Annuler'),
-//                                           ),
-//                                           TextButton(
-//                                             onPressed: () {
-//                                               Navigator.of(context)
-//                                                   .pushReplacement(
-//                                                 MaterialPageRoute(
-//                                                   builder: (context) =>
-//                                                       const LoginScreen(),
-//                                                 ),
-//                                               );
-//                                             },
-//                                             child: const Text('Déconnexion'),
-//                                           ),
-//                                         ],
-//                                       );
-//                                     },
-//                                   );
-//                                 }
-//                               },
-//                               itemBuilder: (context) => [
-//                                 const PopupMenuItem(
-//                                     value: 'profile', child: Text('Profil')),
-//                                 const PopupMenuItem(
-//                                     value: 'logout', child: Text('Déconnexion')),
-//                               ],
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                       Expanded(
-//                         child: Container(
-//                           color: const Color(0xFFF8F9FA),
-//                           padding: const EdgeInsets.all(24),
-//                           child: _buildScreen(navItems),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-
-//           // Chatbot flottant
-//           const ChatbotLauncher(),
-//         ],
-//       ),
-//     );
-//   }
-// }
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
-// Tes imports d’écrans...
+// Tes imports d'écrans
 import '../screens/admin_commande_screen.dart';
 import '../screens/bon_de_commande_screen.dart';
 import '../screens/bon_de_livraison_screen.dart';
@@ -387,9 +26,9 @@ import '../screens/dashboard_tab.dart';
 import '../screens/charts_tab.dart';
 import '../screens/prediction_tab.dart';
 
-import '../screens/chatbot_lancher.dart'; // Ton widget ChatbotLauncher
+import '../screens/chatbot_lancher.dart'; // Widget ChatbotLauncher
 
-enum ModuleType { stock, immobilisation }
+enum ModuleType { stock, immobilisation, agence }
 
 class MainLayout extends StatefulWidget {
   final ModuleType selectedModule;
@@ -406,85 +45,37 @@ class _MainLayoutState extends State<MainLayout> {
   bool isCollapsed = false;
   bool _playAnimation = false;
   bool statMenuOpen = false;
+  bool showNotificationPanel = false;
 
-  List<Map<String, dynamic>> get navItems {
-    if (widget.selectedModule == ModuleType.stock) {
-      return [
-        {'icon': Icons.shopping_cart_outlined, 'label': 'Commandes'},
-        {
-          'icon': Icons.bar_chart,
-          'label': 'Statistiques',
-          'subItems': [
-            {'icon': Icons.dashboard, 'label': 'Récapitulatif', 'widget': const DashboardTab()},
-            {'icon': Icons.show_chart, 'label': 'Graphes', 'widget': const ChartsTab()},
-            {'icon': Icons.analytics, 'label': 'Prédiction', 'widget': const PredictionTab()},
-          ]
-        },
-        {'icon': Icons.inventory_rounded, 'label': 'Inventaire'},
-        {'icon': Icons.calendar_month, 'label': 'Calendrier'},
-        {'icon': Icons.swap_vert, 'label': 'Mouvement'},
-        {'icon': Icons.production_quantity_limits, 'label': 'Articles'},
-        {'icon': Icons.article, 'label': 'Factures'},
-        {'icon': Icons.receipt_long, 'label': 'Admin commande'},
-        {'icon': Icons.outbox, 'label': 'Bon de livraison'},
-      ];
-    } else {
-      return [
-        {'icon': Icons.task_outlined, 'label': 'Matériels'},
-        {'icon': Icons.swap_vert, 'label': 'Mouvement stock immo'},
-        {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
-        {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
-        {'icon': Icons.fact_check_outlined, 'label': 'Decharge'},
-      ];
-    }
+  late WebSocketChannel _channel;
+  List<String> notifications = [];
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Connexion WebSocket au service Go
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://localhost:8080/ws'),
+    );
+
+    _channel.stream.listen((message) {
+      final data = jsonDecode(message);
+      final description = data['description'] ?? 'Nouvelle notification';
+
+      if (mounted) {
+        setState(() {
+          notifications.add(description);
+          _handleNotificationClick();
+        });
+      }
+    });
   }
 
-  Widget _buildScreen() {
-    if (widget.selectedModule == ModuleType.stock) {
-      if (selectedIndex == 1 && selectedStatTab != null) {
-        final subItem = navItems[1]['subItems']
-            .firstWhere((item) => item['label'] == selectedStatTab);
-        return subItem['widget'];
-      }
-
-      switch (selectedIndex) {
-        case 0:
-          return const BonDeCommandeScreen();
-        case 1:
-          return Center(child: Text('Sélectionnez un sous-menu Statistiques'));
-        case 2:
-          return InventoryManagementScreen();
-        case 3:
-          return const CalendrierLogistiqueScreen();
-        case 4:
-          return const MouvementStockScreen();
-        case 5:
-          return ArticleScreen();
-        case 6:
-          return FactureScreen();
-        case 7:
-          return const AdminCommandeScreen();
-        case 8:
-          return const BonDeLivraisonScreen();
-        default:
-          return const MouvementStockScreen();
-      }
-    } else {
-      switch (selectedIndex) {
-        case 0:
-          return MaterielScreen();
-        case 1:
-          return MouvementStockImmoScreen();
-        case 2:
-          return InventoryImmoManagementScreen();
-        case 3:
-          return StatistiqueImmoScreen();
-        case 4:
-          return DechargeScreen();
-        default:
-          return MaterielScreen();
-      }
-    }
+  @override
+  void dispose() {
+    _channel.sink.close();
+    super.dispose();
   }
 
   void _handleNotificationClick() async {
@@ -507,6 +98,102 @@ class _MainLayoutState extends State<MainLayout> {
     });
   }
 
+  List<Map<String, dynamic>> get navItems {
+    if (widget.selectedModule == ModuleType.stock) {
+      return [
+        // {'icon': Icons.shopping_cart_outlined, 'label': 'Commandes'},
+        
+        {'icon': Icons.inventory_rounded, 'label': 'Inventaire'},
+        {
+          'icon': Icons.bar_chart,
+          'label': 'Statistiques',
+          'subItems': [
+            {'icon': Icons.dashboard, 'label': 'Récapitulatif', 'widget': const DashboardTab()},
+            {'icon': Icons.show_chart, 'label': 'Graphes', 'widget': const ChartsTab()},
+            {'icon': Icons.analytics, 'label': 'Prédiction', 'widget': const PredictionTab()},
+          ]
+        },
+        {'icon': Icons.calendar_month, 'label': 'Calendrier'},
+        {'icon': Icons.swap_vert, 'label': 'Mouvement'},
+        {'icon': Icons.production_quantity_limits, 'label': 'Articles'},
+        {'icon': Icons.article, 'label': 'Factures'},
+        {'icon': Icons.receipt_long, 'label': 'Admin commande'},
+        {'icon': Icons.outbox, 'label': 'Bon de livraison'},
+      ];
+    } else if(widget.selectedModule == ModuleType.immobilisation) {
+      return [
+        {'icon': Icons.task_outlined, 'label': 'Matériels'},
+        {'icon': Icons.swap_vert, 'label': 'Mouvement stock immo'},
+        {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
+        {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
+        {'icon': Icons.fact_check_outlined, 'label': 'Decharge'},
+      ];
+    }
+    else{
+      return [
+        {'icon': Icons.shopping_cart_outlined, 'label': 'Commandes'},
+
+      ];
+
+    }
+  }
+
+  Widget _buildScreen() {
+    if (widget.selectedModule == ModuleType.stock) {
+      if (selectedIndex == 1 && selectedStatTab != null) {
+        final subItem = navItems[1]['subItems']
+            .firstWhere((item) => item['label'] == selectedStatTab);
+        return subItem['widget'];
+      }
+
+      switch (selectedIndex) {
+        case 0:
+          return InventoryManagementScreen();
+
+        case 1:
+          return Center(child: Text('Sélectionnez un sous-menu Statistiques'));
+
+        case 2:
+          return const CalendrierLogistiqueScreen();
+        case 3:
+          return const MouvementStockScreen();
+        case 4:
+          return ArticleScreen();
+        case 5:
+          return FactureScreen();
+        case 6:
+          return const AdminCommandeScreen();
+        case 7:
+          return const BonDeLivraisonScreen();
+        default:
+          return const MouvementStockScreen();
+      }
+    } else if (widget.selectedModule == ModuleType.immobilisation) {
+      switch (selectedIndex) {
+        case 0:
+          return MaterielScreen();
+        case 1:
+          return MouvementStockImmoScreen();
+        case 2:
+          return InventoryImmoManagementScreen();
+        case 3:
+          return StatistiqueImmoScreen();
+        case 4:
+          return DechargeScreen();
+        default:
+          return MaterielScreen();
+      }
+    }
+    else {
+      switch (selectedIndex) {
+        case 0:
+          return const BonDeCommandeScreen();
+        default:
+          return const BonDeCommandeScreen();
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -519,7 +206,7 @@ class _MainLayoutState extends State<MainLayout> {
           Scaffold(
             body: Row(
               children: [
-                // ===== Sidebar =====
+                // Sidebar
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   width: sidebarWidth,
@@ -641,7 +328,6 @@ class _MainLayoutState extends State<MainLayout> {
                                     ),
                                   ),
                                 ),
-
                                 if (item['subItems'] != null &&
                                     statMenuOpen &&
                                     selectedIndex == index)
@@ -726,13 +412,47 @@ class _MainLayoutState extends State<MainLayout> {
                             ShakeX(
                               animate: _playAnimation,
                               duration: const Duration(milliseconds: 600),
-                              child: IconButton(
-                                icon: const Icon(Icons.notifications_none),
-                                onPressed: _handleNotificationClick,
+                              child: Stack(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.notifications_none),
+                                    onPressed: () {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        showNotificationPanel = !showNotificationPanel;
+                                      });
+                                    },
+                                  ),
+                                  if (notifications.isNotEmpty)
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 18,
+                                          minHeight: 18,
+                                        ),
+                                        child: Text(
+                                          '${notifications.length}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
                             ),
                             PopupMenuButton<String>(
-                              icon: const CircleAvatar(
+                              icon: CircleAvatar(
                                 radius: 18,
                                 backgroundImage: AssetImage('assets/profile.jpg'),
                               ),
@@ -793,6 +513,174 @@ class _MainLayoutState extends State<MainLayout> {
             ),
           ),
 
+          // Panneau de notifications
+          if (showNotificationPanel)
+            Positioned(
+              top: 70,
+              right: 24,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 320,
+                  constraints: const BoxConstraints(maxHeight: 400),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // En-tête
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Colors.grey.shade200),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Notifications',
+                              style: GoogleFonts.urbanist(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                if (notifications.isNotEmpty)
+                                  TextButton(
+                                    onPressed: () {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        notifications.clear();
+                                      });
+                                    },
+                                    child: Text(
+                                      'Tout effacer',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, size: 20),
+                                  onPressed: () {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      showNotificationPanel = false;
+                                    });
+                                  },
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Liste des notifications
+                      notifications.isEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.notifications_none,
+                                    size: 48,
+                                    color: Colors.grey.shade300,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Aucune notification',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Flexible(
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                padding: const EdgeInsets.all(8),
+                                itemCount: notifications.length,
+                                separatorBuilder: (context, index) => Divider(
+                                  height: 1,
+                                  color: Colors.grey.shade100,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final notif = notifications[notifications.length - 1 - index];
+                                  return Dismissible(
+                                    key: Key('$notif-$index'),
+                                    direction: DismissDirection.endToStart,
+                                    onDismissed: (_) {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        notifications.removeAt(notifications.length - 1 - index);
+                                      });
+                                    },
+                                    background: Container(
+                                      alignment: Alignment.centerRight,
+                                      padding: const EdgeInsets.only(right: 16),
+                                      color: Colors.red.shade400,
+                                      child: const Icon(
+                                        Icons.delete,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    child: ListTile(
+                                      dense: true,
+                                      leading: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.shade50,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.warning_amber_rounded,
+                                          size: 20,
+                                          color: Colors.red.shade400,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        notif,
+                                        style: GoogleFonts.urbanist(
+                                          fontSize: 13,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      trailing: IconButton(
+                                        icon: Icon(
+                                          Icons.close,
+                                          size: 16,
+                                          color: Colors.grey.shade400,
+                                        ),
+                                        onPressed: () {
+                                          if (!mounted) return;
+                                          setState(() {
+                                            notifications.removeAt(notifications.length - 1 - index);
+                                          });
+                                        },
+                                        padding: EdgeInsets.zero,
+                                        constraints: const BoxConstraints(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // Chatbot flottant
           const ChatbotLauncher(),
         ],
@@ -800,4 +688,3 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 }
-

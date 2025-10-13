@@ -48,6 +48,10 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
   List<Materiel> materiels = [];
 
   bool showInventoryForm = false;
+  bool showManualSelection = false;
+  bool showBarcodeScanning = false;
+  Map<int, int> scannedMateriels = {};
+  List<Materiel> scannedMaterielsList = [];
   
   Future<void> _loadMateriels() async {
     try {
@@ -128,6 +132,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
 
     setState(() {
       showInventoryForm = true;
+      showManualSelection = false;
       physicalStocks.clear();
       selectedMateriels.forEach((materiel) {
         if (materiel.idMateriel != null) {
@@ -135,6 +140,131 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
         }
       });
     });
+  }
+
+  void startManualInventory() {
+    if (selectedEmployees.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Veuillez sélectionner au moins un employé')),
+      );
+      return;
+    }
+    setState(() {
+      showManualSelection = true;
+      showBarcodeScanning = false;
+    });
+  }
+
+  void startBarcodeInventory() {
+    if (selectedEmployees.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Veuillez sélectionner au moins un employé')),
+      );
+      return;
+    }
+    setState(() {
+      showBarcodeScanning = true;
+      showManualSelection = false;
+      scannedMateriels.clear();
+      scannedMaterielsList.clear();
+    });
+  }
+
+  void handleBarcodeScanned(String barcode) {
+    Materiel? foundMateriel;
+    try {
+      foundMateriel = materiels.firstWhere(
+        (m) => m.code == barcode,
+      );
+    } catch (e) {
+      foundMateriel = null;
+    }
+
+    if (foundMateriel != null && foundMateriel.idMateriel != null) {
+      setState(() {
+        if (scannedMateriels.containsKey(foundMateriel!.idMateriel)) {
+          scannedMateriels[foundMateriel.idMateriel!] = 
+            scannedMateriels[foundMateriel.idMateriel!]! + 1;
+        } else {
+          scannedMateriels[foundMateriel.idMateriel!] = 1;
+          scannedMaterielsList.add(foundMateriel);
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Matériel scanné: ${foundMateriel.designation}'),
+          duration: Duration(seconds: 1),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Code barre non trouvé: $barcode'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void removeScannedMateriel(int idMateriel) {
+    setState(() {
+      scannedMateriels.remove(idMateriel);
+      scannedMaterielsList.removeWhere((m) => m.idMateriel == idMateriel);
+    });
+  }
+
+  void saveBarcodeInventory() async {
+    try {
+      List<InventaireMateriel> inventaireMateriels = [];
+
+      for (var materiel in scannedMaterielsList) {
+        if (materiel.idMateriel != null) {
+          double physicalStock = scannedMateriels[materiel.idMateriel!]!.toDouble();
+          double theoreticalStock = 1;
+          double ecart = physicalStock - theoreticalStock;
+
+          inventaireMateriels.add(
+            InventaireMateriel(
+              materiel: materiel,
+              stockTheorique: theoreticalStock,
+              stockPhysique: physicalStock,
+              ecart: ecart,
+            ),
+          );
+        }
+      }
+
+      InventaireService service = InventaireService();
+      bool success = await service.faireInventaireImmo(
+        materiels: inventaireMateriels,
+        employes: List.from(selectedEmployees),
+      );
+
+      if (success) {
+        await _loadInventory();
+
+        setState(() {
+          showBarcodeScanning = false;
+          selectedEmployees.clear();
+          scannedMateriels.clear();
+          scannedMaterielsList.clear();
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Inventaire enregistré avec succès !')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erreur lors de l\'enregistrement de l\'inventaire.')),
+        );
+      }
+    } catch (e) {
+      print('Erreur : $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : $e')),
+      );
+    }
   }
 
   void saveInventory() async {
@@ -168,15 +298,9 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
       );
 
       if (success) {
-        InventaireImmo newInventory = InventaireImmo(
-          id: DateTime.now().millisecondsSinceEpoch,
-          date: selectedDate,
-          materiels: inventaireMateriels,
-          employes: List.from(selectedEmployees),
-        );
+        await _loadInventory();
 
         setState(() {
-          inventoryData.add(newInventory);
           showInventoryForm = false;
           selectedEmployees.clear();
           selectedMateriels.clear();
@@ -201,8 +325,12 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
   void cancelInventory() {
     setState(() {
       showInventoryForm = false;
+      showManualSelection = false;
+      showBarcodeScanning = false;
       selectedEmployees.clear();
       selectedMateriels.clear();
+      scannedMateriels.clear();
+      scannedMaterielsList.clear();
     });
   }
 
@@ -318,8 +446,11 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
               children: [
                 _buildHeader(),
                 SizedBox(height: 20),
-                if (!showInventoryForm) _buildNewInventoryForm(),
+                if (!showInventoryForm && !showManualSelection && !showBarcodeScanning) 
+                  _buildNewInventoryForm(),
                 SizedBox(height: 10),
+                if (showManualSelection) _buildManualSelectionForm(),
+                if (showBarcodeScanning) _buildBarcodeScanningForm(),
                 if (showInventoryForm) _buildInventoryForm(),
                 _buildInventoryList(),
               ],
@@ -400,10 +531,341 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
           _buildDateSelector(),
           SizedBox(height: 20),
           _buildEmployeeSelector(),
-          SizedBox(height: 20),
+          SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: startManualInventory,
+                  icon: Icon(Icons.list_alt),
+                  label: Text('Inventaire manuel'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFFF9B70D),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: startBarcodeInventory,
+                  icon: Icon(Icons.qr_code_scanner),
+                  label: Text('Inventaire par code-barre'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[700],
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildManualSelectionForm() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(24),
+      margin: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Sélection manuelle des matériels',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              IconButton(
+                onPressed: cancelInventory,
+                icon: Icon(Icons.close, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          SizedBox(height: 24),
           _buildMaterielSelector(),
           SizedBox(height: 24),
-          _buildStartInventoryButton(),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: startInventory,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFFF9B70D),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Démarrer l\'inventaire',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: cancelInventory,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[500],
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Annuler',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBarcodeScanningForm() {
+    TextEditingController barcodeController = TextEditingController();
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(24),
+      margin: EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Inventaire par code-barre',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              IconButton(
+                onPressed: cancelInventory,
+                icon: Icon(Icons.close, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          SizedBox(height: 16),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue[700]),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Scannez les codes-barres des matériels avec votre scanner OY20S',
+                    style: TextStyle(fontSize: 14, color: Colors.blue[700]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+          TextField(
+            controller: barcodeController,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Scanner ou saisir le code-barre',
+              prefixIcon: Icon(Icons.qr_code_scanner),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.blue[700]!),
+              ),
+            ),
+            onSubmitted: (value) {
+              if (value.isNotEmpty) {
+                handleBarcodeScanned(value);
+                barcodeController.clear();
+              }
+            },
+          ),
+          SizedBox(height: 24),
+          if (scannedMaterielsList.isNotEmpty) ...[
+            Text(
+              'Matériels scannés (${scannedMaterielsList.length})',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+            ),
+            SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                columns: [
+                  DataColumn(label: Text('Matériel')),
+                  DataColumn(label: Text('Stock physique')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: scannedMaterielsList.map((materiel) {
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              materiel.designation ?? 'N/A',
+                              style: TextStyle(fontWeight: FontWeight.w500),
+                            ),
+                            Text(
+                              'Code: ${materiel.code ?? 'N/A'}',
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                      ),
+                      DataCell(
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.green[100],
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${scannedMateriels[materiel.idMateriel!]}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[800],
+                            ),
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red[600]),
+                          onPressed: () => removeScannedMateriel(materiel.idMateriel!),
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+            SizedBox(height: 24),
+          ],
+          if (scannedMaterielsList.isEmpty)
+            Container(
+              padding: EdgeInsets.all(32),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.qr_code_scanner, size: 64, color: Colors.grey[400]),
+                    SizedBox(height: 16),
+                    Text(
+                      'Aucun matériel scanné',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Row(
+            children: [
+              ElevatedButton(
+                onPressed: scannedMaterielsList.isEmpty ? null : saveBarcodeInventory,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[700],
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Enregistrer l\'inventaire',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: cancelInventory,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.grey[500],
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Annuler',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -558,27 +1020,6 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
     );
   }
 
-  Widget _buildStartInventoryButton() {
-    return ElevatedButton(
-      onPressed: startInventory,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Color(0xFFF9B70D),
-        foregroundColor: Colors.white,
-        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-      child: Text(
-        'Démarrer l\'inventaire',
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
   Widget _buildInventoryForm() {
     return Container(
       width: double.infinity,
@@ -657,6 +1098,9 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
   List<Widget> _buildMaterielInputs() {
     return selectedMateriels.map((materiel) {
       double theoreticalStock = 1;
+      if (!physicalStockControllers.containsKey(materiel.idMateriel!)) {
+        physicalStockControllers[materiel.idMateriel!] = TextEditingController();
+      }
       return Container(
         margin: EdgeInsets.only(bottom: 16),
         padding: EdgeInsets.all(16),
@@ -717,7 +1161,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
           controller: physicalStockControllers[materiel.idMateriel!],
           keyboardType: TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
           ],
           decoration: InputDecoration(
             hintText: 'Quantité',

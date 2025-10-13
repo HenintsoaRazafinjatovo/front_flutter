@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../layout/main_layout.dart'; 
+import '../services/userService.dart';
 import 'homePage_screen.dart';
+import '../models/user.dart';
+import '../layout/main_layout.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,30 +13,163 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _authService = AuthService();
   String email = '';
   String password = '';
   bool isLoading = false;
 
-  void login() {
-    if (_formKey.currentState!.validate()) {
-      setState(() => isLoading = true);
+Future<void> login() async {
+  if (_formKey.currentState!.validate()) {
+    setState(() => isLoading = true);
 
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => isLoading = false);
+    final result = await _authService.login(email.trim(), password);
 
-        // Redirection vers le dashboard (MainLayout)
+    setState(() => isLoading = false);
+
+    if (!mounted) return;
+
+    if (result['success']) {
+      final user = result['user'] as User;
+
+      if (user.profil.id == 8) {
+       
         Navigator.pushReplacement(
-          // ignore: use_build_context_synchronously
+          context,
+          MaterialPageRoute(
+            builder: (_) => const MainLayout(selectedModule: ModuleType.agence),
+          ),
+        );
+      } else {
+       
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const HomePage()),
         );
-
-        // ignore: use_build_context_synchronously
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Connexion réussie !')),
-        );
-      });
+      }
+    } else {
+      _showMinimalDialog(
+        context,
+        title: "Erreur",
+        message: result['message'],
+        icon: Icons.error_outline,
+        color: Colors.red,
+      );
     }
+  }
+}
+// Future<void> login() async {
+//   if (_formKey.currentState!.validate()) {
+//     setState(() => isLoading = true);
+
+//     try {
+//       // Appel du service
+//       final result = await _authService.login(email.trim(), password);
+
+//       setState(() => isLoading = false);
+
+//       if (!mounted) return;
+
+//       if (result['success']) {
+//         // Récupération de l'utilisateur
+//         final user = result['user'] as User;
+
+//         // Redirection selon le profil
+//         if (user.profil.id == 8) {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(
+//               builder: (_) =>
+//                   const MainLayout(selectedModule: ModuleType.agence),
+//             ),
+//           );
+//         } else {
+//           Navigator.pushReplacement(
+//             context,
+//             MaterialPageRoute(builder: (_) => const HomePage()),
+//           );
+//         }
+//       } else {
+//         // Affiche une petite fenêtre minimaliste en cas d’erreur
+//         _showMinimalDialog(
+//           context,
+//           title: "Erreur",
+//           message: result['message'],
+//           icon: Icons.error_outline,
+//           color: Colors.red,
+//         );
+//       }
+//     } catch (e) {
+//       setState(() => isLoading = false);
+//       _showMinimalDialog(
+//         context,
+//         title: "Erreur",
+//         message: "Erreur de connexion: $e",
+//         icon: Icons.error_outline,
+//         color: Colors.red,
+//       );
+//     }
+//   }
+// }
+
+ void _showMinimalDialog(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required IconData icon,
+    required Color color,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: true, // on peut cliquer à l’extérieur pour fermer
+      builder: (_) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: const EdgeInsets.all(40),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: color, size: 50),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 15),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    "OK",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -65,19 +200,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Center(
                   child: Image.asset(
                     'assets/logo2.jpeg',
-                    height: 100, // ajuste selon la taille de ton logo
+                    height: 100,
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Text(
-                //   'Veuillez vous connecter pour continuer',
-                //   style: GoogleFonts.poppins(
-                //     fontSize: 16,
-                //     color: Colors.black54,
-                //   ),
-                // ),
-                // const SizedBox(height: 32),
-
                 Form(
                   key: _formKey,
                   child: Column(
@@ -87,19 +213,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
                           labelText: 'Email',
-                          prefixIcon: Icon(Icons.email_outlined, color: Color(0xFFF9B70D)),
+                          prefixIcon: Icon(Icons.email_outlined,
+                              color: Color(0xFFF9B70D)),
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFFF9B70D)),
+                            borderSide:
+                                BorderSide(color: Color(0xFFF9B70D)),
                           ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Email requis';
                           }
-                          if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
-                            return 'Email invalide';
-                          }
+                          // if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
+                          //   return 'Email invalide';
+                          // }
                           return null;
                         },
                         onChanged: (val) => email = val,
@@ -111,18 +239,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: true,
                         decoration: const InputDecoration(
                           labelText: 'Mot de passe',
-                          prefixIcon: Icon(Icons.lock_outline, color:Color(0xFFF9B70D)),
+                          prefixIcon: Icon(Icons.lock_outline,
+                              color: Color(0xFFF9B70D)),
                           border: OutlineInputBorder(),
                           focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color:  Color(0xFFF9B70D)),
+                            borderSide:
+                                BorderSide(color: Color(0xFFF9B70D)),
                           ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Mot de passe requis';
-                          }
-                          if (value.length < 6) {
-                            return 'Minimum 6 caractères';
                           }
                           return null;
                         },
@@ -137,7 +264,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: isLoading ? null : login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFF9B70D),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: isLoading
                               ? const SizedBox(

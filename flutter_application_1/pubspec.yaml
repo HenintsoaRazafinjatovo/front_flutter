@@ -26,6 +26,8 @@ dependencies:
   audioplayers: ^6.0.0
   vibration: ^1.9.0
   animate_do: ^3.3.4
+  web_socket_channel: ^3.0.3
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

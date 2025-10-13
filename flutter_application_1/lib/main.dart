@@ -1,4 +1,5 @@
 
+import 'package:flareline_template/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'layout/main_layout.dart';
 import 'package:google_fonts/google_fonts.dart'; // <-- Assure-toi que ce chemin est correct
@@ -20,9 +21,8 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      // home: const LoginScreen(),
-      home: const MainLayout(selectedModule: ModuleType.immobilisation), // <-- Affiche la page de connexion en premier
-       // <-- Affiche la page de connexion en premier
+      home: const MainLayout(selectedModule: ModuleType.immobilisation),
+    //  home: LoginScreen(),
     );
   }
 }

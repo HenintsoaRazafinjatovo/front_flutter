@@ -904,7 +904,7 @@ void showOrderDetails(BonDeCommande order) {
             ),
             child: Row (
               children: [
-                Expanded(flex: 2, child: Text('N° Commande', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
+                Expanded(flex: 4, child: Text('N° Commande', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
                 Expanded(flex: 2, child: Text('Date', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
                 Expanded(flex: 3, child: Text('Agence', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
                 Expanded(flex: 2, child: Text('Articles', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
@@ -925,8 +925,16 @@ void showOrderDetails(BonDeCommande order) {
             ),
             child: Row(
               children: [
-                Expanded(flex: 2, child: Text(order.idBonDeCommande.toString(), style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600))),
-                Expanded(flex: 2, child: Text(order.dateBonDeCommande.toString(), style: GoogleFonts.poppins(fontSize: 15))),
+                Expanded(flex: 4, child: Text(order.reference ?? ' ', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600))),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                  order.dateBonDeCommande != null
+                    ? "${order.dateBonDeCommande.year.toString().padLeft(4, '0')}/${order.dateBonDeCommande.month.toString().padLeft(2, '0')}/${order.dateBonDeCommande.day.toString().padLeft(2, '0')}"
+                    : '',
+                  style: GoogleFonts.poppins(fontSize: 15),
+                  ),
+                ),
                 // FIXED: Use null-aware operator instead of null assertion operator
                 Expanded(flex: 3, child: Text(order.agence?.codeAgence ?? 'N/A', style: GoogleFonts.poppins(fontSize: 15))),
                 Expanded(
@@ -943,21 +951,21 @@ void showOrderDetails(BonDeCommande order) {
                   flex: 3,
                   child: Row(
                     children: [
-                      _buildActionButton(Icons.more_horiz_sharp, const Color.fromARGB(255, 132, 134, 134), () => showOrderDetails(order)),
+                      _buildActionButton(Icons.remove_red_eye,  Color(0xFFF9B70D), () => showOrderDetails(order)),
                       if (showActions && order.status_commande == 'En attente') ...[
                         const SizedBox(width: 4),
                         _buildActionButton(Icons.check_circle, Colors.green, () => validateOrder(order)),
                         const SizedBox(width: 4),
                         _buildActionButton(Icons.cancel, Colors.red, () => rejectOrder(order)),
                       ],
-                      if (order.status_commande == 'Validée') ...[
-                        const SizedBox(width: 4),
-                        _buildActionButton(Icons.receipt, const Color(0xFF0C8D68), () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Bon de sortie créé')),
-                          );
-                        }),
-                      ],
+                      // if (order.status_commande == 'Validée') ...[
+                      //   const SizedBox(width: 4),
+                      //   _buildActionButton(Icons.receipt, const Color(0xFF0C8D68), () {
+                      //     ScaffoldMessenger.of(context).showSnackBar(
+                      //       const SnackBar(content: Text('Bon de sortie créé')),
+                      //     );
+                      //   }),
+                      // ],
                     ],
                   ),
                 ),

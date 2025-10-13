@@ -2072,7 +2072,7 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                                                   padding: EdgeInsets.all(4),
                                                 ),
                                                 IconButton(
-                                                  icon: Icon(Icons.qr_code, 
+                                                  icon: Icon(Icons.barcode_reader, 
                                                       color: const Color.fromARGB(255, 49, 34, 34),
                                                       size: 20),
                                                   tooltip: 'Imprimer le QR Code',

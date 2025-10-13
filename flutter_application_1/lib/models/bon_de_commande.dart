@@ -9,6 +9,7 @@ class BonDeCommande {
   final double? total;
   final List<CommandeArticle>? articles;
   final String? description;
+  final String? reference;
   String? status_commande;
   bool? bon_de_sortie;
 
@@ -22,6 +23,7 @@ class BonDeCommande {
     this.bon_de_sortie,
    this.description,
     this.status_commande,
+    this.reference,
   });
 
   factory BonDeCommande.fromJson(Map<String, dynamic> json) {
@@ -33,6 +35,7 @@ class BonDeCommande {
     return BonDeCommande(
       idBonDeCommande: json['id_bon_de_commande'],
       dateBonDeCommande: DateTime.parse(json['date_bon_de_commande']),
+      reference: json['reference'] ?? '',
       agence: json['agence'] != null ? Agence.fromJson(json['agence']) : null,
       nbArticle: json['nb_article'] ?? 0,
       total: (json['total'] != null)

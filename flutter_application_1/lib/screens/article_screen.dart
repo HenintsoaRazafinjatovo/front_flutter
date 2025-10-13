@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/article.dart';
 import '../services/articleService.dart';
 import '../services/categorieService.dart';
+import '../screens/authGard_screen.dart';
 
 void main() {
   runApp(ArticleScreen());
@@ -20,7 +21,9 @@ class ArticleScreen extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Poppins',
       ),
-      home: GestionArticlesPage(),
+      home: const AuthGuard(
+        child: GestionArticlesPage(), 
+      ),
     );
   }
 }

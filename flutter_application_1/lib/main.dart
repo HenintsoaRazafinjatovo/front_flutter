@@ -1,4 +1,5 @@
 
+import 'package:flareline_template/screens/authGard_screen.dart';
 import 'package:flareline_template/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'layout/main_layout.dart';
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const MainLayout(selectedModule: ModuleType.immobilisation),
+      home: const AuthGuard(child: MainLayout(selectedModule: ModuleType.immobilisation)),
     //  home: LoginScreen(),
     );
   }

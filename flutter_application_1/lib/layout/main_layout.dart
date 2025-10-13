@@ -25,6 +25,7 @@ import '../screens/decharge_screen.dart';
 import '../screens/dashboard_tab.dart';
 import '../screens/charts_tab.dart';
 import '../screens/prediction_tab.dart';
+import '../screens/authGard_screen.dart';
 
 import '../screens/chatbot_lancher.dart'; // Widget ChatbotLauncher
 
@@ -154,19 +155,29 @@ class _MainLayoutState extends State<MainLayout> {
           return Center(child: Text('Sélectionnez un sous-menu Statistiques'));
 
         case 2:
-          return const CalendrierLogistiqueScreen();
+          return const AuthGuard(
+        child: CalendrierLogistiqueScreen(),
+      ); 
         case 3:
-          return const MouvementStockScreen();
+          return const AuthGuard(
+        child: MouvementStockScreen(),
+          );
         case 4:
           return ArticleScreen();
         case 5:
           return FactureScreen();
         case 6:
-          return const AdminCommandeScreen();
+          return const AuthGuard(
+        child: AdminCommandeScreen(),
+      );
         case 7:
-          return const BonDeLivraisonScreen();
+          return const AuthGuard(
+        child: BonDeLivraisonScreen(),
+      );
         default:
-          return const MouvementStockScreen();
+          return const AuthGuard(
+            child: MouvementStockImmoScreen(),
+          );
       }
     } else if (widget.selectedModule == ModuleType.immobilisation) {
       switch (selectedIndex) {

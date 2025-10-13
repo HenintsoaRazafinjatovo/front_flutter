@@ -184,11 +184,11 @@ void showOrderDetails(BonDeCommande order) {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Numéro de commande',
+                                Text('Réference de commande',
                                     style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         color: Colors.black54)),
-                                Text(order.idBonDeCommande.toString(),
+                                Text(order.reference.toString(),
                                     style: GoogleFonts.poppins(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600)),

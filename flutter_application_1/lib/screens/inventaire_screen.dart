@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flareline_template/screens/authGard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/article.dart' show Article;
@@ -22,7 +23,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         primarySwatch: Colors.orange,
       ),
-      home: InventoryManagementScreen(),
+      home: AuthGuard(child: InventoryManagementScreen()),
     );
   }
 }

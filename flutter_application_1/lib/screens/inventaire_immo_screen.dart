@@ -53,6 +53,10 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
   Map<int, int> scannedMateriels = {};
   List<Materiel> scannedMaterielsList = [];
   
+  // FocusNode pour le scanner de code-barres
+  final FocusNode barcodeFocusNode = FocusNode();
+  final TextEditingController barcodeController = TextEditingController();
+  
   Future<void> _loadMateriels() async {
     try {
       final loadedMateriels = await MaterielService().getAllMaterielsList();
@@ -113,6 +117,8 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
     physicalStockControllers.values.forEach((controller) {
       controller.dispose();
     });
+    barcodeFocusNode.dispose();
+    barcodeController.dispose();
     super.dispose();
   }
 
@@ -167,6 +173,11 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
       showManualSelection = false;
       scannedMateriels.clear();
       scannedMaterielsList.clear();
+      barcodeController.clear();
+    });
+    // Assurer que le focus est mis après le build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      barcodeFocusNode.requestFocus();
     });
   }
 
@@ -331,6 +342,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
       selectedMateriels.clear();
       scannedMateriels.clear();
       scannedMaterielsList.clear();
+      barcodeController.clear();
     });
   }
 
@@ -658,8 +670,6 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
   }
 
   Widget _buildBarcodeScanningForm() {
-    TextEditingController barcodeController = TextEditingController();
-    
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(24),
@@ -718,6 +728,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
           SizedBox(height: 24),
           TextField(
             controller: barcodeController,
+            focusNode: barcodeFocusNode,
             autofocus: true,
             decoration: InputDecoration(
               labelText: 'Scanner ou saisir le code-barre',
@@ -734,6 +745,12 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
               if (value.isNotEmpty) {
                 handleBarcodeScanned(value);
                 barcodeController.clear();
+                // Maintenir le focus après le scan
+                Future.delayed(Duration(milliseconds: 50), () {
+                  if (barcodeFocusNode.canRequestFocus) {
+                    barcodeFocusNode.requestFocus();
+                  }
+                });
               }
             },
           ),
@@ -799,7 +816,15 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
                       DataCell(
                         IconButton(
                           icon: Icon(Icons.delete, color: Colors.red[600]),
-                          onPressed: () => removeScannedMateriel(materiel.idMateriel!),
+                          onPressed: () {
+                            removeScannedMateriel(materiel.idMateriel!);
+                            // Remettre le focus après suppression
+                            Future.delayed(Duration(milliseconds: 50), () {
+                              if (barcodeFocusNode.canRequestFocus) {
+                                barcodeFocusNode.requestFocus();
+                              }
+                            });
+                          },
                         ),
                       ),
                     ],

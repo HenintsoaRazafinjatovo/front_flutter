@@ -1,4 +1,5 @@
 import 'package:flareline_template/models/bon_de_livraison.dart';
+import 'package:flareline_template/screens/authGard_screen.dart';
 import 'package:flutter/material.dart';
 import '../models/facture.dart';
 import '../models/article.dart'; 
@@ -23,7 +24,7 @@ class FactureScreen extends StatelessWidget {
         fontFamily: 'Inter',
       ),
       debugShowCheckedModeBanner: false,
-      home: InvoiceScreen(),
+      home: const AuthGuard(child: InvoiceScreen()),
     );
   }
 }

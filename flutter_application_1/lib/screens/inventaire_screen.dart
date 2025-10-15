@@ -878,13 +878,6 @@ Widget _buildPaginationControls() {
                   color: Colors.grey[800],
                 ),
               ),
-              Text(
-                'Total: ${inventoryData.length} inventaire(s)',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
-              ),
             ],
           ),
           SizedBox(height: 24),

@@ -335,13 +335,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                             ),
                           ),
                           SizedBox(height: 4),
-                          Text(
-                            'Total: ${filteredInvoices.length} facture(s)',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
+                    
                         ],
                       ),
                       ElevatedButton.icon(

@@ -390,11 +390,49 @@ class _MainLayoutState extends State<MainLayout> {
                                       }),
                                     ),
                                   ),
+                                  
                               ],
+                              
                             );
                           },
                         ),
+                        
                       ),
+                      ElevatedButton.icon(
+                         onPressed: () {
+                              if (widget.selectedModule == ModuleType.stock) {
+                                Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const MainLayout(
+                                  selectedModule: ModuleType.immobilisation,
+                                  ),
+                                ),
+                                );
+                              } else if (widget.selectedModule == ModuleType.immobilisation) {
+                                Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                  builder: (context) => const MainLayout(
+                                  selectedModule: ModuleType.stock,
+                                  ),
+                                ),
+                                );
+                              }
+                              },
+                              icon: Icon(
+                              widget.selectedModule == ModuleType.stock
+                                ? Icons.business
+                                : Icons.store,
+                              ),
+                              label: Text(
+                              widget.selectedModule == ModuleType.stock
+                                ? 'Immobilisation'
+                                : 'Stock',
+                              ),
+                              style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(243, 217, 15, 52),
+                              foregroundColor: Colors.white,
+                              ),
+                            ),     
                     ],
                   ),
                 ),
@@ -419,6 +457,7 @@ class _MainLayoutState extends State<MainLayout> {
                         ),
                         child: Row(
                           children: [
+                            
                             const Spacer(),
                             ShakeX(
                               animate: _playAnimation,

@@ -48,6 +48,17 @@ class BonDeLivraisonService {
       throw Exception('Erreur lors de la récupération des bons de livraison : ${response.statusCode}');
     }
   }
+  Future<List<BonDeLivraison>> getBonDeLivraisonWithoutFacture() async {
+    final response = await http.get(Uri.parse('$baseUrl/getBonsDeLivraisonSansFacture'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((item) => BonDeLivraison.fromJson(item)).toList();
+    } else {
+      print("Erreur : " + response.body);
+      throw Exception('Erreur lors de la récupération des bons de livraison : ${response.statusCode}');
+    }
+  }
 
   // Récupérer un bon de livraison par ID
   Future<BonDeLivraison> getBonDeLivraisonById(int id) async {

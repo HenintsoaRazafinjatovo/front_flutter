@@ -785,7 +785,7 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Liste des Matériels (${filteredMateriels.length})',
+                      'Liste des Matériels',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

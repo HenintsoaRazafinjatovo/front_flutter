@@ -57,59 +57,7 @@ Future<void> login() async {
     }
   }
 }
-// Future<void> login() async {
-//   if (_formKey.currentState!.validate()) {
-//     setState(() => isLoading = true);
 
-//     try {
-//       // Appel du service
-//       final result = await _authService.login(email.trim(), password);
-
-//       setState(() => isLoading = false);
-
-//       if (!mounted) return;
-
-//       if (result['success']) {
-//         // Récupération de l'utilisateur
-//         final user = result['user'] as User;
-
-//         // Redirection selon le profil
-//         if (user.profil.id == 8) {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(
-//               builder: (_) =>
-//                   const MainLayout(selectedModule: ModuleType.agence),
-//             ),
-//           );
-//         } else {
-//           Navigator.pushReplacement(
-//             context,
-//             MaterialPageRoute(builder: (_) => const HomePage()),
-//           );
-//         }
-//       } else {
-//         // Affiche une petite fenêtre minimaliste en cas d’erreur
-//         _showMinimalDialog(
-//           context,
-//           title: "Erreur",
-//           message: result['message'],
-//           icon: Icons.error_outline,
-//           color: Colors.red,
-//         );
-//       }
-//     } catch (e) {
-//       setState(() => isLoading = false);
-//       _showMinimalDialog(
-//         context,
-//         title: "Erreur",
-//         message: "Erreur de connexion: $e",
-//         icon: Icons.error_outline,
-//         color: Colors.red,
-//       );
-//     }
-//   }
-// }
 
  void _showMinimalDialog(
     BuildContext context, {

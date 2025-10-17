@@ -1,5 +1,6 @@
 import 'package:flareline_template/models/bon_de_commande.dart';
 import 'package:flareline_template/services/bon_de_commandeService.dart';
+import '../services/statistiqueService.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -19,6 +20,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
   int totalCommandes = 0;
   List<BonDeCommande> orders = [];
   List<BonDeCommande> ordersEnAttente = [];
+  Map<String,dynamic> statCommandes = {};
 
  // Getter pour obtenir les commandes paginées de la page courante
   List<BonDeCommande> get paginatedCommandes => orders;
@@ -34,10 +36,30 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
       return statusMatch && agencyMatch;
     }).toList();
   }
-  int get pendingCount => orders.where((o) => o.status_commande == 'En attente').length;
-  int get validatedCount => orders.where((o) => o.status_commande == 'Validée').length;
-  int get rejectedCount => orders.where((o) => o.status_commande == 'Rejetée').length;
-  int get totalCount => orders.length;
+
+  int pendingCount = 0;
+  int validatedCount = 0;
+  int rejectedCount = 0;
+  int totalCount = 0;
+
+
+   Future<void> fetchStatistics() async {
+    try {
+      StatistiqueService service = StatistiqueService();
+      Map<String, dynamic> stats = await service.buildStatCommande();
+      setState(() {
+       
+
+        pendingCount = stats['nb_commandes_en_attente'] ?? 0;
+        validatedCount = stats['nb_commandes_validees'] ?? 0;
+        rejectedCount = stats['nb_commandes_annulees'] ?? 0;
+        totalCount = stats['nb_total_commandes'] ?? 0;
+      });
+    } catch (e) {
+      print("Erreur lors de la récupération des statistiques: $e");
+      
+    }
+  }
 
   Future<void> validateOrder(BonDeCommande order) async {
     try {
@@ -90,6 +112,7 @@ class _AdminCommandeScreenState extends State<AdminCommandeScreen> {
     super.initState();
      _loadCommandes();
     _loadCommandesEnAttente();
+    fetchStatistics();
   }
   Future<void> rejectOrder(BonDeCommande order) async {
     showDialog(
@@ -435,7 +458,7 @@ void showOrderDetails(BonDeCommande order) {
                     if (order.status_commande == 'En attente') ...[
                       ElevatedButton(
                         onPressed: hasInsufficientStock
-                            ? null // 🔴 désactivé uniquement si en attente & stock insuffisant
+                            ? null 
                             : () {
                                 validateOrder(order);
                                 Navigator.pop(context);
@@ -489,7 +512,6 @@ void showOrderDetails(BonDeCommande order) {
                   ],
                 ),
 
-                // ⚠️ Message seulement si stock insuffisant ET commande en attente
                 if (order.status_commande == 'En attente' &&
                     hasInsufficientStock) ...[
                   const SizedBox(height: 12),
@@ -545,7 +567,6 @@ void showOrderDetails(BonDeCommande order) {
               },
       ),
 
-      // 🔥 Current page avec background color
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(

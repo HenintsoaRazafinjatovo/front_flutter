@@ -480,9 +480,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           columns: [
                             DataColumn(
                               label: SizedBox(
-                                width: colNumFacture,
+                                width: colNumFacture+50,
                                 child: Text(
-                                  'N° Facture',
+                                  'Reference',
                                   textAlign: TextAlign.center,
                                 ),
                               ),
@@ -541,9 +541,9 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                               cells: [
                                 DataCell(
                                   SizedBox(
-                                    width: colNumFacture,
+                                    width: colNumFacture+100,
                                     child: Text(
-                                      invoice.idFacture.toString(),
+                                      invoice.reference.toString(),
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -588,7 +588,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                   SizedBox(
                                     width: colHT,
                                     child: Text(
-                                      '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2) : '0.00'} Ar',
+                                        '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ') : '0.00'} Ar',
                                       textAlign: TextAlign.right,
                                     ),
                                   ),
@@ -597,7 +597,7 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                                   SizedBox(
                                     width: colTTC,
                                     child: Text(
-                                      '${invoice.montantTtc != null ? invoice.montantTtc!.toStringAsFixed(2) : '0.00'} Ar',
+                                        '${invoice.montantTtc != null ? invoice.montantTtc!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ') : '0.00'} Ar',
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                       ),

@@ -1,4 +1,5 @@
 
+import 'agence.dart';
 class Profil {
   final int id;
   final String nom;
@@ -23,40 +24,13 @@ class Profil {
   }
 }
 
-class Unite {
-  final String uteVcode;
-  final String uteVnom;
-  final String libelle;
-
-  Unite({
-    required this.uteVcode,
-    required this.uteVnom,
-    required this.libelle,
-  });
-
-  factory Unite.fromJson(Map<String, dynamic> json) {
-    return Unite(
-      uteVcode: json['ute_vcode'],
-      uteVnom: json['ute_vnom'],
-      libelle: json['libelle'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'ute_vcode': uteVcode,
-      'ute_vnom': uteVnom,
-      'libelle': libelle,
-    };
-  }
-}
-
 class User {
   final String name;
   final String? email;
   final String password;
   final Profil profil;
-  final List<Unite> unites;
+  final List<Agence> unites;
+  final String user_vpercode;
 
   User({
     required this.name,
@@ -64,6 +38,7 @@ class User {
     required this.password,
     required this.profil,
     required this.unites,
+    required this.user_vpercode,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -71,9 +46,10 @@ class User {
       name: json['name'] ?? '',
       email: json['email'],
       password: json['password'] ?? '',
+      user_vpercode: json['user_vpercode'] ?? '',
       profil: Profil.fromJson(json['profil']),
       unites: (json['unites'] as List<dynamic>)
-          .map((u) => Unite.fromJson(u))
+          .map((u) => Agence.fromJson(u))
           .toList(),
     );
   }
@@ -85,6 +61,7 @@ class User {
       'password': password,
       'profil': profil.toJson(),
       'unites': unites.map((u) => u.toJson()).toList(),
+      'user_vpercode': user_vpercode,
     };
   }
 }

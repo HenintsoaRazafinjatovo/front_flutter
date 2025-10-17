@@ -401,14 +401,14 @@ class InvoiceDetailScreen extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  '${item.article?.prix?.toStringAsFixed(2) ?? '0.00'} ',
+                                    '${item.article?.prix?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} ',
                                   textAlign: TextAlign.right,
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  '${item.totalArticle != null ? item.totalArticle!.toStringAsFixed(2) : '0.00'} ',
+                                    '${item.totalArticle != null ? item.totalArticle!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') : '0.00'} ',
                                   textAlign: TextAlign.right,
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
@@ -447,7 +447,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 16),
                           ),
                           Text(
-                            '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2) : '0.00'} ',
+                            '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') : '0.00'} ',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -464,7 +464,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 16),
                           ),
                           Text(
-                            '${invoice.montantTva?.toStringAsFixed(2) ?? '0.00'} ',
+                            '${invoice.montantTva?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} ',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -484,7 +484,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            '${invoice.montantTtc?.toStringAsFixed(2) ?? '0.00'} Ar',
+                            '${invoice.montantTtc?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} Ar',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

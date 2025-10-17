@@ -103,8 +103,12 @@ class _MainLayoutState extends State<MainLayout> {
     if (widget.selectedModule == ModuleType.stock) {
       return [
         // {'icon': Icons.shopping_cart_outlined, 'label': 'Commandes'},
-        
+        {'icon': Icons.receipt_long, 'label': 'Admin commande'},
+        {'icon': Icons.production_quantity_limits, 'label': 'Articles'},
         {'icon': Icons.inventory_rounded, 'label': 'Inventaire'},
+        {'icon': Icons.swap_vert, 'label': 'Mouvement'},
+        {'icon': Icons.article, 'label': 'Factures'},
+        {'icon': Icons.outbox, 'label': 'Bon de livraison'},
         {
           'icon': Icons.bar_chart,
           'label': 'Statistiques',
@@ -115,19 +119,15 @@ class _MainLayoutState extends State<MainLayout> {
           ]
         },
         {'icon': Icons.calendar_month, 'label': 'Calendrier'},
-        {'icon': Icons.swap_vert, 'label': 'Mouvement'},
-        {'icon': Icons.production_quantity_limits, 'label': 'Articles'},
-        {'icon': Icons.article, 'label': 'Factures'},
-        {'icon': Icons.receipt_long, 'label': 'Admin commande'},
-        {'icon': Icons.outbox, 'label': 'Bon de livraison'},
+        
       ];
     } else if(widget.selectedModule == ModuleType.immobilisation) {
       return [
         {'icon': Icons.task_outlined, 'label': 'Matériels'},
         {'icon': Icons.swap_vert, 'label': 'Mouvement stock immo'},
         {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
-        {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
         {'icon': Icons.fact_check_outlined, 'label': 'Decharge'},
+        {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
       ];
     }
     else{
@@ -141,42 +141,40 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildScreen() {
     if (widget.selectedModule == ModuleType.stock) {
-      if (selectedIndex == 1 && selectedStatTab != null) {
-        final subItem = navItems[1]['subItems']
+      if (selectedIndex == 6 && selectedStatTab != null) {
+        final subItem = navItems[6]['subItems']
             .firstWhere((item) => item['label'] == selectedStatTab);
         return subItem['widget'];
       }
 
       switch (selectedIndex) {
         case 0:
-          return InventoryManagementScreen();
-
+           return const AuthGuard(
+        child: AdminCommandeScreen(),
+      );
         case 1:
-          return Center(child: Text('Sélectionnez un sous-menu Statistiques'));
-
+          return ArticleScreen();
         case 2:
-          return const AuthGuard(
-        child: CalendrierLogistiqueScreen(),
-      ); 
-        case 3:
+          return InventoryManagementScreen();
+         case 3:
           return const AuthGuard(
         child: MouvementStockScreen(),
           );
-        case 4:
-          return ArticleScreen();
-        case 5:
+          case 4:
           return FactureScreen();
-        case 6:
-          return const AuthGuard(
-        child: AdminCommandeScreen(),
-      );
-        case 7:
+        case 5:
           return const AuthGuard(
         child: BonDeLivraisonScreen(),
-      );
+        );
+        case 6:
+          return Center(child: Text('Sélectionnez un sous-menu Statistiques'));
+        case 7:
+          return const AuthGuard(
+        child: CalendrierLogistiqueScreen(),
+        ); 
         default:
           return const AuthGuard(
-            child: MouvementStockImmoScreen(),
+            child: AdminCommandeScreen(),
           );
       }
     } else if (widget.selectedModule == ModuleType.immobilisation) {
@@ -188,9 +186,9 @@ class _MainLayoutState extends State<MainLayout> {
         case 2:
           return InventoryImmoManagementScreen();
         case 3:
-          return StatistiqueImmoScreen();
-        case 4:
           return DechargeScreen();
+        case 4:
+          return StatistiqueImmoScreen();
         default:
           return MaterielScreen();
       }
@@ -398,41 +396,42 @@ class _MainLayoutState extends State<MainLayout> {
                         ),
                         
                       ),
-                      ElevatedButton.icon(
-                         onPressed: () {
-                              if (widget.selectedModule == ModuleType.stock) {
-                                Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const MainLayout(
-                                  selectedModule: ModuleType.immobilisation,
-                                  ),
-                                ),
-                                );
-                              } else if (widget.selectedModule == ModuleType.immobilisation) {
-                                Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const MainLayout(
-                                  selectedModule: ModuleType.stock,
-                                  ),
-                                ),
-                                );
-                              }
-                              },
-                              icon: Icon(
-                              widget.selectedModule == ModuleType.stock
-                                ? Icons.business
-                                : Icons.store,
+                        if (widget.selectedModule == ModuleType.stock || widget.selectedModule == ModuleType.immobilisation) 
+                        ElevatedButton.icon(
+                          onPressed: () {
+                          if (widget.selectedModule == ModuleType.stock) {
+                            Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const MainLayout(
+                              selectedModule: ModuleType.immobilisation,
                               ),
-                              label: Text(
-                              widget.selectedModule == ModuleType.stock
-                                ? 'Immobilisation'
-                                : 'Stock',
+                            ),
+                            );
+                          } else if (widget.selectedModule == ModuleType.immobilisation) {
+                            Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) => const MainLayout(
+                              selectedModule: ModuleType.stock,
                               ),
-                              style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color.fromARGB(243, 217, 15, 52),
-                              foregroundColor: Colors.white,
-                              ),
-                            ),     
+                            ),
+                            );
+                          }
+                          },
+                          icon: Icon(
+                          widget.selectedModule == ModuleType.stock
+                            ? Icons.business
+                            : Icons.store,
+                          ),
+                          label: Text(
+                          widget.selectedModule == ModuleType.stock
+                            ? 'Immobilisation'
+                            : 'Stock',
+                          ),
+                          style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(243, 217, 15, 52),
+                          foregroundColor: Colors.white,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -731,8 +730,8 @@ class _MainLayoutState extends State<MainLayout> {
               ),
             ),
 
-          // Chatbot flottant
-          const ChatbotLauncher(),
+          if (widget.selectedModule == ModuleType.stock || widget.selectedModule == ModuleType.immobilisation)
+            const ChatbotLauncher(),
         ],
       ),
     );

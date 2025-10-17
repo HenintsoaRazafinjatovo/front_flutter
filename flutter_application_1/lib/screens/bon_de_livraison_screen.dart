@@ -587,7 +587,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
                                     columns: const [
                                       DataColumn(
                                         label: Expanded(
-                                          child: Text('N° Bon', 
+                                          child: Text('Reference', 
                                             style: TextStyle(fontWeight: FontWeight.w600),
                                             textAlign: TextAlign.center,
                                           ),
@@ -632,7 +632,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
                                           DataCell(
                                             Center(
                                               child: Text(
-                                                '${note.idBonDeLivraison}', 
+                                                '${note.reference}', 
                                                 style: const TextStyle(fontWeight: FontWeight.w500)
                                               ),
                                             ),

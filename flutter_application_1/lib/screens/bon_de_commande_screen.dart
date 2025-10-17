@@ -528,7 +528,7 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                                       DataCell(
                                         SizedBox(
                                           width: constraints.maxWidth * 0.15,
-                                          child: Text('${montant.toStringAsFixed(2)}'),
+                                          child: Text('${montant.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ')}'),
                                         ),
                                       ),
                                       DataCell(
@@ -568,7 +568,7 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
                         );
 
                         final totalText = Text(
-                          'Total: ${calculerTotal().toStringAsFixed(2)}',
+                            'Total: ${calculerTotal().toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ')}',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

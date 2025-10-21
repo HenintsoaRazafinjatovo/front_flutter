@@ -46,7 +46,7 @@ class User {
       name: json['name'] ?? '',
       email: json['email'],
       password: json['password'] ?? '',
-      user_vpercode: json['user_vpercode'] ?? '',
+      user_vpercode: json['user_vcodeper'] ?? '',
       profil: Profil.fromJson(json['profil']),
       unites: (json['unites'] as List<dynamic>)
           .map((u) => Agence.fromJson(u))
@@ -57,11 +57,12 @@ class User {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'user_vcodeper': user_vpercode,
+
       'email': email,
       'password': password,
       'profil': profil.toJson(),
       'unites': unites.map((u) => u.toJson()).toList(),
-      'user_vpercode': user_vpercode,
     };
   }
 }

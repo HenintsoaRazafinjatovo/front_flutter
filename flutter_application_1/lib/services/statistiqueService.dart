@@ -80,4 +80,28 @@ Future<Map<String, dynamic>> buildStatCommande() async {
     throw Exception("Erreur lors de la récupération des statistiques: $e");
   }
 }
+Future<Map<String, dynamic>> buildPageArticle() async {
+  try {
+    final response = await _dio.get('/buildPageArticle');
+    return Map<String, dynamic>.from(response.data);
+  } catch (e) {
+    throw Exception("Erreur lors de la récupération des statistiques: $e");
+  }
+}
+Future<Map<String, dynamic>> buildPageCommande() async {
+  try {
+    final response = await _dio.get('/buildPageCommande');
+    return Map<String, dynamic>.from(response.data);
+  } catch (e) {
+    throw Exception("Erreur lors de la récupération des statistiques: $e");
+  }
+}
+Future<Map<String, dynamic>> buildPageMouvement() async {
+  try {
+    final response = await _dio.get('/buildPageMouvement');
+    return Map<String, dynamic>.from(response.data);
+  } catch (e) {
+    throw Exception("Erreur lors de la récupération des statistiques: $e");
+  }
+}
 }

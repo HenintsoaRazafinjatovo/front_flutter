@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flareline_template/screens/statistiqueCommande_screen.dart';
+import 'package:flareline_template/screens/statistiqueMouvement_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -21,11 +23,14 @@ import '../screens/mouvement_stock_immo_screen.dart';
 import '../screens/inventaire_immo_screen.dart';
 import '../screens/statistiqueImmo_screen.dart';
 import '../screens/decharge_screen.dart';
+import '../screens/statistiqueArticle_screen.dart';
 
 import '../screens/dashboard_tab.dart';
 import '../screens/charts_tab.dart';
 import '../screens/prediction_tab.dart';
 import '../screens/authGard_screen.dart';
+import '../services/userService.dart';
+import '../models/user.dart';
 
 import '../screens/chatbot_lancher.dart'; // Widget ChatbotLauncher
 
@@ -51,13 +56,23 @@ class _MainLayoutState extends State<MainLayout> {
   late WebSocketChannel _channel;
   List<String> notifications = [];
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
+  _initializeWebSocket();
+}
 
-    // Connexion WebSocket au service Go
+Future<void> _initializeWebSocket() async {
+  try {
+    // Récupération de l'utilisateur connecté depuis la session
+    User? currentUser = await AuthService().getCurrentUser();
+    // print(currentUser?.toJson());  
+    // ou ton propre moyen de récupérer l'utilisateur
+    final userVCode = currentUser?.user_vpercode ?? 'defaultCode';
+
+    // Connexion WebSocket au service Go avec user_vpercode
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://localhost:8080/ws'),
+      Uri.parse('ws://localhost:8080/ws?user=$userVCode'),
     );
 
     _channel.stream.listen((message) {
@@ -67,11 +82,15 @@ class _MainLayoutState extends State<MainLayout> {
       if (mounted) {
         setState(() {
           notifications.add(description);
+          print('Notifications: $notifications');
           _handleNotificationClick();
         });
       }
     });
+  } catch (e) {
+    print('Erreur lors de la récupération des notifications: $e');
   }
+}
 
   @override
   void dispose() {
@@ -113,8 +132,9 @@ class _MainLayoutState extends State<MainLayout> {
           'icon': Icons.bar_chart,
           'label': 'Statistiques',
           'subItems': [
-            {'icon': Icons.dashboard, 'label': 'Récapitulatif', 'widget': const DashboardTab()},
-            {'icon': Icons.show_chart, 'label': 'Graphes', 'widget': const ChartsTab()},
+            {'icon': Icons.dashboard, 'label': 'Stock article', 'widget': const StatistiqueArticle()},
+            {'icon': Icons.show_chart, 'label': 'Commandes agence', 'widget': const StatistiqueCommande()},
+            {'icon': Icons.dashboard, 'label': 'Mouvements', 'widget': const StatistiqueMouvement()},
             {'icon': Icons.analytics, 'label': 'Prédiction', 'widget': const PredictionTab()},
           ]
         },

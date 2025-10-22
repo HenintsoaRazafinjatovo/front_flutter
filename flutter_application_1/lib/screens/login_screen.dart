@@ -30,8 +30,9 @@ Future<void> login() async {
 
     if (result['success']) {
       final user = result['user'] as User;
+      // print("agence du keum: ${user.agence?.idAgence}");
 
-      if (user.profil.id == 8) {
+      if (user.profil.id == 10 || user.profil.id == 11) {
        
         Navigator.pushReplacement(
           context,
@@ -43,7 +44,9 @@ Future<void> login() async {
        
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HomePage()),
+          // MaterialPageRoute(builder: (_) => const HomePage()),
+          MaterialPageRoute(builder: (_) => const MainLayout(selectedModule: ModuleType.stock)),
+
         );
       }
     } else {

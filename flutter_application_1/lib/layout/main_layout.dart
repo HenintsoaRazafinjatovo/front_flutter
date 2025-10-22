@@ -7,8 +7,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
-
-// Tes imports d'écrans
 import '../screens/admin_commande_screen.dart';
 import '../screens/bon_de_commande_screen.dart';
 import '../screens/bon_de_livraison_screen.dart';
@@ -24,15 +22,12 @@ import '../screens/inventaire_immo_screen.dart';
 import '../screens/statistiqueImmo_screen.dart';
 import '../screens/decharge_screen.dart';
 import '../screens/statistiqueArticle_screen.dart';
-
-import '../screens/dashboard_tab.dart';
-import '../screens/charts_tab.dart';
 import '../screens/prediction_tab.dart';
 import '../screens/authGard_screen.dart';
 import '../services/userService.dart';
 import '../models/user.dart';
 
-import '../screens/chatbot_lancher.dart'; // Widget ChatbotLauncher
+import '../screens/chatbot_lancher.dart'; 
 
 enum ModuleType { stock, immobilisation, agence }
 
@@ -62,12 +57,11 @@ void initState() {
   _initializeWebSocket();
 }
 
+
 Future<void> _initializeWebSocket() async {
   try {
     // Récupération de l'utilisateur connecté depuis la session
     User? currentUser = await AuthService().getCurrentUser();
-    // print(currentUser?.toJson());  
-    // ou ton propre moyen de récupérer l'utilisateur
     final userVCode = currentUser?.user_vpercode ?? 'defaultCode';
 
     // Connexion WebSocket au service Go avec user_vpercode
@@ -76,48 +70,70 @@ Future<void> _initializeWebSocket() async {
     );
 
     _channel.stream.listen((message) {
-      final data = jsonDecode(message);
-      final description = data['description'] ?? 'Nouvelle notification';
+      print('Message WebSocket reçu: $message'); // Debug
+      
+      try {
+        final data = jsonDecode(message);
+        final description = data['description'] ?? 'Nouvelle notification';
 
-      if (mounted) {
-        setState(() {
-          notifications.add(description);
-          print('Notifications: $notifications');
+        print('Description extraite: $description'); // Debug
+
+        // CORRECTION : Séparer l'ajout de notification et l'animation
+        if (mounted) {
+          setState(() {
+            notifications.add(description);
+            print('Notifications après ajout: $notifications'); // Debug
+          });
+          
+          // Appeler l'animation/son APRÈS le setState
           _handleNotificationClick();
-        });
+          setState(() {
+            notifications.add(description);
+            print('Notifications après ajout2: $notifications'); // Debug
+          });
+        }
+      } catch (e) {
+        print('Erreur lors du parsing JSON: $e');
       }
+    }, onError: (error) {
+      print('Erreur WebSocket: $error');
+    }, onDone: () {
+      print('WebSocket fermé');
     });
   } catch (e) {
-    print('Erreur lors de la récupération des notifications: $e');
+    print('Erreur lors de l\'initialisation WebSocket: $e');
   }
 }
 
-  @override
-  void dispose() {
-    _channel.sink.close();
-    super.dispose();
+void _handleNotificationClick() async {
+  // Jouer le son
+  final player = AudioPlayer();
+  await player.play(AssetSource('sounds/notification.mp3'));
+  
+  // Vibration
+  if (await Vibration.hasVibrator() ?? false) {
+    Vibration.vibrate(duration: 150);
   }
 
-  void _handleNotificationClick() async {
-    final player = AudioPlayer();
-    await player.play(AssetSource('sounds/notification.mp3'));
-    if (await Vibration.hasVibrator() ?? false) {
-      Vibration.vibrate(duration: 150);
-    }
+  // Animation de l'icône
+  if (!mounted) return;
+  setState(() {
+    _playAnimation = true;
+  });
 
+  Future.delayed(const Duration(milliseconds: 700), () {
     if (!mounted) return;
     setState(() {
-      _playAnimation = true;
+      _playAnimation = false;
     });
+  });
+}
 
-    Future.delayed(const Duration(milliseconds: 700), () {
-      if (!mounted) return;
-      setState(() {
-        _playAnimation = false;
-      });
-    });
-  }
-
+@override
+void dispose() {
+  _channel.sink.close();
+  super.dispose();
+}
   List<Map<String, dynamic>> get navItems {
     if (widget.selectedModule == ModuleType.stock) {
       return [

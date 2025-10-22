@@ -18,7 +18,7 @@
   Map<String, dynamic> toJson() {
     return {
       'id_agence': idAgence,
-      'code_agence': codeAgence,
+      'ute_vcode': codeAgence,
       'libelle': libelle,
     };
   }

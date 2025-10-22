@@ -1,3 +1,4 @@
+import 'package:flareline_template/models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -5,6 +6,7 @@ import '../models/article.dart';
 import '../services/articleService.dart';
 import '../services/bon_de_commandeService.dart';
 import '../models/bon_de_commande.dart';
+import '../services/userService.dart';
 import 'dart:typed_data';
 import 'dart:html' as html;
 
@@ -16,12 +18,16 @@ class BonDeCommandeScreen extends StatefulWidget {
 }
 
 class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
+  User? currentUser;
+
   List<Article> articles = [];
+  final _formKey = GlobalKey<FormState>();
+
   Article? selectedArticle;
   String quantity = '';
   String descriptionCommande = '';
   final List<Map<String, dynamic>> recapCommande = [];
-  final _formKey = GlobalKey<FormState>();
+
   
   int currentPage = 1;
   int lastPage = 1;
@@ -31,40 +37,42 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
   
 
   // Getter pour obtenir les commandes paginées de la page courante
-  List<BonDeCommande> get paginatedCommandes => commandes;
   
   // Getter pour le nombre total de pages
   int get totalPages => (commandes.length / itemsPerPage).ceil();
 
   @override
-  void initState() {
-    super.initState();
-    _loadArticles();
-    _loadCommandes();
-  }
-
-   Future<void> _loadCommandes() async {
+void initState() {
+  super.initState();
+  _initializeData();
+}
+  Future<void> _initializeData() async {
+  await _loadCurrentUser();
+  await _loadArticles();
+  await _loadCommandes();
+}
+ Future<void> _loadCurrentUser() async {
     try {
-      final paginated = await BonDeCommandeService()
-          .getBonDeCommandeWithStatus(page: currentPage, perPage: itemsPerPage);
+      final user = await AuthService().getCurrentUser();
+      setState(() => currentUser = user);
+      print('idAgence envoyé dans _loadUser : ${currentUser?.agence?.idAgence}');
 
-      setState(() {
-        commandes = paginated.data;
-        currentPage = paginated.currentPage;
-        lastPage = paginated.lastPage;
-        totalCommandes = paginated.total;
-      });
     } catch (e) {
-      print('Erreur: $e');
+      print('Erreur getCurrentUser: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur de chargement : $e")),
+        SnackBar(content: Text("Erreur lors du chargement de l'utilisateur : $e")),
       );
     }
   }
+  List<BonDeCommande> get paginatedCommandes => commandes;
+
+   
 
   Future<void> _loadArticles() async {
     try {
       final loadedArticles = await ArticleService().getAllArticles();
+      print('idAgence envoyé dans loadArticles: ${currentUser?.agence?.idAgence}');
+
       setState(() {
         articles = loadedArticles;
       });
@@ -118,6 +126,28 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
         0.0, (sum, item) => sum + item['quantite'] * item['article'].prix);
   }
 
+ Future<void> _loadCommandes() async {
+      print('idAgence envoyé dans loadCommandes: ${currentUser?.agence?.idAgence}');
+
+    try {
+
+      final paginated = await BonDeCommandeService()
+          .getBonDeCommandeWithStatusParAgence(page: currentPage, perPage: itemsPerPage, idAgence: currentUser?.agence?.idAgence);
+
+      setState(() {
+        commandes = paginated.data;
+        currentPage = paginated.currentPage;
+        lastPage = paginated.lastPage;
+        totalCommandes = paginated.total;
+      });
+    } catch (e) {
+      print('Erreur: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur de chargement : $e")),
+      );
+    }
+  }
+  
   void validerCommandeFinale() async {
     if (_formKey.currentState!.validate()) {
       if (recapCommande.isEmpty) {
@@ -140,8 +170,9 @@ class _BonDeCommandeScreenState extends State<BonDeCommandeScreen> {
         description: descriptionCommande,
         idStatusCommande: 1,
         articles: articlesData,
+        idAgence: currentUser?.agence?.idAgence ?? 0,
       );
-
+        print("idAgence envoyé lors de la création: ${currentUser?.agence?.idAgence}");
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Bon de commande créé avec succès !")),

@@ -29,6 +29,26 @@ class BonDeCommandeService {
   }
 }
 
+Future<PaginatedResponse<BonDeCommande>> getBonDeCommandeWithStatusParAgence({
+  int page = 1,
+  int perPage = 10,
+  int? idAgence
+}) async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/getBonDeCommandeWithDetailsParAgence/$idAgence?page=$page&per_page=$perPage'),
+  );
+
+  if (response.statusCode == 200) {
+    final jsonResponse = json.decode(response.body);  
+    return PaginatedResponse.fromJson(
+      jsonResponse,
+      (item) => BonDeCommande.fromJson(item),
+    );
+  } else {
+    throw Exception('Erreur lors de la récupération: ${response.statusCode}');
+  }
+}
+
 
   Future<List<BonDeCommande>> getBonDeCommandeWithStatusEnAttente() async {
     final response = await http.get(Uri.parse('$baseUrl/getBonDeCommandeWithDetailsEnAttente'));
@@ -71,11 +91,13 @@ class BonDeCommandeService {
     required String description,
     required List<Map<String, dynamic>> articles,
     int? idStatusCommande,
+    required int idAgence
   }) async {
     final body = {
       'description': description,
       'id_status_commande': idStatusCommande,
       'articles': articles,
+      'id_agence': idAgence,
     };
 
     final response = await http.post(

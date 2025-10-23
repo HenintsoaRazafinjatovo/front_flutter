@@ -1302,8 +1302,8 @@ class _MouvementStockImmoScreenState extends State<MouvementStockImmoScreen> {
         typeMouvement: movement.typeMouvement ?? '',
         materiel: movement.materiel,
         quantite: movement.typeMouvement == 'entree'
-            ? movement.quantite ?? 0
-            : -(movement.quantite ?? 0),
+            ? movement.quantite
+            : -(movement.quantite ),
         totalMateriel: movement.totalMateriel,
       )).toList();
     });

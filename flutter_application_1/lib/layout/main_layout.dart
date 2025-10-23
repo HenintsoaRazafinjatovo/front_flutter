@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flareline_template/screens/statistiqueCommande_screen.dart';
 import 'package:flareline_template/screens/statistiqueMouvement_screen.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,7 @@ import '../screens/prediction_tab.dart';
 import '../screens/authGard_screen.dart';
 import '../services/userService.dart';
 import '../models/user.dart';
+import '../screens/profil_screen.dart';
 
 import '../screens/chatbot_lancher.dart'; 
 
@@ -57,65 +59,100 @@ void initState() {
   _initializeWebSocket();
 }
 
-
 Future<void> _initializeWebSocket() async {
-  try {
-    // Récupération de l'utilisateur connecté depuis la session
-    User? currentUser = await AuthService().getCurrentUser();
-    final userVCode = currentUser?.user_vpercode ?? 'defaultCode';
-
-    // Connexion WebSocket au service Go avec user_vpercode
-    _channel = WebSocketChannel.connect(
-      Uri.parse('ws://localhost:8080/ws?user=$userVCode'),
-    );
-
-    _channel.stream.listen((message) {
-      print('Message WebSocket reçu: $message'); // Debug
+    try {
+      User? currentUser = await AuthService().getCurrentUser();
+      final userVCode = currentUser?.user_vpercode ?? 'defaultCode';
       
-      try {
-        final data = jsonDecode(message);
-        final description = data['description'] ?? 'Nouvelle notification';
+      // Connexion WebSocket
+      _channel = WebSocketChannel.connect(
+        Uri.parse('ws://localhost:8080/ws?user=$userVCode'),
+      );
 
-        print('Description extraite: $description'); // Debug
+      _channel.stream.listen((message) {
+        print('Message WebSocket reçu: $message');
+        
+        try {
+          final data = jsonDecode(message);
+          final description = data['description'] ?? 'Nouvelle notification';
 
-        // CORRECTION : Séparer l'ajout de notification et l'animation
-        if (mounted) {
-          setState(() {
-            notifications.add(description);
-            print('Notifications après ajout: $notifications'); // Debug
-          });
-          
-          // Appeler l'animation/son APRÈS le setState
-          _handleNotificationClick();
-          setState(() {
-            notifications.add(description);
-            print('Notifications après ajout2: $notifications'); // Debug
-          });
+          print('Description extraite: $description');
+
+          if (mounted) {
+            setState(() {
+              notifications.add(description);
+              print('Notifications après ajout: $notifications');
+            });
+            
+            _handleNotificationClick();
+          }
+        } catch (e) {
+          print('Erreur lors du parsing JSON: $e');
         }
-      } catch (e) {
-        print('Erreur lors du parsing JSON: $e');
-      }
-    }, onError: (error) {
-      print('Erreur WebSocket: $error');
-    }, onDone: () {
-      print('WebSocket fermé');
-    });
-  } catch (e) {
-    print('Erreur lors de l\'initialisation WebSocket: $e');
+      }, onError: (error) {
+        print('Erreur WebSocket: $error');
+      }, onDone: () {
+        print('WebSocket fermé');
+      });
+
+      // Attendre que la connexion soit établie
+      await Future.delayed(Duration(milliseconds: 800));
+      
+      // Demander les notifications non lues
+      await _fetchUnreadNotifications(userVCode);
+      
+      // IMPORTANT : Attendre que les notifications arrivent via WebSocket
+      await Future.delayed(Duration(seconds: 2));
+      
+      // Marquer comme lues APRÈS réception
+      await _markNotificationsAsRead(userVCode);
+      
+    } catch (e) {
+      print('Erreur lors de l\'initialisation WebSocket: $e');
+    }
   }
-}
+
+  Future<void> _fetchUnreadNotifications(String userVCode) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/notifications/unread'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_vcodeper': userVCode}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('Notifications non lues envoyées: ${data['count']}');
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération des notifications: $e');
+    }
+  }
+
+  Future<void> _markNotificationsAsRead(String userVCode) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/api/notifications/mark-read'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'user_vcodeper': userVCode}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Notifications marquées comme lues');
+      }
+    } catch (e) {
+      print('Erreur lors du marquage des notifications: $e');
+    }
+  }
 
 void _handleNotificationClick() async {
-  // Jouer le son
   final player = AudioPlayer();
   await player.play(AssetSource('sounds/notification.mp3'));
-  
-  // Vibration
+
   if (await Vibration.hasVibrator() ?? false) {
     Vibration.vibrate(duration: 150);
   }
 
-  // Animation de l'icône
   if (!mounted) return;
   setState(() {
     _playAnimation = true;
@@ -492,7 +529,6 @@ void dispose() {
                         ),
                         child: Row(
                           children: [
-                            
                             const Spacer(),
                             ShakeX(
                               animate: _playAnimation,
@@ -572,13 +608,32 @@ void dispose() {
                                       );
                                     },
                                   );
+                                } else if (value == 'profile') {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ProfilScreen()),
+                                  );
                                 }
                               },
                               itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                    value: 'profile', child: Text('Profil')),
-                                const PopupMenuItem(
-                                    value: 'logout', child: Text('Déconnexion')),
+                                // PopupMenuItem<String>(
+                                //   value: 'profile',
+                                //   child: const Text('Profil'),
+                                // ),
+                                PopupMenuItem<String>(
+                                  value: 'profile',
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).pop(); // fermer le menu
+                                      _showProfilDialog(); // ouvrir le profil comme carte flottante
+                                    },
+                                    child: const Text('Profil'),
+                                  ),
+                                ),
+                                PopupMenuItem<String>(
+                                  value: 'logout',
+                                  child: const Text('Déconnexion'),
+                                ),
                               ],
                             ),
                           ],
@@ -772,4 +827,21 @@ void dispose() {
       ),
     );
   }
+  void _showProfilDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: ProfilScreen(), // ton profil comme widget
+        ),
+      );
+    },
+  );
 }
+
+}
+
+

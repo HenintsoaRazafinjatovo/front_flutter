@@ -23,7 +23,6 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
     try {
       StatistiqueService service = StatistiqueService();
       Map<String, dynamic> stats = await service.buildPageMouvement();
-      // print("Statistiques des mouvements: $stats");
       setState(() {
         _stats = stats;
         _isLoading = false;
@@ -67,7 +66,6 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
     final totalMouvements = entrees + sorties;
 
     const primaryColor = Color(0xFFF9B70D);
-    const accentColor = Color(0xFFB28704);
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -203,380 +201,198 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
       ],
     );
   }
-// Widget _buildHistoriqueChart() {
-//   final historique = _stats?['historique_mouvements'] as List<dynamic>? ?? [];
 
-//   if (historique.isEmpty) {
-//     return _buildEmptyChart('Aucun historique disponible');
-//   }
+  Widget _buildHistoriqueChart() {
+    final historique = _stats?['historique_mouvements'] as List<dynamic>? ?? [];
 
-//   final int totalSemaines = historique.length;
+    if (historique.isEmpty) {
+      return _buildEmptyChart('Aucun historique disponible');
+    }
 
-//   // On limite le nombre de labels visibles pour éviter la répétition
-//   final int step = (totalSemaines / 6).ceil(); // max 6 labels visibles
+    final int totalSemaines = historique.length;
 
-//   return Container(
-//     padding: const EdgeInsets.all(20),
-//     decoration: BoxDecoration(
-//       color: Colors.white,
-//       borderRadius: BorderRadius.circular(16),
-//       boxShadow: [
-//         BoxShadow(
-//           color: Colors.grey.withOpacity(0.1),
-//           blurRadius: 8,
-//           offset: const Offset(0, 2),
-//         ),
-//       ],
-//     ),
-//     child: Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Row(
-//           children: [
-//             const Icon(Icons.show_chart_rounded, color: Color(0xFFF9B70D), size: 24),
-//             const SizedBox(width: 8),
-//             const Text(
-//               'Historique des mouvements',
-//               style: TextStyle(
-//                 fontSize: 16,
-//                 fontWeight: FontWeight.bold,
-//                 color: Color(0xFF333333),
-//               ),
-//             ),
-//           ],
-//         ),
-//         const SizedBox(height: 8),
-//         Text(
-//           'Évolution hebdomadaire du mois',
-//           style: TextStyle(
-//             fontSize: 12,
-//             color: Colors.grey[600],
-//           ),
-//         ),
-//         const SizedBox(height: 24),
+    // On choisit le maximum de labels à afficher (5-6 pour une bonne lisibilité)
+    const maxLabels = 6;
+    final int interval = totalSemaines <= maxLabels ? 1 : (totalSemaines / (maxLabels - 1)).ceil();
 
-//         /// --- GRAPHIQUE ---
-//         SizedBox(
-//           height: 280,
-//           child: LineChart(
-//             LineChartData(
-//               minX: 0,
-//               maxX: (totalSemaines - 1).toDouble(),
-//               gridData: FlGridData(
-//                 show: true,
-//                 drawVerticalLine: false,
-//                 horizontalInterval: 50,
-//                 getDrawingHorizontalLine: (value) => FlLine(
-//                   color: Colors.grey.shade200,
-//                   strokeWidth: 1,
-//                 ),
-//               ),
-//               titlesData: FlTitlesData(
-//                 leftTitles: AxisTitles(
-//                   sideTitles: SideTitles(
-//                     showTitles: true,
-//                     reservedSize: 40,
-//                     getTitlesWidget: (value, meta) => Text(
-//                       value.toInt().toString(),
-//                       style: TextStyle(
-//                         color: Colors.grey[600],
-//                         fontSize: 11,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 bottomTitles: AxisTitles(
-//                   sideTitles: SideTitles(
-//                     showTitles: true,
-//                     reservedSize: 32,
-//                     getTitlesWidget: (value, meta) {
-//                       final index = value.toInt();
-//                       // Affiche seulement quelques labels espacés
-//                       if (index % step == 0 && index >= 0 && index < historique.length) {
-//                         return Padding(
-//                           padding: const EdgeInsets.only(top: 8),
-//                           child: Text(
-//                             historique[index]['semaine'] ?? '',
-//                             style: TextStyle(
-//                               color: Colors.grey[600],
-//                               fontSize: 10,
-//                             ),
-//                           ),
-//                         );
-//                       }
-//                       return const SizedBox.shrink();
-//                     },
-//                   ),
-//                 ),
-//                 rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-//                 topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-//               ),
-//               borderData: FlBorderData(show: false),
-
-//               /// --- COURBES ---
-//               lineBarsData: [
-//                 // Entrées
-//                 LineChartBarData(
-//                   spots: [
-//                     for (int i = 0; i < totalSemaines; i++)
-//                       FlSpot(
-//                         i.toDouble(),
-//                         double.tryParse(historique[i]['total_entrees']?.toString() ?? '0') ?? 0,
-//                       )
-//                   ],
-//                   isCurved: true,
-//                   color: Colors.green.shade600,
-//                   barWidth: 3,
-//                   dotData: FlDotData(show: true),
-//                   belowBarData: BarAreaData(
-//                     show: true,
-//                     color: Colors.green.shade600.withOpacity(0.1),
-//                   ),
-//                 ),
-//                 // Sorties
-//                 LineChartBarData(
-//                   spots: [
-//                     for (int i = 0; i < totalSemaines; i++)
-//                       FlSpot(
-//                         i.toDouble(),
-//                         double.tryParse(historique[i]['total_sorties']?.toString() ?? '0') ?? 0,
-//                       )
-//                   ],
-//                   isCurved: true,
-//                   color: Colors.red.shade600,
-//                   barWidth: 3,
-//                   dotData: FlDotData(show: true),
-//                   belowBarData: BarAreaData(
-//                     show: true,
-//                     color: Colors.red.shade600.withOpacity(0.1),
-//                   ),
-//                 ),
-//               ],
-
-//               /// --- INTERACTIONS ---
-//               lineTouchData: LineTouchData(
-//                 touchTooltipData: LineTouchTooltipData(
-//                   getTooltipColor: (_) => Colors.grey.shade800,
-//                   getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
-//                     final isEntree = spot.barIndex == 0;
-//                     return LineTooltipItem(
-//                       '${isEntree ? 'Entrées' : 'Sorties'}\n${spot.y.toInt()}',
-//                       const TextStyle(
-//                         color: Colors.white,
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 12,
-//                       ),
-//                     );
-//                   }).toList(),
-//                 ),
-//               ),
-//             ),
-//           ),
-//         ),
-
-//         const SizedBox(height: 16),
-
-//         /// --- LÉGENDE ---
-//         Row(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             _buildLegendItem(Colors.green.shade600, 'Entrées'),
-//             const SizedBox(width: 24),
-//             _buildLegendItem(Colors.red.shade600, 'Sorties'),
-//           ],
-//         ),
-//       ],
-//     ),
-//   );
-// }
-Widget _buildHistoriqueChart() {
-  final historique = _stats?['historique_mouvements'] as List<dynamic>? ?? [];
-
-  if (historique.isEmpty) {
-    return _buildEmptyChart('Aucun historique disponible');
-  }
-
-  final int totalSemaines = historique.length;
-
-  // On choisit le maximum de labels à afficher (5 pour une bonne lisibilité)
-  const maxLabels = 5;
-  final interval = (totalSemaines / maxLabels).ceil();
-
-  return Container(
-    padding: const EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.grey.withOpacity(0.1),
-          blurRadius: 8,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.show_chart_rounded, color: Color(0xFFF9B70D), size: 24),
-            const SizedBox(width: 8),
-            const Text(
-              'Historique des mouvements',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF333333),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Évolution hebdomadaire du mois',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 24),
-
-        /// --- GRAPHIQUE ---
-        SizedBox(
-          height: 280,
-          child: LineChart(
-            LineChartData(
-              minX: 0,
-              maxX: (totalSemaines - 1).toDouble(),
-              gridData: FlGridData(
-                show: true,
-                drawVerticalLine: false,
-                horizontalInterval: 50,
-                getDrawingHorizontalLine: (value) => FlLine(
-                  color: Colors.grey.shade200,
-                  strokeWidth: 1,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.show_chart_rounded, color: Color(0xFFF9B70D), size: 24),
+              const SizedBox(width: 8),
+              const Text(
+                'Historique des mouvements',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF333333),
                 ),
               ),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    getTitlesWidget: (value, meta) => Text(
-                      value.toInt().toString(),
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 11,
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Évolution hebdomadaire du mois',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          /// --- GRAPHIQUE ---
+          SizedBox(
+            height: 280,
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: (totalSemaines - 1).toDouble(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  horizontalInterval: 50,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Colors.grey.shade200,
+                    strokeWidth: 1,
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toInt().toString(),
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 32,
-                    getTitlesWidget: (value, meta) {
-                      final index = value.toInt();
-                      // On affiche un label tous les 'interval' indices
-                      if (index % interval == 0 && index >= 0 && index < historique.length) {
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            historique[index]['semaine'] ?? '',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 10,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      interval: interval.toDouble(),
+                      getTitlesWidget: (value, meta) {
+                        final index = value.toInt();
+                        if (index >= 0 && index < historique.length) {
+                          final semaine = historique[index]['semaine'] ?? '';
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Transform.rotate(
+                              angle: -0.5,
+                              child: Text(
+                                semaine,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 9,
+                                ),
+                              ),
                             ),
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ),
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              ),
-              borderData: FlBorderData(show: false),
+                borderData: FlBorderData(show: false),
 
-              /// --- COURBES ---
-              lineBarsData: [
-                // Entrées
-                LineChartBarData(
-                  spots: [
-                    for (int i = 0; i < totalSemaines; i++)
-                      FlSpot(
-                        i.toDouble(),
-                        double.tryParse(historique[i]['total_entrees']?.toString() ?? '0') ?? 0,
-                      )
-                  ],
-                  isCurved: true,
-                  color: Colors.green.shade600,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Colors.green.shade600.withOpacity(0.1),
+                /// --- COURBES ---
+                lineBarsData: [
+                  // Entrées
+                  LineChartBarData(
+                    spots: [
+                      for (int i = 0; i < totalSemaines; i++)
+                        FlSpot(
+                          i.toDouble(),
+                          double.tryParse(historique[i]['total_entrees']?.toString() ?? '0') ?? 0,
+                        )
+                    ],
+                    isCurved: true,
+                    color: Colors.green.shade600,
+                    barWidth: 3,
+                    dotData: FlDotData(show: true),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.green.shade600.withOpacity(0.1),
+                    ),
                   ),
-                ),
-                // Sorties
-                LineChartBarData(
-                  spots: [
-                    for (int i = 0; i < totalSemaines; i++)
-                      FlSpot(
-                        i.toDouble(),
-                        double.tryParse(historique[i]['total_sorties']?.toString() ?? '0') ?? 0,
-                      )
-                  ],
-                  isCurved: true,
-                  color: Colors.red.shade600,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Colors.red.shade600.withOpacity(0.1),
+                  // Sorties
+                  LineChartBarData(
+                    spots: [
+                      for (int i = 0; i < totalSemaines; i++)
+                        FlSpot(
+                          i.toDouble(),
+                          double.tryParse(historique[i]['total_sorties']?.toString() ?? '0') ?? 0,
+                        )
+                    ],
+                    isCurved: true,
+                    color: Colors.red.shade600,
+                    barWidth: 3,
+                    dotData: FlDotData(show: true),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      color: Colors.red.shade600.withOpacity(0.1),
+                    ),
                   ),
-                ),
-              ],
+                ],
 
-              /// --- INTERACTIONS ---
-              lineTouchData: LineTouchData(
-                touchTooltipData: LineTouchTooltipData(
-                  getTooltipColor: (_) => Colors.grey.shade800,
-                  getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
-                    final isEntree = spot.barIndex == 0;
-                    return LineTooltipItem(
-                      '${isEntree ? 'Entrées' : 'Sorties'}\n${spot.y.toInt()}',
-                      const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    );
-                  }).toList(),
+                /// --- INTERACTIONS ---
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (_) => Colors.grey.shade800,
+                    getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
+                      final isEntree = spot.barIndex == 0;
+                      return LineTooltipItem(
+                        '${isEntree ? 'Entrées' : 'Sorties'}\n${spot.y.toInt()}',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
 
-        const SizedBox(height: 16),
+          const SizedBox(height: 16),
 
-        /// --- LÉGENDE ---
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildLegendItem(Colors.green.shade600, 'Entrées'),
-            const SizedBox(width: 24),
-            _buildLegendItem(Colors.red.shade600, 'Sorties'),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
+          /// --- LÉGENDE ---
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLegendItem(Colors.green.shade600, 'Entrées'),
+              const SizedBox(width: 24),
+              _buildLegendItem(Colors.red.shade600, 'Sorties'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildLegendItem(Color color, String label) {
     return Row(

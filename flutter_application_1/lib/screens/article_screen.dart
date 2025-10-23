@@ -1,5 +1,6 @@
 import 'package:flareline_template/models/categorie.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/article.dart';
 import '../services/articleService.dart';
 import '../services/categorieService.dart';
@@ -509,40 +510,60 @@ Widget _buildPaginationControls() {
 
                         // Ligne Intitulé + Code
                         Row(
-                          children: [
+                            children: [
                             Expanded(
                               child: TextFormField(
-                                controller: _intituleController,
-                                style: TextStyle(fontFamily: 'Poppins'),
-                                decoration: InputDecoration(
-                                  labelText: 'Intitulé',
-                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                  border: OutlineInputBorder(),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Veuillez saisir un intitulé';
-                                  }
-                                  return null;
-                                },
+                              controller: _intituleController,
+                              style: TextStyle(fontFamily: 'Poppins'),
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: InputDecoration(
+                                labelText: 'Intitulé',
+                                labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                final upper = value.toUpperCase();
+                                if (value != upper) {
+                                _intituleController.value = _intituleController.value.copyWith(
+                                  text: upper,
+                                  selection: TextSelection.collapsed(offset: upper.length),
+                                );
+                                }
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                return 'Veuillez saisir un intitulé';
+                                }
+                                return null;
+                              },
                               ),
                             ),
                             SizedBox(width: 16),
                             Expanded(
                               child: TextFormField(
-                                controller: _codeController,
-                                style: TextStyle(fontFamily: 'Poppins'),
-                                decoration: InputDecoration(
-                                  labelText: 'Code',
-                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                  border: OutlineInputBorder(),
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Veuillez saisir un code';
-                                  }
-                                  return null;
-                                },
+                              controller: _codeController,
+                              style: TextStyle(fontFamily: 'Poppins'),
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: InputDecoration(
+                                labelText: 'Code',
+                                labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                final upper = value.toUpperCase();
+                                if (value != upper) {
+                                _codeController.value = _codeController.value.copyWith(
+                                  text: upper,
+                                  selection: TextSelection.collapsed(offset: upper.length),
+                                );
+                                }
+                              },
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                return 'Veuillez saisir un code';
+                                }
+                                return null;
+                              },
                               ),
                             ),
                           ],
@@ -563,6 +584,9 @@ Widget _buildPaginationControls() {
                                   border: OutlineInputBorder(),
                                 ),
                                 keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly, // n'accepte que des entiers
+                                ],
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Veuillez saisir un seuil minimum';
@@ -585,6 +609,10 @@ Widget _buildPaginationControls() {
                                   border: OutlineInputBorder(),
                                 ),
                                 keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                                  // autorise les nombres avec jusqu’à 2 décimales
+                                ],
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Veuillez saisir un prix';
@@ -598,7 +626,6 @@ Widget _buildPaginationControls() {
                             ),
                           ],
                         ),
-
                         SizedBox(height: 16),
 
                         // Ligne Categorie + Boutons

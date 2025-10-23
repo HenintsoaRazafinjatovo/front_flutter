@@ -44,8 +44,8 @@ Future<void> login() async {
        
         Navigator.pushReplacement(
           context,
-          // MaterialPageRoute(builder: (_) => const HomePage()),
-          MaterialPageRoute(builder: (_) => const MainLayout(selectedModule: ModuleType.stock)),
+          MaterialPageRoute(builder: (_) => const HomePage()),
+          // MaterialPageRoute(builder: (_) => const MainLayout(selectedModule: ModuleType.stock)),
 
         );
       }

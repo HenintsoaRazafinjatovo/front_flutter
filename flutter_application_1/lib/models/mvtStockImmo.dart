@@ -49,7 +49,6 @@ class MvtStockImmo {
                   ? DateTime.parse(json['date_acquisition'])
                   : null,
               code: '',
-              reference: '',
 
             )
           : null,
@@ -66,7 +65,6 @@ class MvtStockImmo {
       'id_materiel': idMateriel,
       'quantite': quantite,
       'code': materiel?.code,
-    'reference': materiel?.reference,
       // 'type_mouvement': typeMouvement,
     };
   }

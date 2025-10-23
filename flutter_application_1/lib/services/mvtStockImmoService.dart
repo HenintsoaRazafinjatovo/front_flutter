@@ -1,7 +1,5 @@
 import 'package:flareline_template/models/decharge.dart';
 import 'package:flareline_template/utils/paginatedResponse.dart%20';
-
-import '../models/materiel.dart';
 import 'dart:convert';
 import '../models/mvtStockImmo.dart';
 import '../models/attribution.dart';

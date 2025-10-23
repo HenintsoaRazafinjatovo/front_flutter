@@ -64,10 +64,10 @@ class _DashboardTabState extends State<DashboardTab> {
     final totalArticles = _stats?['nb_article_en_stock'] ?? 0;
     final totalAgencies = _stats?['nb_agences'] ?? 0;
 
-    const warningYellow = Color(0xFFF9B70D);
+    // const warningYellow = Color(0xFFF9B70D);
     const darkYellow = Color(0xFFB28704);
-    const lightGrey = Color(0xFFF7F6E7);
-    const mediumGrey = Color(0xFF999666);
+    // const lightGrey = Color(0xFFF7F6E7);
+    // const mediumGrey = Color(0xFF999666);
 
     return Row(
       children: [

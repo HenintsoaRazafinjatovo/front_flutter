@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../screens/login_screen.dart'; // ton écran de login
-import '../models/user.dart';
+import '../screens/login_screen.dart';
 import '../services/userService.dart';
 
 class AuthGuard extends StatefulWidget {

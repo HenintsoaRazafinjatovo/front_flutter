@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/materiel.dart' show Materiel;
 import '../models/inventaire_materiel.dart' show InventaireMateriel;
-import '../models/inventaire.dart' show Inventaire;
+
 import '../models/employe.dart' show Employe;
 import '../services/materielService.dart';
 import '../services/employeService.dart';
@@ -1017,10 +1017,6 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
                           ),
                         ],
                       ),
-                    ),
-                    Text(
-                      'Ref: ${materiel.reference ?? 'N/A'}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
                 ),

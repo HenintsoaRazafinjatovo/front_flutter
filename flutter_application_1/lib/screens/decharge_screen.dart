@@ -75,14 +75,14 @@ class _DechargeScreenState extends State<DechargeScreen> {
     );
   }
 
-  void _applyFilters() {
-    setState(() {
-      filteredDecharges = decharges.where((d) {
-        bool directionMatch = selectedDirection == null || d.direction == selectedDirection;
-        return directionMatch;
-      }).toList();
-    });
-  }
+  // void _applyFilters() {
+  //   setState(() {
+  //     filteredDecharges = decharges.where((d) {
+  //       bool directionMatch = selectedDirection == null || d.direction == selectedDirection;
+  //       return directionMatch;
+  //     }).toList();
+  //   });
+  // }
 
   void _clearFilters() {
     setState(() {

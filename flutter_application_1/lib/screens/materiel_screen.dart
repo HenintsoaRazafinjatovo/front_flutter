@@ -6,8 +6,6 @@ import '../services/materielService.dart';
 import '../services/natureService.dart';
 import 'dart:typed_data'; 
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import 'dart:html' as html;
 import 'dart:convert';
 
@@ -52,7 +50,7 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _designationController = TextEditingController();
   final TextEditingController _codeController = TextEditingController();
-  final TextEditingController _referenceController = TextEditingController();
+  // final TextEditingController _referenceController = TextEditingController();
 
   // Contrôleurs de filtres
   final TextEditingController _filterDesignationController = TextEditingController();
@@ -136,7 +134,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
   void _clearForm() {
     _designationController.clear();
     _codeController.clear();
-    _referenceController.clear();
     setState(() {
       _selectedNatureId = null;
       _selectedDateAcquisition = null;
@@ -171,13 +168,11 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
   if (_formKey.currentState!.validate()) {
     final designation = _designationController.text;
     final code = _codeController.text;
-    final reference = _referenceController.text;
     final nature = natures.firstWhere((nat) => nat.idNature == _selectedNatureId);
 
     final newMateriel = Materiel(
       designation: designation,
       code: code,
-      reference: reference,
       dateAcquisition: _selectedDateAcquisition,
       nature: nature,
       idNature: _selectedNatureId,
@@ -211,7 +206,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
         }
 
     } catch (e, stackTrace) {
-      // ✅ Log si exception (ex: timeout, 500, etc.)
       print('Exception lors de la création du matériel: $e');
       print('StackTrace: $stackTrace');
 
@@ -232,7 +226,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
   void _editMateriel({Materiel? materiel}) {
     final designationController = TextEditingController(text: materiel?.designation ?? '');
     final codeController = TextEditingController(text: materiel?.code ?? '');
-    final referenceController = TextEditingController(text: materiel?.reference ?? '');
     DateTime? selectedDate = materiel?.dateAcquisition;
     int? selectedNatureId = materiel?.idNature;
 
@@ -254,10 +247,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                     TextFormField(
                       controller: codeController,
                       decoration: const InputDecoration(labelText: 'Code'),
-                    ),
-                    TextFormField(
-                      controller: referenceController,
-                      decoration: const InputDecoration(labelText: 'Référence'),
                     ),
                     SizedBox(height: 16),
                     InkWell(
@@ -321,7 +310,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                       idMateriel: materiel?.idMateriel,
                       designation: designationController.text,
                       code: codeController.text,
-                      reference: referenceController.text,
                       dateAcquisition: selectedDate,
                       idNature: selectedNatureId,
                       nature: nature,
@@ -352,7 +340,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
 
       designationController.dispose();
       codeController.dispose();
-      referenceController.dispose();
     });
   }
 
@@ -410,39 +397,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
     );
   }
 
-  void _showDetails(Materiel materiel) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Détails du matériel',
-            style: TextStyle(fontFamily: 'Poppins'),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildDetailRow('Désignation:', materiel.designation ?? ''),
-              _buildDetailRow('Code:', materiel.code ?? ''),
-              _buildDetailRow('Référence:', materiel.reference ?? ''),
-              _buildDetailRow('Date d\'acquisition:', materiel.dateAcquisition != null ? _formatDate(materiel.dateAcquisition) : ''),
-              _buildDetailRow('Nature:', materiel.nature?.description ?? ''),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Fermer',
-                style: TextStyle(fontFamily: 'Poppins'),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
   Widget _buildPaginationControls() {
   if (lastPage <= 1) return const SizedBox.shrink();
 
@@ -526,34 +480,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
 }
 
 
-  Widget _buildDetailRow(String label, String value) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              fontFamily: 'Poppins',
-            ),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 14,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -601,39 +527,63 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: TextFormField(
-                              controller: _designationController,
-                              style: TextStyle(fontFamily: 'Poppins'),
-                              decoration: InputDecoration(
-                                labelText: 'Désignation',
-                                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir une désignation';
-                                }
-                                return null;
-                              },
+                          child: TextFormField(
+                            controller: _designationController,
+                            textCapitalization: TextCapitalization.characters,
+                            style: TextStyle(fontFamily: 'Poppins'),
+                            decoration: InputDecoration(
+                            labelText: 'Désignation',
+                            labelStyle: TextStyle(fontFamily: 'Poppins'),
+                            border: OutlineInputBorder(),
                             ),
+                            onChanged: (val) {
+                            final upper = val.toUpperCase();
+                            if (val != upper) {
+                              final selection = _designationController.selection;
+                              _designationController.value = TextEditingValue(
+                              text: upper,
+                              selection: selection,
+                              composing: TextRange.empty,
+                              );
+                            }
+                            },
+                            validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez saisir une désignation';
+                            }
+                            return null;
+                            },
+                          ),
                           ),
                           SizedBox(width: 16),
                           Expanded(
-                            child: TextFormField(
-                              controller: _codeController,
-                              style: TextStyle(fontFamily: 'Poppins'),
-                              decoration: InputDecoration(
-                                labelText: 'Code',
-                                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir un code';
-                                }
-                                return null;
-                              },
+                          child: TextFormField(
+                            controller: _codeController,
+                            textCapitalization: TextCapitalization.characters,
+                            style: TextStyle(fontFamily: 'Poppins'),
+                            decoration: InputDecoration(
+                            labelText: 'Code',
+                            labelStyle: TextStyle(fontFamily: 'Poppins'),
+                            border: OutlineInputBorder(),
                             ),
+                            onChanged: (val) {
+                            final upper = val.toUpperCase();
+                            if (val != upper) {
+                              final selection = _codeController.selection;
+                              _codeController.value = TextEditingValue(
+                              text: upper,
+                              selection: selection,
+                              composing: TextRange.empty,
+                              );
+                            }
+                            },
+                            validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez saisir un code';
+                            }
+                            return null;
+                            },
+                          ),
                           ),
                         ],
                       ),
@@ -641,51 +591,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                       SizedBox(height: 16),
 
                       // Ligne Référence + Date d'acquisition
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _referenceController,
-                              style: TextStyle(fontFamily: 'Poppins'),
-                              decoration: InputDecoration(
-                                labelText: 'Référence',
-                                labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Veuillez saisir une référence';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: InkWell(
-                              onTap: () => _selectDate(context),
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: 'Date d\'acquisition',
-                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
-                                  border: OutlineInputBorder(),
-                                  suffixIcon: Icon(Icons.calendar_today),
-                                ),
-                                child: Text(
-                                  _selectedDateAcquisition != null
-                                      ? _formatDate(_selectedDateAcquisition)
-                                      : 'Sélectionner une date',
-                                  style: TextStyle(fontFamily: 'Poppins'),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 16),
-
-                      // Ligne Nature + Boutons
                       Row(
                         children: [
                           Expanded(
@@ -720,8 +625,35 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                               },
                             ),
                           ),
-
                           SizedBox(width: 16),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () => _selectDate(context),
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: 'Date d\'acquisition',
+                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                  border: OutlineInputBorder(),
+                                  suffixIcon: Icon(Icons.calendar_today),
+                                ),
+                                child: Text(
+                                  _selectedDateAcquisition != null
+                                      ? _formatDate(_selectedDateAcquisition)
+                                      : 'Sélectionner une date',
+                                  style: TextStyle(fontFamily: 'Poppins'),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 16),
+
+                      // Boutons
+                      Row(
+                        children: [
+                          SizedBox(width: 600),
 
                           // Boutons
                           Expanded(
@@ -908,15 +840,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                                     ),
                                     DataColumn(
                                       label: Container(
-                                        width: constraints.maxWidth * 0.15, // 15% pour la référence
-                                        child: Text(
-                                          'Référence',
-                                          style: TextStyle(fontFamily: 'Poppins'),
-                                        ),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: Container(
                                         width: constraints.maxWidth * 0.12, // 12% pour la date
                                         child: Text(
                                           'Date acq.',
@@ -966,16 +889,7 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                                             ),
                                           ),
                                         ),
-                                        DataCell(
-                                          Container(
-                                            width: constraints.maxWidth * 0.15,
-                                            child: Text(
-                                              materiel.reference ?? '',
-                                              style: TextStyle(fontFamily: 'Poppins'),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ),
+                                    
                                         DataCell(
                                           Container(
                                             width: constraints.maxWidth * 0.12,
@@ -1004,14 +918,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                IconButton(
-                                                  icon: Icon(Icons.visibility, 
-                                                      color: const Color.fromARGB(255, 83, 87, 91),
-                                                      size: 20), // Réduit la taille des icônes
-                                                  onPressed: () => _showDetails(materiel),
-                                                  tooltip: 'Détails',
-                                                  padding: EdgeInsets.all(4), // Réduit le padding
-                                                ),
                                                 IconButton(
                                                   icon: Icon(Icons.edit, 
                                                       color: buttonColor,
@@ -1104,7 +1010,6 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
   void dispose() {
     _designationController.dispose();
     _codeController.dispose();
-    _referenceController.dispose();
     _filterDesignationController.dispose();
     _filterCodeController.dispose();
     super.dispose();

@@ -5,7 +5,6 @@ import '../models/direction.dart';
 import '../models/attribution.dart';
 import '../models/decharge.dart';
 import '../models/salle.dart';
-import '../services/salleService.dart';
 import '../services/mvtStockImmoService.dart';
 
 class CreateMovementImmoDialog extends StatefulWidget {

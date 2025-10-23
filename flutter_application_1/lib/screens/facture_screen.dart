@@ -29,6 +29,7 @@ class FactureScreen extends StatelessWidget {
   }
 }
 // Dialog pour créer une facture
+// ignore: must_be_immutable
 class CreateInvoiceDialog extends StatefulWidget {
    List<BonDeLivraison> receptions = [];
   final Function(Facture) onInvoiceCreated;

@@ -1,6 +1,6 @@
 
 import 'package:flareline_template/screens/authGard_screen.dart';
-import 'package:flareline_template/screens/login_screen.dart';
+// import 'package:flareline_template/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'layout/main_layout.dart';
 import 'package:google_fonts/google_fonts.dart'; // <-- Assure-toi que ce chemin est correct

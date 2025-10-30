@@ -222,14 +222,16 @@ void showOrderDetails(BonDeCommande order) {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Date',
+                                Text('Date d\'envoi',
                                     style: GoogleFonts.poppins(
                                         fontSize: 12,
                                         color: Colors.black54)),
-                                Text(order.dateBonDeCommande.toString(),
-                                    style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600)),
+                                Text(
+                                  "${order.dateBonDeCommande.year.toString().padLeft(4, '0')}-${order.dateBonDeCommande.month.toString().padLeft(2, '0')}-${order.dateBonDeCommande.day.toString().padLeft(2, '0')}",
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600),
+                                ),
                               ],
                             ),
                           ),
@@ -378,18 +380,38 @@ void showOrderDetails(BonDeCommande order) {
                                                 ? Colors.red
                                                 : Colors.black))),
                                 Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                        '${(item.prixUnitaire ?? item.article?.prix ?? 0.0).toStringAsFixed(2)}',
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 12))),
+                                  flex: 2,
+                                  child: Text(
+                                    (() {
+                                      final value = item.prixUnitaire ?? item.article?.prix ?? 0.0;
+                                      final parts = value.toStringAsFixed(2).split('.');
+                                      final intPart = parts[0];
+                                      final decPart = parts[1];
+                                      final formattedInt = intPart.replaceAllMapped(
+                                      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                      (m) => ' ',
+                                      );
+                                      return '$formattedInt Ar';
+                                    })(),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12))),
                                 Expanded(
-                                    flex: 2,
-                                    child: Text(
-                                        '${item.totalArticle.toStringAsFixed(2)}',
-                                        style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600))),
+                                  flex: 2,
+                                  child: Text(
+                                    (() {
+                                      final value = item.totalArticle ?? 0.0;
+                                      final parts = value.toStringAsFixed(2).split('.');
+                                      final intPart = parts[0];
+                                      final decPart = parts[1];
+                                      final formattedInt = intPart.replaceAllMapped(
+                                      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                                      (m) => ' ',
+                                      );
+                                      return '$formattedInt Ar';
+                                    })(),
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600))),
                               ],
                             ),
                           );
@@ -429,20 +451,30 @@ void showOrderDetails(BonDeCommande order) {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total de la commande:',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      'Total de la commande:',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                       ),
                       Text(
-                        '${order.total?.toStringAsFixed(2) ?? '0.00'}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                      (() {
+                        final value = order.total ?? 0.0;
+                        final parts = value.toStringAsFixed(2).split('.');
+                        final intPart = parts[0];
+                        final decPart = parts[1];
+                        final formattedInt = intPart.replaceAllMapped(
+                        RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                        (m) => ' ',
+                        );
+                        return '$formattedInt Ar';
+                      })(),
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                       ),
                     ],
                   ),
@@ -926,7 +958,7 @@ void showOrderDetails(BonDeCommande order) {
             child: Row (
               children: [
                 Expanded(flex: 4, child: Text('N° Commande', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
-                Expanded(flex: 2, child: Text('Date', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
+                Expanded(flex: 2, child: Text('Date d\'envoi', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
                 Expanded(flex: 3, child: Text('Agence', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
                 Expanded(flex: 2, child: Text('Articles', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
                 Expanded(flex: 2, child: Text('Total', style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 15))),
@@ -963,7 +995,23 @@ void showOrderDetails(BonDeCommande order) {
                     style: GoogleFonts.poppins(fontSize: 15),
                   ),
                 ),
-                Expanded(flex: 2, child: Text('${order.total?.toStringAsFixed(2) ?? '0.00'} ', style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600))),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                  order.total != null
+                    ? (() {
+                      final parts = order.total!.toStringAsFixed(2).split('.');
+                      final intPart = parts[0];
+                      final decPart = parts[1];
+                      final formattedInt = intPart.replaceAllMapped(
+                        RegExp(r'\B(?=(\d{3})+(?!\d))'),
+                        (m) => ' ');
+                      return '$formattedInt Ar';
+                      })()
+                    : '0.00',
+                  style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                ),
                 if (showStatus)
                   Expanded(flex: 2, child: _buildStatusChip(order.status_commande ?? 'En attente')),
                 Expanded(

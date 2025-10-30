@@ -521,15 +521,6 @@ Widget _buildPaginationControls() {
                                 labelStyle: TextStyle(fontFamily: 'Poppins'),
                                 border: OutlineInputBorder(),
                               ),
-                              onChanged: (value) {
-                                final upper = value.toUpperCase();
-                                if (value != upper) {
-                                _intituleController.value = _intituleController.value.copyWith(
-                                  text: upper,
-                                  selection: TextSelection.collapsed(offset: upper.length),
-                                );
-                                }
-                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                 return 'Veuillez saisir un intitulé';

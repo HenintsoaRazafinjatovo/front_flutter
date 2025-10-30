@@ -118,14 +118,14 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
           child: Column(
             children: [
               _buildSmallKPICard(
-                '🏢',
+                Icons.apartment_outlined,
                 nbAgencesActives.toString(),
                 'Agences actives',
                 const Color(0xFFF9B70D),
               ),
               const SizedBox(height: 12),
               _buildSmallKPICard(
-                '⏳',
+                Icons.pending_actions_outlined,
                 nbCommandesAttente.toString(),
                 'Commandes en attente',
                 Colors.orange.shade700,
@@ -189,7 +189,7 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Chiffre d\'affaires du mois',
+                'Montant total facturé ce mois',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.white.withOpacity(0.9),
@@ -202,72 +202,72 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
       ),
     );
   }
-
-  Widget _buildSmallKPICard(String emoji, String value, String label, Color color) {
-    return Container(
-      height: 78,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.08),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+  Widget _buildSmallKPICard(IconData icon, String value, String label, Color color) {
+  return Container(
+    height: 78,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: color.withOpacity(0.3), width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.grey.withOpacity(0.08),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(10),
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(10),
+          child: Center(
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
             ),
-            child: Center(
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 22),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                  height: 1.1,
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                    height: 1.1,
-                  ),
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildEvolutionCommandes(List<dynamic> evolutionCommandes) {
     if (evolutionCommandes.isEmpty) {
@@ -309,7 +309,7 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
-                  Icons.trending_up_rounded,
+                  Icons.bar_chart_rounded,
                   color: Color(0xFFF9B70D),
                   size: 22,
                 ),
@@ -328,8 +328,26 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
           const SizedBox(height: 24),
           SizedBox(
             height: 280,
-            child: LineChart(
-              LineChartData(
+            child: BarChart(
+              BarChartData(
+                barTouchData: BarTouchData(
+                  enabled: true,
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (group) => Colors.grey[800]!,
+                    tooltipBorderRadius: BorderRadius.circular(8),
+                    tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      return BarTooltipItem(
+                        '${rod.toY.toInt()} commandes reçues',
+                        const TextStyle(
+                          color:  Color(0xFFF9B70D),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 gridData: FlGridData(
                   show: true,
                   drawVerticalLine: false,
@@ -367,11 +385,9 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 32,
-                      interval: 1,
                       getTitlesWidget: (value, meta) {
                         int month = value.toInt();
                         if (month >= 1 && month <= 12) {
-                          // Afficher un label sur deux pour éviter le chevauchement
                           if (evolutionCommandes.any((e) => e['mois'] == month)) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 8),
@@ -392,46 +408,33 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
                   ),
                 ),
                 borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: 13,
                 minY: 0,
                 maxY: maxY,
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: evolutionCommandes.map((item) {
-                      return FlSpot(
-                        (item['mois'] ?? 0).toDouble(),
-                        (item['nb_commandes'] ?? 0).toDouble(),
-                      );
-                    }).toList(),
-                    isCurved: true,
-                    color: const Color(0xFFF9B70D),
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) {
-                        return FlDotCirclePainter(
-                          radius: 5,
-                          color: const Color(0xFFF9B70D),
-                          strokeWidth: 2,
-                          strokeColor: Colors.white,
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          const Color(0xFFF9B70D).withOpacity(0.2),
-                          const Color(0xFFF9B70D).withOpacity(0.02),
-                        ],
+                barGroups: evolutionCommandes.map((item) {
+                  final month = (item['mois'] ?? 0).toDouble();
+                  final value = (item['nb_commandes'] ?? 0).toDouble();
+                  return BarChartGroupData(
+                    x: month.toInt(),
+                    barRods: [
+                      BarChartRodData(
+                        toY: value,
+                        color: const Color(0xFFF9B70D),
+                        width: 20,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(6),
+                        ),
+                        gradient: LinearGradient(
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                          colors: [
+                            const Color(0xFFF9B70D).withOpacity(0.7),
+                            const Color(0xFFF9B70D),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                ],
+                    ],
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -439,18 +442,109 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
       ),
     );
   }
+  // Widget _buildPieChart(List<dynamic> agences) {
+  //   if (agences.isEmpty) {
+  //     return _buildEmptyCard('Aucune donnée de répartition par agence disponible');
+  //   }
+
+  //   final sections = agences.map((a) {
+  //     final value = double.parse(a["nb_commandes"].toString());
+  //     return PieChartSectionData(
+  //       value: value,
+  //       title: "${a["code_agence"]}",
+  //       color: Colors.primaries[agences.indexOf(a) % Colors.primaries.length],
+  //       radius: 80,
+  //     );
+  //   }).toList();
+
+  //   return Container(
+  //     padding: const EdgeInsets.all(24),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(16),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withOpacity(0.08),
+  //           blurRadius: 10,
+  //           offset: const Offset(0, 3),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           children: [
+  //             Container(
+  //               padding: const EdgeInsets.all(8),
+  //               decoration: BoxDecoration(
+  //                 color: const Color(0xFFFFF8E1),
+  //                 borderRadius: BorderRadius.circular(8),
+  //               ),
+  //               child: const Icon(
+  //                 Icons.pie_chart_rounded,
+  //                 color: Color(0xFFF9B70D),
+  //                 size: 22,
+  //               ),
+  //             ),
+  //             const SizedBox(width: 12),
+  //             Text(
+  //               'Répartition des commandes par agence',
+  //               style: TextStyle(
+  //                 fontSize: 20,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: Colors.grey[900],
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 24),
+  //         SizedBox(
+  //           height: 300,
+  //           child: PieChart(
+  //             PieChartData(
+  //               sections: sections,
+  //               centerSpaceRadius: 60,
+  //               sectionsSpace: 2,
+  //             ),
+  //           ),
+  //         ),
+  //         const SizedBox(height: 20),
+  //         Wrap(
+  //           spacing: 16,
+  //           runSpacing: 8,
+  //           children: agences.map((a) {
+  //             final color = Colors.primaries[agences.indexOf(a) % Colors.primaries.length];
+  //             return _buildLegendItem(a["code_agence"], color);
+  //           }).toList(),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _buildPieChart(List<dynamic> agences) {
     if (agences.isEmpty) {
       return _buildEmptyCard('Aucune donnée de répartition par agence disponible');
     }
 
+    // Calculer le total des commandes
+    final totalCommandes = agences.fold<double>(
+      0,
+      (sum, a) => sum + double.parse(a["nb_commandes"].toString()),
+    );
+
     final sections = agences.map((a) {
       final value = double.parse(a["nb_commandes"].toString());
+      final percentage = (value / totalCommandes * 100).toStringAsFixed(1);
+      
       return PieChartSectionData(
         value: value,
-        title: "${a["code_agence"]}",
+        title: '',  // Pas de titre affiché directement
         color: Colors.primaries[agences.indexOf(a) % Colors.primaries.length],
         radius: 80,
+        titleStyle: const TextStyle(
+          fontSize: 0,  // Masquer complètement le titre
+        ),
       );
     }).toList();
 
@@ -503,17 +597,54 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
                 sections: sections,
                 centerSpaceRadius: 60,
                 sectionsSpace: 2,
+                pieTouchData: PieTouchData(
+                  enabled: true,
+                  touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                    // Gestion du survol
+                  },
+                ),
               ),
+              swapAnimationDuration: const Duration(milliseconds: 300),
+              swapAnimationCurve: Curves.easeInOut,
             ),
           ),
           const SizedBox(height: 20),
-          Wrap(
-            spacing: 16,
-            runSpacing: 8,
-            children: agences.map((a) {
-              final color = Colors.primaries[agences.indexOf(a) % Colors.primaries.length];
-              return _buildLegendItem(a["code_agence"], color);
-            }).toList(),
+          // Informations textuelles en dessous
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Total: ${totalCommandes.toInt()} commandes',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  children: agences.map((a) {
+                    final color = Colors.primaries[agences.indexOf(a) % Colors.primaries.length];
+                    final nbCommandes = double.parse(a["nb_commandes"].toString()).toInt();
+                    final percentage = (nbCommandes / totalCommandes * 100).toStringAsFixed(1);
+                    return _buildLegendItemWithCount(
+                      a["code_agence"],
+                      nbCommandes,
+                      percentage,
+                      color,
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -539,6 +670,45 @@ class _StatistiqueCommandeState extends State<StatistiqueCommande> {
             color: Colors.grey[700],
             fontWeight: FontWeight.w500,
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLegendItemWithCount(String label, int count, String percentage, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '$count (${percentage}%)',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ],
     );

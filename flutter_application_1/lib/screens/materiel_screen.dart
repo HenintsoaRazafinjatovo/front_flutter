@@ -478,10 +478,7 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
     ],
   );
 }
-
-
-
-  @override
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -536,17 +533,7 @@ class _GestionMaterielsPageState extends State<GestionMaterielsPage> {
                             labelStyle: TextStyle(fontFamily: 'Poppins'),
                             border: OutlineInputBorder(),
                             ),
-                            onChanged: (val) {
-                            final upper = val.toUpperCase();
-                            if (val != upper) {
-                              final selection = _designationController.selection;
-                              _designationController.value = TextEditingValue(
-                              text: upper,
-                              selection: selection,
-                              composing: TextRange.empty,
-                              );
-                            }
-                            },
+                      
                             validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Veuillez saisir une désignation';

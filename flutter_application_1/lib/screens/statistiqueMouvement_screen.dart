@@ -202,6 +202,197 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
     );
   }
 
+  // Widget _buildHistoriqueChart() {
+  //   final historique = _stats?['historique_mouvements'] as List<dynamic>? ?? [];
+
+  //   if (historique.isEmpty) {
+  //     return _buildEmptyChart('Aucun historique disponible');
+  //   }
+
+  //   final int totalSemaines = historique.length;
+
+  //   // On choisit le maximum de labels à afficher (5-6 pour une bonne lisibilité)
+  //   const maxLabels = 6;
+  //   final int interval = totalSemaines <= maxLabels ? 1 : (totalSemaines / (maxLabels - 1)).ceil();
+
+  //   return Container(
+  //     padding: const EdgeInsets.all(20),
+  //     decoration: BoxDecoration(
+  //       color: Colors.white,
+  //       borderRadius: BorderRadius.circular(16),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.grey.withOpacity(0.1),
+  //           blurRadius: 8,
+  //           offset: const Offset(0, 2),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Row(
+  //           children: [
+  //             const Icon(Icons.show_chart_rounded, color: Color(0xFFF9B70D), size: 24),
+  //             const SizedBox(width: 8),
+  //             const Text(
+  //               'Historique des mouvements',
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: Color(0xFF333333),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 8),
+  //         Text(
+  //           'Évolution hebdomadaire du mois',
+  //           style: TextStyle(
+  //             fontSize: 12,
+  //             color: Colors.grey[600],
+  //           ),
+  //         ),
+  //         const SizedBox(height: 24),
+
+  //         /// --- GRAPHIQUE ---
+  //         SizedBox(
+  //           height: 280,
+  //           child: LineChart(
+  //             LineChartData(
+  //               minX: 0,
+  //               maxX: (totalSemaines - 1).toDouble(),
+  //               gridData: FlGridData(
+  //                 show: true,
+  //                 drawVerticalLine: false,
+  //                 horizontalInterval: 50,
+  //                 getDrawingHorizontalLine: (value) => FlLine(
+  //                   color: Colors.grey.shade200,
+  //                   strokeWidth: 1,
+  //                 ),
+  //               ),
+  //               titlesData: FlTitlesData(
+  //                 leftTitles: AxisTitles(
+  //                   sideTitles: SideTitles(
+  //                     showTitles: true,
+  //                     reservedSize: 40,
+  //                     getTitlesWidget: (value, meta) => Text(
+  //                       value.toInt().toString(),
+  //                       style: TextStyle(
+  //                         color: Colors.grey[600],
+  //                         fontSize: 11,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 bottomTitles: AxisTitles(
+  //                   sideTitles: SideTitles(
+  //                     showTitles: true,
+  //                     reservedSize: 40,
+  //                     interval: interval.toDouble(),
+  //                     getTitlesWidget: (value, meta) {
+  //                       final index = value.toInt();
+  //                       if (index >= 0 && index < historique.length) {
+  //                         final semaine = historique[index]['semaine'] ?? '';
+  //                         return Padding(
+  //                           padding: const EdgeInsets.only(top: 8),
+  //                           child: Transform.rotate(
+  //                             angle: -0.5,
+  //                             child: Text(
+  //                               semaine,
+  //                               style: TextStyle(
+  //                                 color: Colors.grey[600],
+  //                                 fontSize: 9,
+  //                               ),
+  //                             ),
+  //                           ),
+  //                         );
+  //                       }
+  //                       return const SizedBox.shrink();
+  //                     },
+  //                   ),
+  //                 ),
+  //                 rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //                 topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //               ),
+  //               borderData: FlBorderData(show: false),
+
+  //               /// --- COURBES ---
+  //               lineBarsData: [
+  //                 // Entrées
+  //                 LineChartBarData(
+  //                   spots: [
+  //                     for (int i = 0; i < totalSemaines; i++)
+  //                       FlSpot(
+  //                         i.toDouble(),
+  //                         double.tryParse(historique[i]['total_entrees']?.toString() ?? '0') ?? 0,
+  //                       )
+  //                   ],
+  //                   isCurved: true,
+  //                   color: Colors.green.shade600,
+  //                   barWidth: 3,
+  //                   dotData: FlDotData(show: true),
+  //                   belowBarData: BarAreaData(
+  //                     show: true,
+  //                     color: Colors.green.shade600.withOpacity(0.1),
+  //                   ),
+  //                 ),
+  //                 // Sorties
+  //                 LineChartBarData(
+  //                   spots: [
+  //                     for (int i = 0; i < totalSemaines; i++)
+  //                       FlSpot(
+  //                         i.toDouble(),
+  //                         double.tryParse(historique[i]['total_sorties']?.toString() ?? '0') ?? 0,
+  //                       )
+  //                   ],
+  //                   isCurved: true,
+  //                   color: Colors.red.shade600,
+  //                   barWidth: 3,
+  //                   dotData: FlDotData(show: true),
+  //                   belowBarData: BarAreaData(
+  //                     show: true,
+  //                     color: Colors.red.shade600.withOpacity(0.1),
+  //                   ),
+  //                 ),
+  //               ],
+
+  //               /// --- INTERACTIONS ---
+  //               lineTouchData: LineTouchData(
+  //                 touchTooltipData: LineTouchTooltipData(
+  //                   getTooltipColor: (_) => Colors.grey.shade800,
+  //                   getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
+  //                     final isEntree = spot.barIndex == 0;
+  //                     return LineTooltipItem(
+  //                       '${isEntree ? 'Entrées' : 'Sorties'}\n${spot.y.toInt()}',
+  //                       const TextStyle(
+  //                         color: Colors.white,
+  //                         fontWeight: FontWeight.bold,
+  //                         fontSize: 12,
+  //                       ),
+  //                     );
+  //                   }).toList(),
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+
+  //         const SizedBox(height: 16),
+
+  //         /// --- LÉGENDE ---
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             _buildLegendItem(Colors.green.shade600, 'Entrées'),
+  //             const SizedBox(width: 24),
+  //             _buildLegendItem(Colors.red.shade600, 'Sorties'),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _buildHistoriqueChart() {
     final historique = _stats?['historique_mouvements'] as List<dynamic>? ?? [];
 
@@ -211,9 +402,15 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
 
     final int totalSemaines = historique.length;
 
-    // On choisit le maximum de labels à afficher (5-6 pour une bonne lisibilité)
-    const maxLabels = 6;
-    final int interval = totalSemaines <= maxLabels ? 1 : (totalSemaines / (maxLabels - 1)).ceil();
+    // Calculer le maxY pour l'échelle
+    double maxY = 0;
+    for (var semaine in historique) {
+      final entrees = double.tryParse(semaine['total_entrees']?.toString() ?? '0') ?? 0;
+      final sorties = double.tryParse(semaine['total_sorties']?.toString() ?? '0') ?? 0;
+      if (entrees > maxY) maxY = entrees;
+      if (sorties > maxY) maxY = sorties;
+    }
+    maxY = (maxY * 1.2).ceilToDouble(); // Ajouter 20% de marge
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -233,7 +430,7 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
         children: [
           Row(
             children: [
-              const Icon(Icons.show_chart_rounded, color: Color(0xFFF9B70D), size: 24),
+              const Icon(Icons.bar_chart_rounded, color: Color(0xFFF9B70D), size: 24),
               const SizedBox(width: 8),
               const Text(
                 'Historique des mouvements',
@@ -255,20 +452,27 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
           ),
           const SizedBox(height: 24),
 
-          /// --- GRAPHIQUE ---
+          /// --- HISTOGRAMME ---
           SizedBox(
             height: 280,
-            child: LineChart(
-              LineChartData(
-                minX: 0,
-                maxX: (totalSemaines - 1).toDouble(),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 50,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: Colors.grey.shade200,
-                    strokeWidth: 1,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxY,
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (group) => Colors.grey.shade800,
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      final isEntree = rodIndex == 0;
+                      return BarTooltipItem(
+                        '${isEntree ? 'Entrées' : 'Sorties'}\n${rod.toY.toInt()}',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      );
+                    },
                   ),
                 ),
                 titlesData: FlTitlesData(
@@ -289,7 +493,6 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 40,
-                      interval: interval.toDouble(),
                       getTitlesWidget: (value, meta) {
                         final index = value.toInt();
                         if (index >= 0 && index < historique.length) {
@@ -315,65 +518,40 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
                   rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
-                borderData: FlBorderData(show: false),
-
-                /// --- COURBES ---
-                lineBarsData: [
-                  // Entrées
-                  LineChartBarData(
-                    spots: [
-                      for (int i = 0; i < totalSemaines; i++)
-                        FlSpot(
-                          i.toDouble(),
-                          double.tryParse(historique[i]['total_entrees']?.toString() ?? '0') ?? 0,
-                        )
-                    ],
-                    isCurved: true,
-                    color: Colors.green.shade600,
-                    barWidth: 3,
-                    dotData: FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.green.shade600.withOpacity(0.1),
-                    ),
-                  ),
-                  // Sorties
-                  LineChartBarData(
-                    spots: [
-                      for (int i = 0; i < totalSemaines; i++)
-                        FlSpot(
-                          i.toDouble(),
-                          double.tryParse(historique[i]['total_sorties']?.toString() ?? '0') ?? 0,
-                        )
-                    ],
-                    isCurved: true,
-                    color: Colors.red.shade600,
-                    barWidth: 3,
-                    dotData: FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: Colors.red.shade600.withOpacity(0.1),
-                    ),
-                  ),
-                ],
-
-                /// --- INTERACTIONS ---
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (_) => Colors.grey.shade800,
-                    getTooltipItems: (touchedSpots) => touchedSpots.map((spot) {
-                      final isEntree = spot.barIndex == 0;
-                      return LineTooltipItem(
-                        '${isEntree ? 'Entrées' : 'Sorties'}\n${spot.y.toInt()}',
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      );
-                    }).toList(),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (value) => FlLine(
+                    color: Colors.grey.shade200,
+                    strokeWidth: 1,
                   ),
                 ),
+                borderData: FlBorderData(show: false),
+                barGroups: historique.asMap().entries.map((entry) {
+                  final entrees = double.tryParse(entry.value['total_entrees']?.toString() ?? '0') ?? 0;
+                  final sorties = double.tryParse(entry.value['total_sorties']?.toString() ?? '0') ?? 0;
+                  
+                  return BarChartGroupData(
+                    x: entry.key,
+                    barsSpace: 4,
+                    barRods: [
+                      // Barre Entrées (vert)
+                      BarChartRodData(
+                        toY: entrees,
+                        color: Colors.green.shade600,
+                        width: 16,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                      // Barre Sorties (rouge)
+                      BarChartRodData(
+                        toY: sorties,
+                        color: Colors.red.shade600,
+                        width: 16,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                      ),
+                    ],
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -393,6 +571,7 @@ class _StatistiqueMouvementState extends State<StatistiqueMouvement> {
       ),
     );
   }
+
 
   Widget _buildLegendItem(Color color, String label) {
     return Row(

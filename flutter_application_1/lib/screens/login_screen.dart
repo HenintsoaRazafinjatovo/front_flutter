@@ -32,7 +32,7 @@ Future<void> login() async {
       final user = result['user'] as User;
       // print("agence du keum: ${user.agence?.idAgence}");
 
-      if (user.profil.id == 10 || user.profil.id == 11) {
+      if (user.profil.id == 10 || user.profil.id == 11|| user.profil.id == 8) {
        
         Navigator.pushReplacement(
           context,
@@ -163,7 +163,7 @@ Future<void> login() async {
                       TextFormField(
                         keyboardType: TextInputType.emailAddress,
                         decoration: const InputDecoration(
-                          labelText: 'Email',
+                          labelText: 'Login',
                           prefixIcon: Icon(Icons.email_outlined,
                               color: Color(0xFFF9B70D)),
                           border: OutlineInputBorder(),
@@ -174,7 +174,7 @@ Future<void> login() async {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Email requis';
+                            return 'Login requis';
                           }
                           // if (!RegExp(r'\S+@\S+\.\S+').hasMatch(value)) {
                           //   return 'Email invalide';

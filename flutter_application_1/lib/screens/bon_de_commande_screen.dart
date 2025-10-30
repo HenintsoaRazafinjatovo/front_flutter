@@ -710,7 +710,7 @@ void initState() {
                                   DataColumn(label: Text('ID')),
                                   DataColumn(label: Text('Description')),
                                   DataColumn(label: Text('Status')),
-                                  DataColumn(label: Text('Date')),
+                                  DataColumn(label: Text('Date d\'envoi')),
                                   DataColumn(label: Text('Actions')),
                                 ],
                                 rows: paginatedCommandes.map((cmd) {
@@ -738,11 +738,27 @@ void initState() {
                                       ),
                                     ),
                                     DataCell(
-                                      SizedBox(
+                                        SizedBox(
                                         width: constraints.maxWidth * 0.2,
-                                        child: Text(cmd.dateBonDeCommande.toString()),
+                                        child: Text(
+                                          (() {
+                                          final dateVal = cmd.dateBonDeCommande;
+                                          if (dateVal == null) return '';
+                                          if (dateVal is DateTime) return dateVal.toIso8601String().split('T').first;
+                                          try {
+                                            final parsed = DateTime.parse(dateVal.toString());
+                                            return parsed.toIso8601String().split('T').first;
+                                          } catch (_) {
+                                            final s = dateVal.toString();
+                                            return s.length >= 10 ? s.substring(0, 10) : s;
+                                          }
+                                          })(),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                        ),
                                       ),
-                                    ),
+                                    
                                     DataCell(
                                       SizedBox(
                                         width: constraints.maxWidth * 0.1,

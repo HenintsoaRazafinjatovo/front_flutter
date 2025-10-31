@@ -179,7 +179,7 @@ void showOrderDetails(BonDeCommande order) {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Détails de la commande ${order.idBonDeCommande}',
+                      'Détails de la commande ${order.reference}',
                       style: GoogleFonts.poppins(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,

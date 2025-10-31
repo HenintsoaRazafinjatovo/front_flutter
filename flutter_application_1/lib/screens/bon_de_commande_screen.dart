@@ -547,7 +547,7 @@ void initState() {
                                       DataCell(
                                         SizedBox(
                                           width: constraints.maxWidth * 0.12,
-                                          child: Text('${article.prix}'),
+                                          child: Text('${article.prix} Ar'),
                                         ),
                                       ),
                                       DataCell(
@@ -559,7 +559,7 @@ void initState() {
                                       DataCell(
                                         SizedBox(
                                           width: constraints.maxWidth * 0.15,
-                                          child: Text('${montant.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ')}'),
+                                          child: Text('${montant.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ')} Ar'),
                                         ),
                                       ),
                                       DataCell(
@@ -599,7 +599,7 @@ void initState() {
                         );
 
                         final totalText = Text(
-                            'Total: ${calculerTotal().toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ')}',
+                            'Total: ${calculerTotal().toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (match) => '${match[1]} ')} Ar',
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,

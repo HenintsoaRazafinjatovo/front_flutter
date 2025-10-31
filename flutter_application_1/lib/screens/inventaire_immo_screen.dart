@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/materiel.dart' show Materiel;
 import '../models/inventaire_materiel.dart' show InventaireMateriel;
-
 import '../models/employe.dart' show Employe;
 import '../services/materielService.dart';
 import '../services/employeService.dart';
@@ -181,6 +180,42 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
     });
   }
 
+  // void handleBarcodeScanned(String barcode) {
+  //   Materiel? foundMateriel;
+  //   try {
+  //     foundMateriel = materiels.firstWhere(
+  //       (m) => m.code == barcode,
+  //     );
+  //   } catch (e) {
+  //     foundMateriel = null;
+  //   }
+
+  //   if (foundMateriel != null && foundMateriel.idMateriel != null) {
+  //     setState(() {
+  //       if (scannedMateriels.containsKey(foundMateriel!.idMateriel)) {
+  //         scannedMateriels[foundMateriel.idMateriel!] = 
+  //           scannedMateriels[foundMateriel.idMateriel!]! + 1;
+  //       } else {
+  //         scannedMateriels[foundMateriel.idMateriel!] = 1;
+  //         scannedMaterielsList.add(foundMateriel);
+  //       }
+  //     });
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Matériel scanné: ${foundMateriel.designation}'),
+  //         duration: Duration(seconds: 1),
+  //         backgroundColor: Colors.green,
+  //       ),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text('Code barre non trouvé: $barcode'),
+  //         backgroundColor: Colors.red,
+  //       ),
+  //     );
+  //   }
+  // }
   void handleBarcodeScanned(String barcode) {
     Materiel? foundMateriel;
     try {
@@ -209,11 +244,47 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
         ),
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Code barre non trouvé: $barcode'),
-          backgroundColor: Colors.red,
-        ),
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            title: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red, size: 28),
+                SizedBox(width: 12),
+                Text(
+                  'Erreur',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              'Code barre non trouvé: $barcode',
+              style: TextStyle(fontSize: 15),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+                child: Text(
+                  'OK',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          );
+        },
       );
     }
   }

@@ -776,26 +776,26 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
               ),
             ],
           ),
-          SizedBox(height: 16),
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.blue[700]),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Scannez les codes-barres des matériels avec votre scanner OY20S',
-                    style: TextStyle(fontSize: 14, color: Colors.blue[700]),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // SizedBox(height: 16),
+          // Container(
+          //   padding: EdgeInsets.all(16),
+          //   decoration: BoxDecoration(
+          //     color: Colors.blue[50],
+          //     borderRadius: BorderRadius.circular(8),
+          //   ),
+          //   // child: Row(
+          //   //   children: [
+          //   //     Icon(Icons.info_outline, color: Colors.blue[700]),
+          //   //     SizedBox(width: 12),
+          //   //     Expanded(
+          //   //       child: Text(
+          //   //         'Scannez les codes-barres des matériels avec votre scanner OY20S',
+          //   //         style: TextStyle(fontSize: 14, color: Colors.blue[700]),
+          //   //       ),
+          //   //     ),
+          //   //   ],
+          //   // ),
+          // ),
           SizedBox(height: 24),
           TextField(
             controller: barcodeController,
@@ -1189,7 +1189,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
 
   List<Widget> _buildMaterielInputs() {
     return selectedMateriels.map((materiel) {
-      double theoreticalStock = 1;
+      // double theoreticalStock = 1;
       if (!physicalStockControllers.containsKey(materiel.idMateriel!)) {
         physicalStockControllers[materiel.idMateriel!] = TextEditingController();
       }
@@ -1212,7 +1212,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
               ),
             ),
             Text(
-              'Code: ${materiel.code ?? 'N/A'} | Stock théorique: ${theoreticalStock.toInt()}',
+              'Code: ${materiel.code ?? 'N/A'} | Stock théorique: ${materiel.stockActuel?.toInt()}',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -1226,7 +1226,7 @@ class _InventoryImmoManagementScreenState extends State<InventoryImmoManagementS
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: _buildVarianceDisplay(materiel, theoreticalStock),
+                  child: _buildVarianceDisplay(materiel, materiel.stockActuel ?? 0),
                 ),
               ],
             ),

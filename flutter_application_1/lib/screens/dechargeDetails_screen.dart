@@ -470,29 +470,31 @@ class DechargeDetailScreen extends StatelessWidget {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
+                                  
                                 ),
+                                // textAlign: TextAlign.center,
                               ),
                             ),
+                            // Expanded(
+                            //   flex: 2,
+                            //   child: Text(
+                            //     'État',
+                            //     style: TextStyle(
+                            //       color: Colors.white,
+                            //       fontWeight: FontWeight.bold,
+                            //     ),
+                            //     textAlign: TextAlign.center,
+                            //   ),
+                            // ),
                             Expanded(
-                              flex: 2,
+                              flex: 1,
                               child: Text(
-                                'État',
+                                'Quantité',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Text(
-                                'Qté',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                textAlign: TextAlign.right,
                               ),
                             ),
                           ],
@@ -515,20 +517,21 @@ class DechargeDetailScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: Text(item.designation ?? ''),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  item.etat ?? '-',
-                                  textAlign: TextAlign.center,
+                                child: Text(item.designation ?? '',
                                 ),
                               ),
+                              // Expanded(
+                              //   flex: 2,
+                              //   child: Text(
+                              //     item.etat ?? '-',
+                              //     textAlign: TextAlign.center,
+                              //   ),
+                              // ),
                               Expanded(
                                 flex: 1,
                                 child: Text(
                                   item.quantite.toString(),
-                                  textAlign: TextAlign.right,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],

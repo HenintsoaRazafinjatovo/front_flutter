@@ -259,22 +259,22 @@ class _DechargeScreenState extends State<DechargeScreen> {
                           color: Colors.grey[800],
                         ),
                       ),
-                      ElevatedButton.icon(
-                        onPressed: _clearFilters,
-                        icon: const Icon(Icons.refresh, color: Colors.white, size: 16),
-                        label: const Text(
-                          'Réinitialiser',
-                          style: TextStyle(color: Colors.white, fontSize: 12),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: headerRowColor,
-                          minimumSize: const Size(100, 32),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        ),
-                      ),
+                      // ElevatedButton.icon(
+                      //   onPressed: _clearFilters,
+                      //   icon: const Icon(Icons.refresh, color: Colors.white, size: 16),
+                      //   label: const Text(
+                      //     'Réinitialiser',
+                      //     style: TextStyle(color: Colors.white, fontSize: 12),
+                      //   ),
+                      //   style: ElevatedButton.styleFrom(
+                      //     backgroundColor: headerRowColor,
+                      //     minimumSize: const Size(100, 32),
+                      //     padding: const EdgeInsets.symmetric(horizontal: 12),
+                      //     shape: RoundedRectangleBorder(
+                      //       borderRadius: BorderRadius.circular(6),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                   const SizedBox(height: 24),

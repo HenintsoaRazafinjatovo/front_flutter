@@ -9,6 +9,7 @@ class MvtStockImmo {
   final DateTime? dateMouvement;
   final String? etat;
   final String? designation;
+  final String? origine;
  
 
   MvtStockImmo({
@@ -20,6 +21,7 @@ class MvtStockImmo {
       this.dateMouvement,
     this.etat,
     this.designation,
+    this.origine,
   });
 
   factory MvtStockImmo.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class MvtStockImmo {
       quantite: quantite,
       etat:json['etat']?.toString() ?? 'BON',
       designation: json['designation']?.toString() ?? '',
+      origine: json['origine']?.toString() ?? '',
       materiel: json['materiel'] != null
           ? Materiel(
               idMateriel: json['id_materiel'] ?? 0,

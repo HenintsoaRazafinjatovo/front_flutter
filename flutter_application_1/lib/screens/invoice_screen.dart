@@ -346,11 +346,11 @@ class _InvoiceScreenState extends State<InvoiceScreen> {
                           size: 16,
                         ),
                         label: Text(
-                          'Réinitialiser',
+                          'Filtrer',
                           style: TextStyle(color: Colors.white, fontSize: 12),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: headerRowColor,
+                          backgroundColor: buttonColor,
                           minimumSize: Size(100, 32),
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           shape: RoundedRectangleBorder(

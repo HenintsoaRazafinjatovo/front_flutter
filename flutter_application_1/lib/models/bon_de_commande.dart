@@ -3,7 +3,7 @@ import 'agence.dart';
 
 class BonDeCommande {
   final int? idBonDeCommande;
-  final DateTime dateBonDeCommande;
+  final DateTime? dateBonDeCommande;
   final Agence? agence;
   final int? nbArticle;
   final double? total;
@@ -15,7 +15,7 @@ class BonDeCommande {
 
   BonDeCommande({
     this.idBonDeCommande,
-    required this.dateBonDeCommande,
+     this.dateBonDeCommande,
     this.agence,
     this.nbArticle,
     this.total,
@@ -51,7 +51,7 @@ class BonDeCommande {
   Map<String, dynamic> toJson() {
     return {
       'id_bon_de_commande': idBonDeCommande,
-      'date_bon_de_commande': dateBonDeCommande.toIso8601String(),
+      'date_bon_de_commande': dateBonDeCommande?.toIso8601String(),
       'agence': agence?.toJson(),
       'nb_article': nbArticle,
       'total': total,

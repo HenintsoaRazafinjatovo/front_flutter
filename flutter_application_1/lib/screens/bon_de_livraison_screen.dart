@@ -731,7 +731,9 @@ class _CreateDeliveryNoteDialogState extends State<CreateDeliveryNoteDialog> {
                   .where((order) => order.status_commande == 'Validée')
                   .map((order) => DropdownMenuItem(
                         value: order,
-                        child: Text('${order.idBonDeCommande} - ${order.agence?.codeAgence ?? ""} (${order.total != null ? order.total!.toStringAsFixed(2) : '0.00'} )'),
+                        child: Text(
+                          '${order.idBonDeCommande} - ${order.agence?.codeAgence ?? ""} (${order.total != null ? NumberFormat.currency(locale: "fr_FR", symbol: "", decimalDigits: 2).format(order.total) : '0.00'}) Ar'
+                        ),
                       ))
                   .toList(),
               onChanged: (BonDeCommande? order) {
@@ -754,9 +756,9 @@ class _CreateDeliveryNoteDialogState extends State<CreateDeliveryNoteDialog> {
                     Text('Aperçu de la commande ${selectedOrder!.idBonDeCommande}', style: const TextStyle(fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     Text('Agence: ${selectedOrder!.agence?.codeAgence ?? ""}'),
-                    Text('Date: ${DateFormat('dd/MM/yyyy').format(selectedOrder!.dateBonDeCommande)}'),
+                    Text('Date: ${selectedOrder!.dateBonDeCommande != null ? DateFormat('dd/MM/yyyy').format(selectedOrder!.dateBonDeCommande!) : ''}'),
                     Text('Articles: ${(selectedOrder!.articles?.map((item) => '${item.article?.intitule ?? ""} (x${item.quantite})').join(', ')) ?? ''}'),
-                    Text('Total: ${selectedOrder!.total != null ? selectedOrder!.total!.toStringAsFixed(2) : '0.00'} ', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text('Total: ${NumberFormat.currency(locale: "fr_FR", symbol: "", decimalDigits: 2).format(selectedOrder!.total ?? 0)} Ar'),
                   ],
                 ),
               ),

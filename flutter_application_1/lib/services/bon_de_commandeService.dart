@@ -8,7 +8,7 @@ import 'dart:typed_data';
 class BonDeCommandeService {
   final String baseUrl='http://127.0.0.1:8000/api/bon_de_commandes';
   final String pdfBaseUrl = 'http://127.0.0.1:8000/api/pdf/commande';
-  final String predictionUrl = 'http://127.0.0.1:8000/api/fetch-predictions';
+  final String predictionUrl = 'http://127.0.0.1:8000/api/predict';
 
   Future<PaginatedResponse<BonDeCommande>> getBonDeCommandeWithStatus({
   int page = 1,

@@ -200,7 +200,7 @@ void dispose() {
         {'icon': Icons.swap_vert, 'label': 'Mouvement stock immo'},
         {'icon': Icons.inventory_2_sharp, 'label': 'Inventaire immo'},
         {'icon': Icons.fact_check_outlined, 'label': 'Decharge'},
-        {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
+        // {'icon': Icons.bar_chart, 'label': 'Statistique immo'},
       ];
     }
     else{
@@ -821,7 +821,9 @@ void dispose() {
               ),
             ),
 
-          if (widget.selectedModule == ModuleType.stock || widget.selectedModule == ModuleType.immobilisation)
+          // if (widget.selectedModule == ModuleType.stock || widget.selectedModule == ModuleType.immobilisation)
+          if (widget.selectedModule == ModuleType.stock)
+
             const ChatbotLauncher(),
         ],
       ),

@@ -707,7 +707,7 @@ void initState() {
                                 dataRowMinHeight: 60,
                                 dataRowMaxHeight: 80,
                                 columns: const [
-                                  DataColumn(label: Text('ID')),
+                                  DataColumn(label: Text('Référence')),
                                   DataColumn(label: Text('Description')),
                                   DataColumn(label: Text('Status')),
                                   DataColumn(label: Text('Date d\'envoi')),
@@ -718,7 +718,7 @@ void initState() {
                                     DataCell(
                                       SizedBox(
                                         width: constraints.maxWidth * 0.08,
-                                        child: Text(cmd.idBonDeCommande.toString()),
+                                        child: Text(cmd.reference.toString()),
                                       ),
                                     ),
                                     DataCell(

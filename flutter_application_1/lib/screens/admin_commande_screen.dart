@@ -227,7 +227,7 @@ void showOrderDetails(BonDeCommande order) {
                                         fontSize: 12,
                                         color: Colors.black54)),
                                 Text(
-                                  "${order.dateBonDeCommande.year.toString().padLeft(4, '0')}-${order.dateBonDeCommande.month.toString().padLeft(2, '0')}-${order.dateBonDeCommande.day.toString().padLeft(2, '0')}",
+                                  "${order.dateBonDeCommande?.year.toString().padLeft(4, '0')}-${order.dateBonDeCommande?.month.toString().padLeft(2, '0')}-${order.dateBonDeCommande?.day.toString().padLeft(2, '0')}",
                                   style: GoogleFonts.poppins(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600),
@@ -982,7 +982,7 @@ void showOrderDetails(BonDeCommande order) {
                 Expanded(
                   flex: 2,
                   child: Text(
-                    "${order.dateBonDeCommande.year.toString().padLeft(4, '0')}/${order.dateBonDeCommande.month.toString().padLeft(2, '0')}/${order.dateBonDeCommande.day.toString().padLeft(2, '0')}",
+                    "${order.dateBonDeCommande?.year.toString().padLeft(4, '0')}/${order.dateBonDeCommande?.month.toString().padLeft(2, '0')}/${order.dateBonDeCommande?.day.toString().padLeft(2, '0')}",
                     style: GoogleFonts.poppins(fontSize: 15),
                   ),
                 ),

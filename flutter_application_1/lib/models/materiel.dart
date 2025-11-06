@@ -7,6 +7,7 @@ class Materiel {
   DateTime? dateAcquisition;
   int? idNature;
   Nature? nature;
+  double? stockActuel;
 
   Materiel({
     this.idMateriel,
@@ -15,6 +16,7 @@ class Materiel {
     this.dateAcquisition,
     this.idNature,
     this.nature,
+    this.stockActuel,
   });
 
   factory Materiel.fromJson(Map<String, dynamic> json) {
@@ -27,6 +29,9 @@ class Materiel {
           : null,
       idNature: json['id_nature'],
       nature: json['nature'] != null ? Nature.fromJson(json['nature']) : null,
+      stockActuel: json['stock_actuel'] != null
+          ? double.tryParse(json['stock_actuel'].toString()) ?? 0.0
+          : null,
     );
   }
 

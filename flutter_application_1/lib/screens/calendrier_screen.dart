@@ -1238,18 +1238,18 @@ class _CalendrierLogistiqueScreenState
           event.dateEvenement.isAfter(now.subtract(const Duration(days: 1)));
     }).length;
 
-    final monthTrainings = events.where((event) {
-      return event.typeEvenement.description == "Formation" &&
-          event.dateEvenement.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
-          event.dateEvenement.isBefore(endOfMonth.add(const Duration(days: 1)));
-    }).length;
+    // final monthTrainings = events.where((event) {
+    //   return event.typeEvenement.description == "Formation" &&
+    //       event.dateEvenement.isAfter(startOfMonth.subtract(const Duration(days: 1))) &&
+    //       event.dateEvenement.isBefore(endOfMonth.add(const Duration(days: 1)));
+    // }).length;
 
-    final urgentMaintenance = events.where((event) {
-      final urgentDate = now.add(const Duration(days: 3));
-      return event.typeEvenement.description == "Maintenance" &&
-          event.dateEvenement.isAfter(now.subtract(const Duration(days: 1))) &&
-          event.dateEvenement.isBefore(urgentDate.add(const Duration(days: 1)));
-    }).length;
+    // final urgentMaintenance = events.where((event) {
+    //   final urgentDate = now.add(const Duration(days: 3));
+    //   return event.typeEvenement.description == "Maintenance" &&
+    //       event.dateEvenement.isAfter(now.subtract(const Duration(days: 1))) &&
+    //       event.dateEvenement.isBefore(urgentDate.add(const Duration(days: 1)));
+    // }).length;
 
     final stats = [
       {
@@ -1264,18 +1264,18 @@ class _CalendrierLogistiqueScreenState
         'icon': '📦',
         'color': primaryYellow,
       },
-      {
-        'title': 'Formations ce mois',
-        'value': monthTrainings,
-        'icon': '🎓',
-        'color': darkGray,
-      },
-      {
-        'title': 'Maintenances urgentes',
-        'value': urgentMaintenance,
-        'icon': '🔧',
-        'color': primaryRed,
-      },
+      // {
+      //   'title': 'Formations ce mois',
+      //   'value': monthTrainings,
+      //   'icon': '🎓',
+      //   'color': darkGray,
+      // },
+      // {
+      //   'title': 'Maintenances urgentes',
+      //   'value': urgentMaintenance,
+      //   'icon': '🔧',
+      //   'color': primaryRed,
+      // },
     ];
 
     int crossAxisCount = isSmallScreen ? 1 : (isMediumScreen ? 2 : 2);

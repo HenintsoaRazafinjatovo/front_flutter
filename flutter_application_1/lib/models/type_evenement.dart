@@ -75,7 +75,7 @@ class TypeEvenement {
   static final List<TypeEvenement> values = [
     TypeEvenement(idTypeEvenement: 1, description: "Livraison", emoji: "🚚", color: Color(0xFFC90F31)),
     TypeEvenement(idTypeEvenement: 2,description: "Inventaire", emoji: "📦", color: Color(0xFFF9B70D)),
-    TypeEvenement(idTypeEvenement: 3,description: "Formation", emoji: "🎓", color: Color(0xFF374151)),
-    TypeEvenement(idTypeEvenement: 4,description: "Maintenance", emoji: "🔧", color: Color(0xFFC90F31)),
+    // TypeEvenement(idTypeEvenement: 3,description: "Formation", emoji: "🎓", color: Color(0xFF374151)),
+    // TypeEvenement(idTypeEvenement: 4,description: "Maintenance", emoji: "🔧", color: Color(0xFFC90F31)),
   ];
 }

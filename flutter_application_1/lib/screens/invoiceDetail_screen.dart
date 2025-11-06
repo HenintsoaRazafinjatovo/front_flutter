@@ -222,10 +222,10 @@ class InvoiceDetailScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: 4),
-                        // Text(
-                        //   invoice.agencyAddress,
-                        //   style: TextStyle(color: Colors.grey[700]),
-                        // ),
+                        Text(
+                          invoice.agence?.libelle ?? '',
+                          style: TextStyle(color: Colors.grey[700]),
+                        ),
                       ],
                     ),
                   ),
@@ -233,7 +233,7 @@ class InvoiceDetailScreen extends StatelessWidget {
               ],
             ),
 
-            SizedBox(height: 24),
+            SizedBox(height: 18),
 
             // Traçabilité des documents
             Container(
@@ -312,7 +312,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
-                                'ID Article',
+                                'Code article',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
@@ -383,7 +383,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  item.idArticle.toString(),
+                                  item.article?.code ?? '',
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
                               ),
@@ -401,14 +401,14 @@ class InvoiceDetailScreen extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                    '${item.article?.prix?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} ',
+                                    '${item.article?.prix?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} Ar',
                                   textAlign: TextAlign.right,
                                 ),
                               ),
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                    '${item.totalArticle != null ? item.totalArticle!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') : '0.00'} ',
+                                    '${item.totalArticle != null ? item.totalArticle!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') : '0.00'} Ar',
                                   textAlign: TextAlign.right,
                                   style: TextStyle(fontWeight: FontWeight.w500),
                                 ),
@@ -447,7 +447,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 16),
                           ),
                           Text(
-                            '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') : '0.00'} ',
+                            '${invoice.montant != null ? invoice.montant!.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') : '0.00'} Ar',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -464,7 +464,7 @@ class InvoiceDetailScreen extends StatelessWidget {
                             style: TextStyle(fontSize: 16),
                           ),
                           Text(
-                            '${invoice.montantTva?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} ',
+                            '${invoice.montantTva?.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]} ') ?? '0.00'} Ar',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w500,
@@ -500,41 +500,6 @@ class InvoiceDetailScreen extends StatelessWidget {
             ),
 
             SizedBox(height: 24),
-
-            // Informations de paiement
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Conditions de paiement',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Paiement à 30 jours fin de mois',
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                  Text(
-                    'RIB: FR76 1234 5678 9012 3456 78',
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                ],
-              ),
-            ),
-
-            SizedBox(height: 24),
-
             // Boutons d'action
             Row(
               children: [

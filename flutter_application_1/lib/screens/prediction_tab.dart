@@ -335,7 +335,7 @@ class _PredictionTabState extends State<PredictionTab> {
               ),
               cells: [
                 DataCell(Text(article.article?.intitule ?? '-')),
-                DataCell(Text(article.quantite.toStringAsFixed(2))),
+                DataCell(Text(article.quantite.toStringAsFixed(0))),
               ],
             );
           }).toList(),

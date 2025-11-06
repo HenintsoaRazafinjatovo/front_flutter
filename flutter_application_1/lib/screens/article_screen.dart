@@ -5,6 +5,7 @@ import '../models/article.dart';
 import '../services/articleService.dart';
 import '../services/categorieService.dart';
 import '../screens/authGard_screen.dart';
+import '../utils/utils.dart';
 
 void main() {
   runApp(ArticleScreen());
@@ -763,16 +764,29 @@ Widget _buildPaginationControls() {
                             ),
                             SizedBox(width: 16),
                             Expanded(
+                              flex: 2,
+                              child: TextField(
+                                controller: _filterIntituleController,
+                                style: TextStyle(fontFamily: 'Poppins'),
+                                decoration: InputDecoration(
+                                  labelText: 'Filtrer par catégorie',
+                                  labelStyle: TextStyle(fontFamily: 'Poppins'),
+                                  border: OutlineInputBorder(),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                              ),
+                            ),
+                            Expanded(
                               flex: 1,
                               child: ElevatedButton.icon(
                                 onPressed: _resetFilters,
                                 icon: Icon(Icons.refresh),
                                 label: Text(
-                                  'Réinitialiser',
+                                  'Filtrer',
                                   style: TextStyle(fontFamily: 'Poppins'),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: headerRowColor,
+                                  backgroundColor: buttonColor,
                                   foregroundColor: Colors.white,
                                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 ),
@@ -819,6 +833,7 @@ Widget _buildPaginationControls() {
                                     columns: const [
                                       DataColumn(label: Expanded(child: Text('Intitulé', textAlign: TextAlign.center))),
                                       DataColumn(label: Expanded(child: Text('Code', textAlign: TextAlign.center))),
+                                      DataColumn(label: Expanded(child: Text('Catégorie', textAlign: TextAlign.center))),
                                       DataColumn(label: Expanded(child: Text('Prix', textAlign: TextAlign.center))),
                                       DataColumn(label: Expanded(child: Text('Seuil Min.', textAlign: TextAlign.center))),
                                       DataColumn(label: Expanded(child: Text('Stock actuel', textAlign: TextAlign.center))),
@@ -829,9 +844,37 @@ Widget _buildPaginationControls() {
                                         cells: [
                                           DataCell(Center(child: Text(article.intitule))),
                                           DataCell(Center(child: Text(article.code))),
-                                          DataCell(Center(child: Text('${article.prix?.toStringAsFixed(2)}'))),
+                                          DataCell(Center(child: Text(article.categorie?.nomCategorie ?? ''))),
+                                          DataCell(Center(child: Text('${formatPrix(article.prix ?? 0)} Ar'))),
                                           DataCell(Center(child: Text(article.seuilMin.toString()))),
-                                          DataCell(Center(child: Text(article.stockActuel?.toString() ?? '0'))),
+                                          // DataCell(Center(child: Text(article.stockActuel?.toString() ?? '0'))),
+                                          DataCell(
+                                            Center(
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  if ((article.stockActuel ?? 0) < article.seuilMin)
+                                                    Padding(
+                                                      padding: EdgeInsets.only(right: 8),
+                                                      child: Icon(
+                                                        Icons.warning_amber_rounded,
+                                                        color: Colors.orange,
+                                                        size: 20,
+                                                      ),
+                                                    ),
+                                                  Text(
+                                                    article.stockActuel?.toString() ?? '0',
+                                                    // style: TextStyle(
+                                                    //   color: (article.stockActuel ?? 0) < article.seuilMin
+                                                    //       ? Colors.red
+                                                    //       : Colors.black,
+                                                    // ),
+                                                   
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
                                           DataCell(
                                             Row(
                                               mainAxisAlignment: MainAxisAlignment.center,

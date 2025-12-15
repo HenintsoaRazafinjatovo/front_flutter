@@ -396,7 +396,7 @@ class _PredictionTabState extends State<PredictionTab> {
                   hint: const Text('Sélectionner une agence'),
                   items: agences.map((agence) => DropdownMenuItem(
                         value: agence,
-                        child: Text(agence.codeAgence),
+                        child: Text(agence.codeAgence ?? '-'),
                       )).toList(),
                   onChanged: (value) => setState(() => _selectedAgence = value),
                 ),

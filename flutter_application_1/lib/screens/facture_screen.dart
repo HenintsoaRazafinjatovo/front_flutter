@@ -89,10 +89,7 @@ void _createInvoice() async {
     final result = await FactureService().creerFactureParBonLivraison(idBonDeLivraison);
 
     if (result["success"]) {
-      // On récupère la facture renvoyée par l’API
       final factureApi = result["facture"];
-
-      // Tu peux mapper la réponse JSON vers ton modèle Facture si besoin
       final newInvoice = Facture(
         idFacture: factureApi["id_facture"],
         reference: factureApi["reference"],

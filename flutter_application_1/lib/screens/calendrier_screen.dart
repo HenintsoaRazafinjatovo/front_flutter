@@ -299,75 +299,128 @@ class _CalendrierLogistiqueScreenState
                     onChanged: (value) {
                       setDialogState(() {
                         selectedType = value!;
-                        selectedBonLivraison = null; 
+                        selectedBonLivraison = null;
                       });
                     },
                   ),
                   const SizedBox(height: 16),
+                  //   if (selectedType.description == "Livraison") ...[
+                  //   DropdownButtonFormField<BonDeLivraison>(
+                  //     value: selectedBonLivraison,
+                  //     isExpanded: true,
+                  //     decoration: InputDecoration(
+                  //     isDense: false,
+                  //     contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                  //     labelText: 'Bon de livraison',
+                  //     labelStyle: GoogleFonts.poppins(color: darkGray),
+                  //     border: OutlineInputBorder(
+                  //       borderRadius: BorderRadius.circular(8),
+                  //     ),
+                  //     focusedBorder: OutlineInputBorder(
+                  //       borderRadius: BorderRadius.circular(8),
+                  //       borderSide: const BorderSide(color: primaryRed),
+                  //     ),
+                  //     ),
+                  //     hint: Text(
+                  //     'Sélectionner un bon de livraison',
+                  //     style: GoogleFonts.poppins(color: lightGray),
+                  //     ),
+                  //     items: bonLivraisons.map((bon) {
+                  //     return DropdownMenuItem(
+                  //       value: bon,
+                  //       child: SizedBox(
+                  //       width: double.infinity,
+                  //       child: Column(
+                  //         crossAxisAlignment: CrossAxisAlignment.start,
+                  //         mainAxisSize: MainAxisSize.min,
+                  //         children: [
+                  //         Text(
+                  //           '${bon.reference} - ${bon.description}',
+                  //           style: GoogleFonts.poppins(
+                  //           fontWeight: FontWeight.w600,
+                  //           color: darkGray,
+                  //           fontSize: 14,
+                  //           ),
+                  //           overflow: TextOverflow.ellipsis,
+                  //         ),
+                  //         if (bon.description.isNotEmpty)
+                  //           Text(
+                  //           bon.description,
+                  //           style: GoogleFonts.poppins(
+                  //             fontSize: 11,
+                  //             color: lightGray,
+                  //           ),
+                  //           maxLines: 1,
+                  //           overflow: TextOverflow.ellipsis,
+                  //           ),
+                  //         ],
+                  //       ),
+                  //       ),
+                  //     );
+                  //     }).toList(),
+                  //     onChanged: (value) {
+                  //     setDialogState(() {
+                  //       selectedBonLivraison = value;
+                  //       // Auto-remplir le titre avec le numéro du bon
+                  //       if (value != null && value.idBonDeLivraison != null) {
+                  //       titleController.text = 'Livraison - ${value.reference ?? value.idBonDeLivraison}';
+                  //       }
+                  //     });
+                  //     },
+                  //   ),
+                  //   const SizedBox(height: 16),
+                  // ],
                   if (selectedType.description == "Livraison") ...[
-                    DropdownButtonFormField<BonDeLivraison>(
-                      value: selectedBonLivraison,
-                      isExpanded: true, 
-                      decoration: InputDecoration(
-                        labelText: 'Bon de livraison',
-                        labelStyle: GoogleFonts.poppins(color: darkGray),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: primaryRed),
-                        ),
-                      ),
-                      hint: Text(
-                        'Sélectionner un bon de livraison',
-                        style: GoogleFonts.poppins(color: lightGray),
-                      ),
-                      items: bonLivraisons.map((bon) {
-                        return DropdownMenuItem(
-                          value: bon,
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                    '${bon.reference} - ${bon.description}',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w600,
-                                    color: darkGray,
-                                    fontSize: 14,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                if (bon.description.isNotEmpty)
-                                  Text(
-                                    bon.description,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
-                                      color: lightGray,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setDialogState(() {
-                          selectedBonLivraison = value;
-                          // Auto-remplir le titre avec le numéro du bon
-                          if (value != null && value.idBonDeLivraison != null) {
-                            titleController.text = 'Livraison - ${value.reference ?? value.idBonDeLivraison}';
-                          }
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                  ],
+  DropdownButtonFormField<BonDeLivraison>(
+    value: selectedBonLivraison,
+    isExpanded: true,
+    decoration: InputDecoration(
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      labelText: 'Bon de livraison',
+      labelStyle: GoogleFonts.poppins(color: darkGray),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: primaryRed),
+      ),
+    ),
+    hint: Text(
+      'Sélectionner un bon de livraison',
+      style: GoogleFonts.poppins(color: lightGray),
+    ),
+    items: bonLivraisons.map((bon) {
+      return DropdownMenuItem(
+        value: bon,
+        child: SizedBox(
+          width: double.infinity,
+          child: Text(
+            '${bon.reference} - ${bon.description}',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              color: darkGray,
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      );
+    }).toList(),
+    onChanged: (value) {
+      setDialogState(() {
+        selectedBonLivraison = value;
+        // Auto-remplir le titre avec le numéro du bon
+        if (value != null && value.idBonDeLivraison != null) {
+          titleController.text = 'Livraison - ${value.reference ?? value.idBonDeLivraison}';
+        }
+      });
+    },
+  ),
+  const SizedBox(height: 16),
+],
                   // Date
                   InkWell(
                     onTap: () async {
@@ -502,32 +555,57 @@ class _CalendrierLogistiqueScreenState
 
       final newEvent = Evenement(
         titre: title,
-        typeEvenement: type,
+        // typeEvenement: type,
+          typeEvenement: TypeEvenement.values.firstWhere(
+    (t) => t.idTypeEvenement == type.idTypeEvenement,
+  ),
         dateEvenement: eventDate,
         description: description.isNotEmpty ? description : null,
       );
 
       Evenement createdEvent;
 
-      if (type.description.toLowerCase() == "livraison") {
-        if (idLivraison == null) {
-          throw Exception("Un idLivraison est requis pour un événement de type livraison.");
-        }
-        createdEvent =
-            await _evenementService.createEvenementWithLivraison(newEvent, idLivraison);
-      } else {
-        createdEvent = await _evenementService.createEvenement(newEvent);
-      }
+      // if (type.description.toLowerCase() == "livraison") {
+      //   if (idLivraison == null) {
+      //     throw Exception("Un idLivraison est requis pour un événement de type livraison.");
+      //   }
+      //   createdEvent =
+      //       await _evenementService.createEvenementWithLivraison(newEvent, idLivraison);
+      // } else {
+      //   createdEvent = await _evenementService.createEvenement(newEvent);
+      // }
 
-      setState(() {
-        events.add(createdEvent);
-      });
+      // setState(() {
+      //   events.add(createdEvent);
+      // });
+      if (type.description.toLowerCase() == "livraison") {
+      createdEvent = await _evenementService.createEvenementWithLivraison(newEvent, idLivraison!);
+    } else {
+      createdEvent = await _evenementService.createEvenement(newEvent);
+    }
+
+      // reconstruire typeEvenement complet
+    final fullType = TypeEvenement.values.firstWhere(
+      (t) => t.idTypeEvenement == createdEvent.typeEvenement.idTypeEvenement
+    );
+
+    final eventToAdd = Evenement(
+      idEvenement: createdEvent.idEvenement,
+      titre: createdEvent.titre,
+      typeEvenement: fullType,
+      dateEvenement: createdEvent.dateEvenement,
+      description: createdEvent.description,
+    );
+
+    setState(() {
+      events.add(eventToAdd);
+    });
 
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Événement ajouté avec succès !'),
-          backgroundColor: primaryRed,
+          backgroundColor: primaryYellow,
         ),
       );
     } catch (e) {
@@ -1349,4 +1427,6 @@ class _CalendrierLogistiqueScreenState
     );
   }
 }
+
+
 

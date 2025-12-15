@@ -1,11 +1,11 @@
   class Agence {
   final int? idAgence;
-  final String codeAgence;
+  final String? codeAgence;
   final String? libelle;
 
    Agence({
     this.idAgence,
-    required this.codeAgence,
+   this.codeAgence,
     this.libelle,
   });
   factory Agence.fromJson(Map<String, dynamic> json) {

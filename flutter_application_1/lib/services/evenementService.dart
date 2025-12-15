@@ -52,7 +52,8 @@ class EvenementService {
       headers: {'Content-Type': 'application/json'},
       body: body,
     );
-
+  print('Status code: ${response.statusCode}');
+  print('Body: ${response.body}');
     if (response.statusCode == 201 || response.statusCode == 200) {
       return Evenement.fromJson(jsonDecode(response.body));
     } else {

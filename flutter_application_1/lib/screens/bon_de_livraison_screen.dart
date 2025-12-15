@@ -439,7 +439,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
                                           ),
                                           ...agences.map((agence) => DropdownMenuItem<int>(
                                                 value: agence.idAgence,
-                                                child: Text(agence.codeAgence),
+                                                child: Text(agence.codeAgence ?? ''),
                                               )),
                                         ],
                                         onChanged: (value) {
@@ -525,7 +525,7 @@ class _DeliveryNotesScreenState extends State<DeliveryNotesScreen> {
                                         ),
                                         ...agences.map((agence) => DropdownMenuItem<int>(
                                               value: agence.idAgence,
-                                              child: Text(agence.codeAgence),
+                                              child: Text(agence.codeAgence ?? ''),
                                             )),
                                       ],
                                       onChanged: (value) {

@@ -85,8 +85,6 @@ Future<PaginatedResponse<BonDeCommande>> getBonDeCommandeWithStatusParAgence({
   }
 }
 
-  
-
   Future<bool> addBonDeCommande({
     required String description,
     required List<Map<String, dynamic>> articles,

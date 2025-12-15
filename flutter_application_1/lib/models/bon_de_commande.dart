@@ -26,27 +26,108 @@ class BonDeCommande {
     this.reference,
   });
 
-  factory BonDeCommande.fromJson(Map<String, dynamic> json) {
-    var articlesJson = json['articles'] as List<dynamic>? ?? [];
-    List<CommandeArticle> articles = articlesJson
-        .map((e) => CommandeArticle.fromJson(e))
-        .toList();
+  // factory BonDeCommande.fromJson(Map<String, dynamic> json) {
+  //   var articlesJson = json['articles'] as List<dynamic>? ?? [];
+  //   List<CommandeArticle> articles = articlesJson
+  //       .map((e) => CommandeArticle.fromJson(e))
+  //       .toList();
 
-    return BonDeCommande(
-      idBonDeCommande: json['id_bon_de_commande'],
-      dateBonDeCommande: DateTime.parse(json['date_bon_de_commande']),
-      reference: json['reference'] ?? '',
-      agence: json['agence'] != null ? Agence.fromJson(json['agence']) : null,
-      nbArticle: json['nb_article'] ?? 0,
-      total: (json['total'] != null)
-          ? double.tryParse(json['total'].toString()) ?? 0
-          : 0,
-      articles: articles,
-      description: json['description'] ?? '',
-      status_commande: json['status_commande'] ?? '',
-      bon_de_sortie: json['bon_de_sortie'] ?? false,
-    );
+  //   return BonDeCommande(
+  //     idBonDeCommande: json['id_bon_de_commande'],
+  //     dateBonDeCommande: DateTime.parse(json['date_bon_de_commande']),
+  //     reference: json['reference'] ?? '',
+  //     agence: json['agence'] != null ? Agence.fromJson(json['agence']) : null,
+  //     nbArticle: json['nb_article'] ?? 0,
+  //     total: (json['total'] != null)
+  //         ? double.tryParse(json['total'].toString()) ?? 0
+  //         : 0,
+  //     articles: articles,
+  //     description: json['description'] ?? '',
+  //     status_commande: json['status_commande'] ?? '',
+  //     bon_de_sortie: json['bon_de_sortie'] ?? false,
+  //   );
+  // }
+//   factory BonDeCommande.fromJson(Map<String, dynamic> json) {
+//   // Gérer le cas où "predictions" est présent (format prédiction)
+//   var articlesJson = json['predictions'] as List<dynamic>? ?? 
+//                      json['articles'] as List<dynamic>? ?? [];
+  
+//   List<CommandeArticle> articles = articlesJson
+//       .map((e) => CommandeArticle.fromJson(e))
+//       .toList();
+
+//   // Gérer la date qui peut être "date" ou "date_bon_de_commande"
+//   DateTime? dateBonDeCommande;
+//   if (json['date'] != null) {
+//     dateBonDeCommande = DateTime.parse(json['date']);
+//   } else if (json['date_bon_de_commande'] != null) {
+//     dateBonDeCommande = DateTime.parse(json['date_bon_de_commande']);
+//   }
+
+//   // Gérer l'agence qui peut être un ID ou un objet
+//   Agence? agence;
+//   if (json['agence'] is int) {
+//     agence = Agence(idAgence: json['agence']);
+//   } else if (json['agence'] is Map<String, dynamic>) {
+//     agence = Agence.fromJson(json['agence']);
+//   }
+
+//   return BonDeCommande(
+//     idBonDeCommande: json['id_bon_de_commande'],
+//     dateBonDeCommande: dateBonDeCommande,
+//     reference: json['reference'] ?? '',
+//     agence: agence,
+//     nbArticle: json['nb_article'] ?? json['nb_predictions'] ?? 0,
+//     total: (json['total'] != null)
+//         ? double.tryParse(json['total'].toString()) ?? 0
+//         : 0,
+//     articles: articles,
+//     description: json['description'] ?? '',
+//     status_commande: json['status_commande'] ?? 'brouillon',
+//     bon_de_sortie: json['bon_de_sortie'] ?? false,
+//   );
+// }
+factory BonDeCommande.fromJson(Map<String, dynamic> json) {
+  
+  // Gérer le cas où "predictions" est présent (format prédiction)
+  var articlesJson = json['predictions'] as List<dynamic>? ?? 
+                     json['articles'] as List<dynamic>? ?? [];
+  
+  List<CommandeArticle> articles = articlesJson
+      .map((e) => CommandeArticle.fromJson(e as Map<String, dynamic>))
+      .toList();
+
+  // Gérer la date qui peut être "date" ou "date_bon_de_commande"
+  DateTime? dateBonDeCommande;
+  if (json['date'] != null) {
+    dateBonDeCommande = DateTime.parse(json['date']);
+  } else if (json['date_bon_de_commande'] != null) {
+    dateBonDeCommande = DateTime.parse(json['date_bon_de_commande']);
   }
+
+  // Gérer l'agence qui peut être un ID ou un objet
+  Agence? agence;
+  if (json['agence'] is int) {
+    agence = Agence(idAgence: json['agence']);
+  } else if (json['agence'] is Map<String, dynamic>) {
+    agence = Agence.fromJson(json['agence']);
+  }
+
+  return BonDeCommande(
+    idBonDeCommande: json['id_bon_de_commande'],
+    dateBonDeCommande: dateBonDeCommande,
+    reference: json['reference'] ?? '',
+    agence: agence,
+    nbArticle: json['nb_article'] ?? json['nb_predictions'] ?? 0,
+    total: (json['total'] != null)
+        ? double.tryParse(json['total'].toString()) ?? 0
+        : 0,
+    articles: articles,
+    description: json['description'] ?? '',
+    status_commande: json['status_commande'] ?? 'brouillon',
+    bon_de_sortie: json['bon_de_sortie'] ?? false,
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {
